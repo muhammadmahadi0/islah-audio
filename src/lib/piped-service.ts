@@ -7,6 +7,8 @@ const getPipedInstances = (): string[] => {
 
 const PIPED_INSTANCES = getPipedInstances();
 
+const CHANNEL_HANDLE = process.env.NEXT_PUBLIC_CHANNEL_HANDLE || '@islahbd';
+
 export interface PipedStream {
   url: string;
   format: string;
@@ -163,6 +165,93 @@ class PipedService {
       console.error('Failed to search videos:', error);
       return [];
     }
+  }
+
+  /**
+   * Get channel by handle (e.g., @islahbd)
+   * Piped API uses /channels/{channelId} endpoint
+   */
+  async getChannelByHandle(handle: string): Promise<PipedChannel | null> {
+    try {
+      // First, search for the channel to get the channelId
+      const cleanHandle = handle.replace(/^@/, '');
+      const searchResults = await this.tryFetchWithFallback<{
+        items: Array<{ url: string; name: string }>;
+      }>(`/search?q=${encodeURIComponent(cleanHandle)}&filter=channels`);
+
+      if (!searchResults?.items || searchResults.items.length === 0) {
+        console.error('Channel not found:', handle);
+        return null;
+      }
+
+      // Extract channelId from URL (e.g., "/channel/UCxxxx")
+      const channelUrl = searchResults.items[0].url;
+      const channelIdMatch = channelUrl.match(/\/channel\/([a-zA-Z0-9_-]+)/);
+
+      if (!channelIdMatch) {
+        console.error('Invalid channel URL:', channelUrl);
+        return null;
+      }
+
+      const channelId = channelIdMatch[1];
+      return this.getChannel(channelId);
+    } catch (error) {
+      console.error('Failed to get channel by handle:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get videos from a specific channel
+   */
+  async getChannelVideos(channelId: string, options: { page?: number; limit?: number } = {}): Promise<PipedVideo[]> {
+    try {
+      const { page = 1, limit = 50 } = options;
+
+      // Piped uses the channel endpoint which includes relatedStreams
+      const channel = await this.getChannel(channelId);
+
+      if (!channel) {
+        return [];
+      }
+
+      // Return the related streams (videos) from the channel
+      return channel.relatedStreams || [];
+    } catch (error) {
+      console.error('Failed to get channel videos:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get channel ID from handle
+   */
+  async resolveChannelId(handle: string): Promise<string | null> {
+    try {
+      const cleanHandle = handle.replace(/^@/, '');
+      const searchResults = await this.tryFetchWithFallback<{
+        items: Array<{ url: string; name: string }>;
+      }>(`/search?q=${encodeURIComponent(cleanHandle)}&filter=channels`);
+
+      if (!searchResults?.items || searchResults.items.length === 0) {
+        return null;
+      }
+
+      const channelUrl = searchResults.items[0].url;
+      const channelIdMatch = channelUrl.match(/\/channel\/([a-zA-Z0-9_-]+)/);
+
+      return channelIdMatch ? channelIdMatch[1] : null;
+    } catch (error) {
+      console.error('Failed to resolve channel ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get the default channel handle from environment
+   */
+  getDefaultChannelHandle(): string {
+    return CHANNEL_HANDLE;
   }
 
   getBestAudioStream(streams: PipedStream[]): string | null {

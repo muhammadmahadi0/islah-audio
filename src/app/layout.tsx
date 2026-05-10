@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Player from '@/components/Player';
+import AudioPlayer from '@/components/AudioPlayer';
 
 export const metadata: Metadata = {
   title: 'Islah Audio',
-  description: 'Stream Islamic audio content from PeerTube',
+  description: 'Stream Islamic audio content from YouTube via Piped',
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
             {children}
           </div>
           {/* Persistent Audio Player - outside children so it doesn't remount on navigation */}
-          <Player />
+          <AudioPlayer />
         </div>
       </body>
     </html>
