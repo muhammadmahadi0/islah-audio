@@ -1,6 +1,6 @@
 /**
  * YouTube Data API v3 Helper
- * Uses official API with user's key, falls back to Invidious
+ * Requires YOUTUBE_API_KEY - returns 400 if missing
  */
 
 export interface YouTubeVideo {
@@ -8,7 +8,6 @@ export interface YouTubeVideo {
   title: string;
   thumbnail: string;
   publishedAt: string;
-  duration?: string;
 }
 
 export interface YouTubeChannel {
@@ -17,47 +16,28 @@ export interface YouTubeChannel {
   videos: YouTubeVideo[];
 }
 
-/**
- * Fetch from YouTube Data API v3
- */
-async function fetchYouTubeAPI<T>(endpoint: string, params: Record<string, string>): Promise<T | null> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+const API_KEY = process.env.YOUTUBE_API_KEY;
 
-  if (!apiKey) {
-    console.log('[YouTube API] No API key configured');
-    return null;
-  }
+function getYouTubeAPI<T>(endpoint: string, params: Record<string, string>): Promise<T | null> {
+  if (!API_KEY) return Promise.resolve(null);
 
   const url = new URL(`https://www.googleapis.com/youtube/v3/${endpoint}`);
-  url.searchParams.set('key', apiKey);
+  url.searchParams.set('key', API_KEY);
 
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }
 
-  try {
-    const response = await fetch(url.toString(), {
-      headers: { Accept: 'application/json' },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      console.error('[YouTube API] Error:', error.error?.message || response.status);
-      return null;
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('[YouTube API] Fetch failed:', error);
-    return null;
-  }
+  return fetch(url.toString(), { headers: { Accept: 'application/json' } })
+    .then((res) => {
+      if (!res.ok) return null;
+      return res.json() as Promise<T>;
+    })
+    .catch(() => null);
 }
 
-/**
- * Get channel details including uploads playlist ID
- */
-export async function getChannelDetails(channelId: string): Promise<{ uploadsPlaylistId: string; title: string; thumbnail: string } | null> {
-  const data = await fetchYouTubeAPI<any>('channels', {
+export async function getChannelDetails(channelId: string) {
+  const data = await getYouTubeAPI<any>('channels', {
     part: 'contentDetails,snippet',
     id: channelId,
   });
@@ -72,11 +52,8 @@ export async function getChannelDetails(channelId: string): Promise<{ uploadsPla
   };
 }
 
-/**
- * Get latest videos from channel's uploads playlist
- */
-export async function getPlaylistVideos(playlistId: string, maxResults = 50): Promise<YouTubeVideo[]> {
-  const data = await fetchYouTubeAPI<any>('playlistItems', {
+export async function getPlaylistVideos(playlistId: string, maxResults = 50) {
+  const data = await getYouTubeAPI<any>('playlistItems', {
     part: 'snippet',
     playlistId,
     maxResults: maxResults.toString(),
@@ -94,33 +71,21 @@ export async function getPlaylistVideos(playlistId: string, maxResults = 50): Pr
     }));
 }
 
-/**
- * Get channel videos - main entry point
- * Uses YouTube API first, falls back to Invidious
- */
-export async function getChannelVideosYT(channelId: string): Promise<YouTubeChannel | null> {
-  console.log(`[YouTube] Fetching channel: ${channelId}`);
-
-  // Step 1: Get channel details (uploads playlist ID)
+export async function getChannelVideos(channelId: string): Promise<YouTubeChannel | null> {
   const channelDetails = await getChannelDetails(channelId);
+  if (!channelDetails) return null;
 
-  if (!channelDetails) {
-    console.log('[YouTube] Channel fetch failed, will use Invidious fallback');
-    return null;
-  }
-
-  console.log(`[YouTube] Channel: ${channelDetails.title}, Playlist: ${channelDetails.uploadsPlaylistId}`);
-
-  // Step 2: Get videos from uploads playlist
   const videos = await getPlaylistVideos(channelDetails.uploadsPlaylistId, 50);
-
-  console.log(`[YouTube] Got ${videos.length} videos`);
 
   return {
     name: channelDetails.title,
     avatar: channelDetails.thumbnail,
     videos,
   };
+}
+
+export function hasApiKey(): boolean {
+  return !!API_KEY;
 }
 
 export const TARGET_CHANNEL_ID = 'UCGv3nK48XG7f5O7fR05M90g';

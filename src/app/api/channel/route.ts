@@ -1,10 +1,10 @@
 /**
- * Channel API - YouTube Data API v3 with Invidious fallback
+ * Channel API - YouTube Data API v3 only
+ * Returns 400 if API key is missing
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getChannelVideosYT, TARGET_CHANNEL_ID } from '@/lib/youtube';
-import { getChannelVideos, DEFAULT_CHANNEL_ID } from '@/lib/invidious';
+import { getChannelVideos, hasApiKey, TARGET_CHANNEL_ID } from '@/lib/youtube';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,54 +12,35 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const channelId = searchParams.get('id') || TARGET_CHANNEL_ID;
 
-  console.log(`[Channel API] Requested: ${channelId}`);
-
-  // Try YouTube Data API v3 first (requires YOUTUBE_API_KEY in .env.local)
-  try {
-    const channel = await getChannelVideosYT(channelId);
-
-    if (channel && channel.videos.length > 0) {
-      console.log(`[Channel API] YouTube API success: ${channel.videos.length} videos`);
-
-      return NextResponse.json({
-        success: true,
-        source: 'youtube',
-        channel: { name: channel.name, avatar: channel.avatar },
-        videos: channel.videos.map((v) => ({
-          id: v.id,
-          title: v.title,
-          thumbnail: v.thumbnail,
-          publishedAt: v.publishedAt,
-        })),
-      });
-    }
-  } catch (error) {
-    console.error('[Channel API] YouTube API failed:', error);
+  // Require API key - return 400 if missing
+  if (!hasApiKey()) {
+    return NextResponse.json(
+      { error: 'Missing API Key. Add YOUTUBE_API_KEY to environment variables.' },
+      { status: 400 }
+    );
   }
 
-  // Fallback to Invidious
-  console.log('[Channel API] Falling back to Invidious');
+  console.log(`[Channel API] Fetching: ${channelId}`);
 
   try {
     const channel = await getChannelVideos(channelId);
 
-    if (!channel) {
+    if (!channel || channel.videos.length === 0) {
       return NextResponse.json(
-        { error: 'All sources failed. Please try again later.' },
-        { status: 502 }
+        { error: 'No videos found for this channel.' },
+        { status: 404 }
       );
     }
 
-    console.log(`[Channel API] Invidious success: ${channel.videos.length} videos`);
+    console.log(`[Channel API] Success: ${channel.videos.length} videos`);
 
     return NextResponse.json({
       success: true,
-      source: 'invidious',
-      channel: { name: channel.title, avatar: channel.avatar },
+      channel: { name: channel.name, avatar: channel.avatar },
       videos: channel.videos,
     });
   } catch (error) {
-    console.error('[Channel API] Invidious failed:', error);
+    console.error('[Channel API] Error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

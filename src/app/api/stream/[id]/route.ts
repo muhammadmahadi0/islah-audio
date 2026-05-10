@@ -1,10 +1,9 @@
 /**
- * Stream API using Invidious
- * Returns highest quality audio-only stream
+ * Stream API - Uses Cobalt for audio extraction
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getVideoStream } from '@/lib/invidious';
+import { getAudioStream } from '@/lib/cobalt';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,35 +20,31 @@ export async function GET(
   console.log(`[Stream API] Fetching: ${videoId}`);
 
   try {
-    const stream = await getVideoStream(videoId);
+    const stream = await getAudioStream(videoId);
 
     if (!stream) {
-      console.error(`[Stream API] No audio: ${videoId}`);
       return NextResponse.json(
-        { error: 'No audio stream available' },
+        { error: 'Could not extract audio' },
         { status: 502 }
       );
     }
 
     console.log(`[Stream API] Success: ${videoId}`);
 
-    // Return with cache headers
     const response = NextResponse.json({
       success: true,
       data: {
-        url: stream.audioUrl,
+        url: stream.url,
         title: stream.title,
         thumbnail: stream.thumbnail,
         duration: stream.duration,
       },
     });
 
-    // Cache for 1 hour
     response.headers.set('Cache-Control', 'public, max-age=3600');
-
     return response;
   } catch (error) {
-    console.error(`[Stream API] Error:`, error);
+    console.error('[Stream API] Error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
