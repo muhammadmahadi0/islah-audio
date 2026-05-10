@@ -8,11 +8,16 @@ export interface Track {
   channelName: string;
   videoId: string;
   audioUrl?: string;
+  hlsUrl?: string;
+  publishedAt?: string;
+  description?: string;
 }
 
 interface PlayerState {
+  // State
   currentTrack: Track | null;
   isPlaying: boolean;
+  isLoading: boolean;
   currentTime: number;
   duration: number;
   volume: number;
@@ -20,8 +25,9 @@ interface PlayerState {
   playlistIndex: number;
 
   // Actions
-  setCurrentTrack: (track: Track) => void;
+  setCurrentTrack: (track: Track | null) => void;
   setIsPlaying: (playing: boolean) => void;
+  setIsLoading: (loading: boolean) => void;
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
   setVolume: (volume: number) => void;
@@ -29,26 +35,33 @@ interface PlayerState {
   playNext: () => void;
   playPrevious: () => void;
   playTrack: (track: Track, tracks?: Track[], index?: number) => void;
+  togglePlay: () => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
+  // Initial state
   currentTrack: null,
   isPlaying: false,
+  isLoading: false,
   currentTime: 0,
   duration: 0,
   volume: 0.8,
   playlist: [],
   playlistIndex: -1,
 
+  // Actions
   setCurrentTrack: (track) => set({ currentTrack: track }),
 
   setIsPlaying: (isPlaying) => set({ isPlaying }),
+
+  setIsLoading: (isLoading) => set({ isLoading }),
 
   setCurrentTime: (currentTime) => set({ currentTime }),
 
   setDuration: (duration) => set({ duration }),
 
-  setVolume: (volume) => set({ volume: Math.max(0, Math.min(1, volume)) }),
+  setVolume: (volume) =>
+    set({ volume: Math.max(0, Math.min(1, volume)) }),
 
   setPlaylist: (tracks, startIndex = 0) =>
     set({
@@ -68,6 +81,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       playlistIndex: nextIndex,
       currentTrack: nextTrack,
       currentTime: 0,
+      isPlaying: true,
     });
   },
 
@@ -88,6 +102,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       playlistIndex: prevIndex,
       currentTrack: prevTrack,
       currentTime: 0,
+      isPlaying: true,
     });
   },
 
@@ -98,14 +113,23 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         playlist: tracks,
         playlistIndex: index,
         isPlaying: true,
+        isLoading: true,
         currentTime: 0,
       });
     } else {
       set({
         currentTrack: track,
         isPlaying: true,
+        isLoading: true,
         currentTime: 0,
       });
+    }
+  },
+
+  togglePlay: () => {
+    const { isPlaying, currentTrack } = get();
+    if (currentTrack) {
+      set({ isPlaying: !isPlaying });
     }
   },
 }));
