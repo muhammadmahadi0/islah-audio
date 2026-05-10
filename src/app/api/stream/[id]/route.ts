@@ -1,9 +1,10 @@
 /**
- * Audio Stream API using Consumet
+ * Stream API using Invidious
+ * Returns highest quality audio-only stream
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getVideoInfo } from '@/lib/api';
+import { getVideoStream } from '@/lib/invidious';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,26 +15,23 @@ export async function GET(
   const { id: videoId } = await params;
 
   if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-    return NextResponse.json(
-      { error: 'Invalid video ID' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid video ID' }, { status: 400 });
   }
 
-  console.log(`[Audio API] Fetching stream for: ${videoId}`);
+  console.log(`[Stream API] Fetching: ${videoId}`);
 
   try {
-    const stream = await getVideoInfo(videoId);
+    const stream = await getVideoStream(videoId);
 
-    if (!stream || !stream.audioUrl) {
-      console.error(`[Audio API] No stream found for: ${videoId}`);
+    if (!stream) {
+      console.error(`[Stream API] No audio: ${videoId}`);
       return NextResponse.json(
-        { error: 'No audio stream available for this video' },
+        { error: 'No audio stream available' },
         { status: 502 }
       );
     }
 
-    console.log(`[Audio API] Success: ${videoId} - ${stream.title}`);
+    console.log(`[Stream API] Success: ${videoId}`);
 
     return NextResponse.json({
       success: true,
@@ -45,11 +43,8 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error(`[Audio API] Error fetching ${videoId}:`, error);
-    return NextResponse.json(
-      { error: 'Failed to fetch audio stream' },
-      { status: 500 }
-    );
+    console.error(`[Stream API] Error:`, error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
 

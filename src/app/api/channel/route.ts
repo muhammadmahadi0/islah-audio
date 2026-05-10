@@ -1,53 +1,45 @@
 /**
- * Channel Videos API using Consumet
+ * Channel Videos API using Invidious
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getChannel, DEFAULT_CHANNEL_ID } from '@/lib/api';
+import { getChannelVideos, DEFAULT_CHANNEL_ID } from '@/lib/invidious';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const handle = searchParams.get('handle') || DEFAULT_CHANNEL_ID;
+  const channelId = searchParams.get('id') || DEFAULT_CHANNEL_ID;
 
-  console.log(`[Channel API] Fetching: ${handle}`);
+  console.log(`[Channel API] Fetching: ${channelId}`);
 
   try {
-    const channel = await getChannel(handle);
+    const channel = await getChannelVideos(channelId);
 
     if (!channel) {
-      console.error(`[Channel API] Failed to fetch: ${handle}`);
+      console.error(`[Channel API] Failed: ${channelId}`);
       return NextResponse.json(
-        { error: 'Channel not found or unavailable' },
+        { error: 'All Invidious instances failed. Please try again later.' },
         { status: 502 }
       );
     }
 
-    const videos = (channel.videos || []).map((v: any) => ({
-      videoId: v.videoId,
-      title: v.title,
-      thumbnail: v.thumbnail,
-      duration: v.duration || 0,
-      views: v.views || 0,
-    }));
-
-    console.log(`[Channel API] Success: ${handle} - ${videos.length} videos`);
+    console.log(`[Channel API] Success: ${channel.videos.length} videos`);
 
     return NextResponse.json({
       success: true,
       channel: {
-        name: channel.name,
+        name: channel.title,
         avatar: channel.avatar,
         banner: channel.banner,
         subscriberCount: channel.subscriberCount,
       },
-      videos,
+      videos: channel.videos,
     });
   } catch (error) {
     console.error(`[Channel API] Error:`, error);
     return NextResponse.json(
-      { error: 'Failed to fetch channel. Please try again later.' },
+      { error: 'Server error. Please try again.' },
       { status: 500 }
     );
   }

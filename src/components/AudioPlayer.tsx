@@ -35,8 +35,8 @@ export default function AudioPlayer({ className }: AudioPlayerProps) {
 
     const fetchAudioStream = async () => {
       try {
-        // Use Consumet API for audio stream
-        const response = await fetch(`/api/audio/${currentTrack.videoId}`);
+        // Use Invidious API for audio stream
+        const response = await fetch(`/api/stream/${currentTrack.videoId}`);
         const data = await response.json();
 
         if (data.success && data.data?.url) {

@@ -11,6 +11,7 @@
   "dependencies": {
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^11.18.2",
     "hls.js": "^1.6.16",
     "lucide-react": "^0.417.0",
     "next": "14.2.5",
