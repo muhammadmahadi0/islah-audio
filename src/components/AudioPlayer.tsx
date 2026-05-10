@@ -35,7 +35,7 @@ export default function AudioPlayer({ className }: AudioPlayerProps) {
 
     const fetchAudioStream = async () => {
       try {
-        // Use the new stream API with fallback instances
+        // Use ytdl-core based stream API
         const response = await fetch(`/api/stream/${currentTrack.videoId}`);
         const data = await response.json();
 
