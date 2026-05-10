@@ -132,7 +132,8 @@ export default function HomePage() {
       setError(null);
 
       // Step 1: Search for the channel
-      const searchUrl = `/api/piped?path=${encodeURIComponent(`/search?q=${CHANNEL_HANDLE}&filter=channels`)}`;
+      const searchPath = `/search?q=${CHANNEL_HANDLE}&filter=channels`;
+      const searchUrl = `/api/piped?path=${encodeURIComponent(searchPath)}`;
       const searchRes = await fetch(searchUrl);
 
       if (!searchRes.ok) {
@@ -161,7 +162,8 @@ export default function HomePage() {
       setChannelAvatar(channelItem.avatar || '');
 
       // Step 2: Get channel details
-      const channelUrl2 = `/api/piped?path=${encodeURIComponent(`/channel/${channelId}`)}`;
+      const channelPath = `/channel/${channelId}`;
+      const channelUrl2 = `/api/piped?path=${encodeURIComponent(channelPath)}`;
       const channelRes = await fetch(channelUrl2);
 
       if (!channelRes.ok) {

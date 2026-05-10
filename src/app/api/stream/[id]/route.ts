@@ -1,6 +1,5 @@
 /**
- * Audio Stream Proxy
- * Fetches stream data and returns the best audio URL
+ * Audio Stream Proxy - Simplified with faster fallback
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,9 +8,7 @@ export const dynamic = 'force-dynamic';
 
 const PIPED_INSTANCES = [
   'https://pipedapi.kavin.rocks',
-  'https://piped.adminforge.de',
   'https://api.piped.victr.me',
-  'https://pipedapi.moomoo.me',
 ];
 
 interface PipedStream {
@@ -20,7 +17,6 @@ interface PipedStream {
   quality: string;
   codec: string;
   bitrate?: string;
-  language?: string;
 }
 
 interface PipedStreamsResponse {
@@ -28,93 +24,57 @@ interface PipedStreamsResponse {
   videoId: string;
   thumbnail: string;
   audioStreams: PipedStream[];
-  videoStreams: PipedStream[];
-  subtitles: unknown[];
-  live: boolean;
   duration: number;
 }
 
-/**
- * Try multiple Piped instances to fetch streams
- */
 async function fetchStreams(videoId: string): Promise<PipedStreamsResponse | null> {
   for (const baseUrl of PIPED_INSTANCES) {
     try {
-      const url = `${baseUrl}/streams/${videoId}`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch(url, {
+      const response = await fetch(`${baseUrl}/streams/${videoId}`, {
         signal: controller.signal,
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'IslahAudio/1.0 (Next.js)',
-        },
+        headers: { Accept: 'application/json' },
       });
 
       clearTimeout(timeoutId);
 
       if (response.ok) {
-        console.log(`[Stream Proxy] Success from ${baseUrl} for video ${videoId}`);
         return await response.json();
       }
-    } catch (error) {
-      console.warn(`[Stream Proxy] Failed ${baseUrl}:`, error instanceof Error ? error.message : 'Unknown');
+    } catch {
       continue;
     }
   }
   return null;
 }
 
-/**
- * Select the best audio stream
- */
 function selectBestAudio(streams: PipedStream[]): string | null {
-  if (!streams || streams.length === 0) return null;
+  if (!streams?.length) return null;
 
-  const scored = streams.map((stream) => {
+  const scored = streams.map((s) => {
     let score = 0;
-
-    // Prefer m4a for browser compatibility
-    if (stream.format?.toLowerCase().includes('m4a')) score += 100;
-    else if (stream.format?.toLowerCase().includes('mp4')) score += 80;
-
-    // Prefer opus codec
-    if (stream.codec?.toLowerCase().includes('opus')) score += 50;
-
-    // Add bitrate to score
-    const bitrate = parseInt(stream.bitrate?.replace(/\D/g, '') || '0');
+    if (s.format?.toLowerCase().includes('m4a')) score += 100;
+    else if (s.format?.toLowerCase().includes('mp4')) score += 80;
+    if (s.codec?.toLowerCase().includes('opus')) score += 50;
+    const bitrate = parseInt(s.bitrate?.replace(/\D/g, '') || '0');
     score += Math.min(bitrate / 10, 100);
-
-    return { stream, score };
+    return { url: s.url, score };
   });
 
   scored.sort((a, b) => b.score - a.score);
-  return scored[0]?.stream?.url || null;
+  return scored[0]?.url || null;
 }
 
-/**
- * GET /api/stream/[id]
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: videoId } = await params;
 
-  if (!videoId) {
-    return NextResponse.json(
-      { error: 'Missing video ID' },
-      { status: 400 }
-    );
-  }
-
-  // Validate YouTube video ID format (11 characters)
-  if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-    return NextResponse.json(
-      { error: 'Invalid video ID format' },
-      { status: 400 }
-    );
+  if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    return NextResponse.json({ error: 'Invalid video ID' }, { status: 400 });
   }
 
   try {
@@ -122,7 +82,7 @@ export async function GET(
 
     if (!streams) {
       return NextResponse.json(
-        { error: 'Could not fetch audio stream. All instances failed.' },
+        { error: 'Stream unavailable. Try again later.' },
         { status: 502 }
       );
     }
@@ -130,10 +90,7 @@ export async function GET(
     const audioUrl = selectBestAudio(streams.audioStreams);
 
     if (!audioUrl) {
-      return NextResponse.json(
-        { error: 'No audio streams available for this video' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'No audio available' }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -144,15 +101,11 @@ export async function GET(
         thumbnail: streams.thumbnail,
         duration: streams.duration,
         audioUrl,
-        isLive: streams.live,
       },
     });
   } catch (error) {
-    console.error('[Stream Proxy] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('[Stream] Error:', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
 
@@ -161,7 +114,6 @@ export async function OPTIONS() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Accept',
     },
   });
 }

@@ -1,39 +1,16 @@
 /**
- * Robust Piped API Proxy
- * Tries multiple Piped instances until one works
+ * Robust Piped API Proxy with fallback instances
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// List of Piped instances to try (in order of preference)
+// Fallback instances - use the most reliable ones
 const PIPED_INSTANCES = [
   'https://pipedapi.kavin.rocks',
-  'https://piped.adminforge.de',
   'https://api.piped.victr.me',
-  'https://pipedapi.moomoo.me',
 ];
-
-interface PipedStream {
-  url: string;
-  format: string;
-  quality: string;
-  codec: string;
-  bitrate?: string;
-  language?: string;
-}
-
-interface PipedStreamsResponse {
-  title: string;
-  videoId: string;
-  thumbnail: string;
-  audioStreams: PipedStream[];
-  videoStreams: PipedStream[];
-  subtitles: unknown[];
-  live: boolean;
-  duration: number;
-}
 
 interface PipedChannel {
   name: string;
@@ -63,91 +40,80 @@ interface SearchResult {
 }
 
 /**
- * Try fetching from a list of instances until one succeeds
+ * Fetch from a single Piped instance with timeout
+ */
+async function fetchFromInstance<T>(baseUrl: string, path: string): Promise<T | null> {
+  const url = `${baseUrl}${path}`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'IslahAudio/1.0',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      return await response.json();
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Try all instances until one works
  */
 async function fetchWithFallback<T>(path: string): Promise<{ data: T; baseUrl: string } | null> {
-  const errors: string[] = [];
-
   for (const baseUrl of PIPED_INSTANCES) {
-    try {
-      const url = `${baseUrl}${path}`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-      const response = await fetch(url, {
-        signal: controller.signal,
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'IslahAudio/1.0 (Next.js)',
-        },
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`[Piped Proxy] Success from ${baseUrl}${path}`);
-        return { data, baseUrl };
-      } else {
-        errors.push(`${baseUrl}: ${response.status}`);
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      errors.push(`${baseUrl}: ${message}`);
+    const data = await fetchFromInstance<T>(baseUrl, path);
+    if (data) {
+      return { data, baseUrl };
     }
   }
-
-  console.error(`[Piped Proxy] All instances failed for ${path}:`, errors);
   return null;
 }
 
 /**
- * GET /api/piped?path=/search?q=islahbd&filter=channels
+ * GET /api/piped?path=/search&q=islahbd&filter=channels
  * GET /api/piped?path=/channel/{channelId}
  */
 export async function GET(request: NextRequest) {
-  const path = request.nextUrl.searchParams.get('path');
+  const { searchParams } = new URL(request.url);
+  const path = searchParams.get('path');
 
   if (!path) {
     return NextResponse.json(
-      { error: 'Missing "path" parameter. Use ?path=/endpoint' },
+      { error: 'Missing "path" parameter' },
       { status: 400 }
     );
   }
 
-  // Validate path to prevent SSRF
-  if (!path.startsWith('/')) {
-    return NextResponse.json(
-      { error: 'Path must start with /' },
-      { status: 400 }
-    );
-  }
-
-  // Block dangerous paths
-  const dangerousPaths = ['/login', '/register', '/admin', '/settings'];
-  if (dangerousPaths.some((p) => path.startsWith(p))) {
-    return NextResponse.json(
-      { error: 'Access denied' },
-      { status: 403 }
-    );
-  }
+  // Sanitize path - remove any leading issues
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
 
   try {
-    const result = await fetchWithFallback<PipedChannel | SearchResult>(path);
+    const result = await fetchWithFallback<PipedChannel | SearchResult>(cleanPath);
 
     if (!result) {
+      // Return a more helpful error
       return NextResponse.json(
-        { error: 'All Piped instances failed. Please try again later.' },
+        {
+          error: 'Piped service unavailable. Try again later.',
+          tried: PIPED_INSTANCES,
+        },
         { status: 502 }
       );
     }
 
-    return NextResponse.json(result.data, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-        'X-Data-Source': result.baseUrl,
-      },
-    });
+    return NextResponse.json(result.data);
   } catch (error) {
     console.error('[Piped Proxy] Error:', error);
     return NextResponse.json(
@@ -157,13 +123,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Handle CORS preflight
 export async function OPTIONS() {
   return new NextResponse(null, {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Accept',
     },
   });
 }
