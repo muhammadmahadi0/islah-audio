@@ -33,7 +33,8 @@ export async function GET(
 
     console.log(`[Stream API] Success: ${videoId}`);
 
-    return NextResponse.json({
+    // Return with cache headers
+    const response = NextResponse.json({
       success: true,
       data: {
         url: stream.audioUrl,
@@ -42,6 +43,11 @@ export async function GET(
         duration: stream.duration,
       },
     });
+
+    // Cache for 1 hour
+    response.headers.set('Cache-Control', 'public, max-age=3600');
+
+    return response;
   } catch (error) {
     console.error(`[Stream API] Error:`, error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

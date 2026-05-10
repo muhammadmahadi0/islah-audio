@@ -33,7 +33,7 @@ export default function MiniPlayer() {
     setIsExpanded(false);
   }, []);
 
-  // Handle swipe gestures
+  // Handle swipe gestures for mobile
   const touchStartY = useRef<number>(0);
   const touchDeltaY = useRef<number>(0);
 
@@ -73,19 +73,19 @@ export default function MiniPlayer() {
   // Don't render if no track
   if (!currentTrack) return null;
 
-  // Full Screen Player
+  // Full Screen Player (Expanded)
   if (isExpanded) {
     return (
-      <div className="fixed inset-0 bg-[#121212] z-50 flex flex-col">
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-4 pt-safe">
           <button
             onClick={() => setIsExpanded(false)}
             className="p-2 -ml-2 text-white"
           >
             <ChevronDown size={28} />
           </button>
-          <span className="text-xs text-[#b3b3b3] uppercase tracking-wider">
+          <span className="text-xs text-gray-400 uppercase tracking-wider">
             Now Playing
           </span>
           <div className="w-10" />
@@ -101,8 +101,8 @@ export default function MiniPlayer() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-[#282828] flex items-center justify-center">
-                <Music size={64} className="text-[#727272]" />
+              <div className="w-full h-full bg-[#1DB954] flex items-center justify-center">
+                <Music size={64} className="text-black" />
               </div>
             )}
           </div>
@@ -111,7 +111,7 @@ export default function MiniPlayer() {
         {/* Track Info */}
         <div className="px-6 py-4">
           <h2 className="text-xl font-bold text-white truncate">{currentTrack.title}</h2>
-          <p className="text-[#b3b3b3] text-sm truncate">{currentTrack.channelName}</p>
+          <p className="text-gray-400 text-sm truncate">{currentTrack.channelName}</p>
         </div>
 
         {/* Progress Bar */}
@@ -123,9 +123,14 @@ export default function MiniPlayer() {
             step="0.1"
             value={currentTime}
             onChange={handleSeek}
-            className="w-full h-1 bg-[#4d4d4d] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+            className="w-full h-1 bg-gray-600 rounded-full appearance-none cursor-pointer
+              [&::-webkit-slider-thumb]:appearance-none
+              [&::-webkit-slider-thumb]:w-4
+              [&::-webkit-slider-thumb]:h-4
+              [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:bg-[#1DB954]"
           />
-          <div className="flex justify-between text-xs text-[#b3b3b3] mt-2">
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -141,7 +146,7 @@ export default function MiniPlayer() {
           </button>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-16 h-16 rounded-full bg-white flex items-center justify-center hover:scale-105 transition-transform"
+            className="w-16 h-16 rounded-full bg-[#1DB954] flex items-center justify-center hover:scale-105 transition-transform"
           >
             {isLoading ? (
               <Loader2 size={28} className="animate-spin text-black" />
@@ -165,15 +170,13 @@ export default function MiniPlayer() {
     );
   }
 
-  // Mini Player (collapsed)
+  // Mini Player (collapsed) - Mobile first design
   return (
     <>
-      {/* Floating Mini Player - Above bottom nav on mobile, fixed at bottom on desktop */}
       <div
         className={cn(
-          'fixed left-2 right-2 md:left-0 md:right-0 md:bottom-0 z-40 transition-transform duration-300',
-          // On mobile: above bottom nav (h-16 = 64px), on desktop: at bottom
-          'bottom-[68px] md:bottom-0'
+          'fixed left-0 right-0 z-40 transition-transform duration-300',
+          'bottom-16' // Above bottom nav (64px = h-16)
         )}
       >
         <div
@@ -181,10 +184,10 @@ export default function MiniPlayer() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="bg-[#282828] md:bg-[#181818] md:border-t md:border-[#282828] rounded-md md:rounded-none p-3 flex items-center gap-3 cursor-pointer hover:bg-[#333333] transition-colors"
+          className="bg-[#121212] border-t border-[#282828] p-3 flex items-center gap-3 cursor-pointer hover:bg-[#1a1a1a] transition-colors"
         >
           {/* Thumbnail */}
-          <div className="w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-[#333333]">
+          <div className="w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-[#1DB954]">
             {currentTrack.thumbnail ? (
               <img
                 src={currentTrack.thumbnail}
@@ -193,15 +196,15 @@ export default function MiniPlayer() {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <Music size={20} className="text-[#727272]" />
+                <Music size={20} className="text-black" />
               </div>
             )}
           </div>
 
-          {/* Track Info */}
+          {/* Track Info with scrolling title */}
           <div className="flex-1 min-w-0">
             <p className="text-white text-sm font-medium truncate">{currentTrack.title}</p>
-            <p className="text-[#b3b3b3] text-xs truncate">{currentTrack.channelName}</p>
+            <p className="text-gray-400 text-xs truncate">{currentTrack.channelName}</p>
           </div>
 
           {/* Controls */}
@@ -211,7 +214,7 @@ export default function MiniPlayer() {
                 e.stopPropagation();
                 setIsPlaying(!isPlaying);
               }}
-              className="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0"
+              className="w-10 h-10 rounded-full bg-[#1DB954] flex items-center justify-center flex-shrink-0"
             >
               {isLoading ? (
                 <Loader2 size={18} className="animate-spin text-black" />
@@ -226,19 +229,19 @@ export default function MiniPlayer() {
                 e.stopPropagation();
                 playNext();
               }}
-              className="text-[#b3b3b3] hover:text-white"
+              className="text-gray-400 hover:text-white"
             >
               <SkipForward size={20} />
             </button>
           </div>
 
           {/* Expand indicator */}
-          <ChevronUp size={20} className="text-[#727272] md:hidden" />
+          <ChevronUp size={20} className="text-gray-500" />
         </div>
       </div>
 
       {/* Spacer to prevent content from being hidden behind mini player */}
-      <div className="h-20 md:hidden" />
+      <div className="h-20" />
     </>
   );
 }
