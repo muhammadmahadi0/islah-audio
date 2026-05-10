@@ -25,9 +25,14 @@ export async function GET(request: NextRequest) {
   try {
     const channel = await getChannelVideos(channelId);
 
+    console.log('[Channel API] Response:', JSON.stringify(channel, null, 2));
+
     if (!channel || channel.videos.length === 0) {
       return NextResponse.json(
-        { error: 'No videos found for this channel.' },
+        {
+          error: 'No videos found for this channel.',
+          hint: 'Check if channel exists and has public uploads. Verify API key has YouTube Data API v3 enabled.'
+        },
         { status: 404 }
       );
     }

@@ -72,15 +72,45 @@ export async function getPlaylistVideos(playlistId: string, maxResults = 50) {
 }
 
 export async function getChannelVideos(channelId: string): Promise<YouTubeChannel | null> {
-  const channelDetails = await getChannelDetails(channelId);
-  if (!channelDetails) return null;
+  console.log('[YouTube] Getting channel details for:', channelId);
+
+  // Try as channel ID first
+  let channelDetails = await getChannelDetails(channelId);
+
+  // If not found, try as handle (e.g., @islahbd)
+  if (!channelDetails && channelId.startsWith('@')) {
+    console.log('[YouTube] Trying as handle:', channelId);
+    channelDetails = await getChannelDetailsByHandle(channelId);
+  }
+
+  if (!channelDetails) {
+    console.log('[YouTube] Channel not found');
+    return null;
+  }
 
   const videos = await getPlaylistVideos(channelDetails.uploadsPlaylistId, 50);
+  console.log('[YouTube] Got', videos.length, 'videos');
 
   return {
     name: channelDetails.title,
     avatar: channelDetails.thumbnail,
     videos,
+  };
+}
+
+async function getChannelDetailsByHandle(handle: string) {
+  const data = await getYouTubeAPI<any>('channels', {
+    part: 'contentDetails,snippet',
+    forHandle: handle.replace('@', ''),
+  });
+
+  if (!data?.items?.length) return null;
+
+  const channel = data.items[0];
+  return {
+    uploadsPlaylistId: channel.contentDetails.relatedPlaylists.uploads,
+    title: channel.snippet.title,
+    thumbnail: channel.snippet.thumbnails?.medium?.url || '',
   };
 }
 
