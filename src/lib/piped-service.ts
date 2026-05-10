@@ -1,4 +1,11 @@
-const PIPED_API_BASE = 'https://pipedapi.kavin.rocks';
+const getPipedInstances = (): string[] => {
+  const primary = process.env.NEXT_PUBLIC_PIPED_API || '';
+  const fallback = process.env.NEXT_PUBLIC_PIPED_FALLBACK || '';
+  const instances: string[] = [primary, ...fallback.split(',').filter(Boolean)];
+  return instances.filter((url): url is string => Boolean(url));
+};
+
+const PIPED_INSTANCES = getPipedInstances();
 
 export interface PipedStream {
   url: string;
@@ -30,6 +37,14 @@ export interface PipedChannel {
   verified: boolean;
   videos: PipedVideo[];
   relatedStreams: PipedVideo[];
+  playlists?: PipedPlaylist[];
+}
+
+export interface PipedPlaylist {
+  name: string;
+  playlistId: string;
+  thumbnail: string;
+  videos: PipedVideo[];
 }
 
 export interface PipedStreamsResponse {
@@ -43,7 +58,23 @@ export interface PipedStreamsResponse {
   duration: number;
 }
 
+export interface PipedSearchResult {
+  results: {
+    id: number;
+    url: string;
+    title: string;
+    thumbnail: string;
+    type: 'channel' | 'video' | 'playlist';
+  }[];
+}
+
 class PipedService {
+  private currentInstanceIndex = 0;
+
+  private get baseUrl(): string {
+    return PIPED_INSTANCES[this.currentInstanceIndex] || PIPED_INSTANCES[0];
+  }
+
   private async fetchWithTimeout<T>(url: string, timeout = 10000): Promise<T> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -59,12 +90,27 @@ class PipedService {
     }
   }
 
+  private async tryFetchWithFallback<T>(path: string): Promise<T | null> {
+    for (let i = 0; i < PIPED_INSTANCES.length; i++) {
+      const instance = PIPED_INSTANCES[(this.currentInstanceIndex + i) % PIPED_INSTANCES.length];
+      try {
+        const data = await this.fetchWithTimeout<T>(`${instance}${path}`);
+        this.currentInstanceIndex = (this.currentInstanceIndex + i) % PIPED_INSTANCES.length;
+        return data;
+      } catch (error) {
+        console.warn(`Failed to fetch from ${instance}, trying next...`);
+        continue;
+      }
+    }
+    return null;
+  }
+
   async searchChannels(query: string): Promise<PipedChannel[]> {
     try {
-      const data = await this.fetchWithTimeout<{ items: PipedChannel[] }>(
-        `${PIPED_API_BASE}/search?q=${encodeURIComponent(query)}&filter=channels`
+      const data = await this.tryFetchWithFallback<{ items: PipedChannel[] }>(
+        `/search?q=${encodeURIComponent(query)}&filter=channels`
       );
-      return data.items || [];
+      return data?.items || [];
     } catch (error) {
       console.error('Failed to search channels:', error);
       return [];
@@ -73,8 +119,8 @@ class PipedService {
 
   async getChannel(channelId: string): Promise<PipedChannel | null> {
     try {
-      const data = await this.fetchWithTimeout<PipedChannel>(
-        `${PIPED_API_BASE}/channel/${channelId}`
+      const data = await this.tryFetchWithFallback<PipedChannel>(
+        `/channel/${channelId}`
       );
       return data;
     } catch (error) {
@@ -85,8 +131,8 @@ class PipedService {
 
   async getStreams(videoId: string): Promise<PipedStreamsResponse | null> {
     try {
-      const data = await this.fetchWithTimeout<PipedStreamsResponse>(
-        `${PIPED_API_BASE}/streams/${videoId}`
+      const data = await this.tryFetchWithFallback<PipedStreamsResponse>(
+        `/streams/${videoId}`
       );
       return data;
     } catch (error) {
@@ -95,21 +141,58 @@ class PipedService {
     }
   }
 
+  async searchVideos(query: string, channelId?: string): Promise<PipedVideo[]> {
+    try {
+      const data = await this.tryFetchWithFallback<PipedSearchResult>(
+        `/search?q=${encodeURIComponent(query)}`
+      );
+      return data?.results
+        ?.filter(r => r.type === 'video')
+        .map(r => ({
+          title: r.title,
+          videoId: r.url.split('watch?v=')[1]?.split('&')[0] || '',
+          thumbnail: r.thumbnail,
+          duration: 0,
+          uploaded: '',
+          views: 0,
+          uploaderName: '',
+          uploaderAvatar: '',
+          uploaderId: '',
+        })) || [];
+    } catch (error) {
+      console.error('Failed to search videos:', error);
+      return [];
+    }
+  }
+
   getBestAudioStream(streams: PipedStream[]): string | null {
     if (!streams || streams.length === 0) return null;
 
-    // Prefer opus audio streams (usually better quality)
-    const opusStreams = streams.filter(s => s.codec?.includes('opus'));
-    const targetStreams = opusStreams.length > 0 ? opusStreams : streams;
+    // Priority: m4a format > opus > other
+    // Then by quality/bitrate
+    const scored = streams.map(stream => {
+      let score = 0;
 
-    // Sort by quality label (assume higher number = better)
-    const sorted = [...targetStreams].sort((a, b) => {
-      const qualityA = parseInt(a.quality.replace(/\D/g, '') || '0');
-      const qualityB = parseInt(b.quality.replace(/\D/g, '') || '0');
-      return qualityB - qualityA;
+      // Prefer m4a for browser compatibility
+      if (stream.format?.toLowerCase().includes('m4a')) score += 100;
+      if (stream.format?.toLowerCase().includes('mp4')) score += 80;
+
+      // Prefer opus (usually better quality)
+      if (stream.codec?.toLowerCase().includes('opus')) score += 50;
+
+      // Parse bitrate (e.g., "128kbps" -> 128)
+      const bitrate = parseInt(stream.bitrate?.replace(/\D/g, '') || '0');
+      score += bitrate;
+
+      // Parse quality (e.g., "128kbps" -> 128)
+      const quality = parseInt(stream.quality?.replace(/\D/g, '') || '0');
+      score += quality;
+
+      return { stream, score };
     });
 
-    return sorted[0]?.url || null;
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0]?.stream?.url || null;
   }
 }
 
