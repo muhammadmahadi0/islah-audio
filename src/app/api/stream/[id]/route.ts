@@ -1,5 +1,5 @@
 /**
- * Audio Stream Proxy - Simplified with faster fallback
+ * Audio Stream Proxy - Multiple Piped instances
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,31 +7,28 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const PIPED_INSTANCES = [
-  'https://pipedapi.kavin.rocks',
   'https://api.piped.victr.me',
+  'https://pipedapi.kavin.rocks',
+  'https://yewtu.be',
+  'https://watchapi.whatever.social',
 ];
 
 interface PipedStream {
   url: string;
   format: string;
-  quality: string;
   codec: string;
   bitrate?: string;
 }
 
-interface PipedStreamsResponse {
-  title: string;
-  videoId: string;
-  thumbnail: string;
+interface StreamData {
   audioStreams: PipedStream[];
-  duration: number;
 }
 
-async function fetchStreams(videoId: string): Promise<PipedStreamsResponse | null> {
+async function fetchStreams(videoId: string): Promise<StreamData | null> {
   for (const baseUrl of PIPED_INSTANCES) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
       const response = await fetch(`${baseUrl}/streams/${videoId}`, {
         signal: controller.signal,
@@ -53,15 +50,12 @@ async function fetchStreams(videoId: string): Promise<PipedStreamsResponse | nul
 function selectBestAudio(streams: PipedStream[]): string | null {
   if (!streams?.length) return null;
 
-  const scored = streams.map((s) => {
-    let score = 0;
-    if (s.format?.toLowerCase().includes('m4a')) score += 100;
-    else if (s.format?.toLowerCase().includes('mp4')) score += 80;
-    if (s.codec?.toLowerCase().includes('opus')) score += 50;
-    const bitrate = parseInt(s.bitrate?.replace(/\D/g, '') || '0');
-    score += Math.min(bitrate / 10, 100);
-    return { url: s.url, score };
-  });
+  const scored = streams.map(s => ({
+    url: s.url,
+    score: (s.format?.includes('m4a') ? 100 : s.format?.includes('mp4') ? 80 : 0) +
+           (s.codec?.includes('opus') ? 50 : 0) +
+           Math.min(parseInt(s.bitrate?.replace(/\D/g, '') || '0') / 10, 100)
+  }));
 
   scored.sort((a, b) => b.score - a.score);
   return scored[0]?.url || null;
@@ -79,15 +73,7 @@ export async function GET(
 
   try {
     const streams = await fetchStreams(videoId);
-
-    if (!streams) {
-      return NextResponse.json(
-        { error: 'Stream unavailable. Try again later.' },
-        { status: 502 }
-      );
-    }
-
-    const audioUrl = selectBestAudio(streams.audioStreams);
+    const audioUrl = streams?.audioStreams ? selectBestAudio(streams.audioStreams) : null;
 
     if (!audioUrl) {
       return NextResponse.json({ error: 'No audio available' }, { status: 404 });
@@ -95,25 +81,15 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: {
-        videoId: streams.videoId,
-        title: streams.title,
-        thumbnail: streams.thumbnail,
-        duration: streams.duration,
-        audioUrl,
-      },
+      data: { audioUrl }
     });
   } catch (error) {
-    console.error('[Stream] Error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
 
 export async function OPTIONS() {
   return new NextResponse(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    },
+    headers: { 'Access-Control-Allow-Origin': '*' }
   });
 }
