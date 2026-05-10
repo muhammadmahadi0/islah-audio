@@ -1,5 +1,5 @@
 /**
- * Channel Videos API using Invidious
+ * Channel API - Uses Invidious with fallback instances
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
     const channel = await getChannelVideos(channelId);
 
     if (!channel) {
-      console.error(`[Channel API] Failed: ${channelId}`);
       return NextResponse.json(
         { error: 'All Invidious instances failed. Please try again later.' },
         { status: 502 }
@@ -28,28 +27,17 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      channel: {
-        name: channel.title,
-        avatar: channel.avatar,
-        banner: channel.banner,
-        subscriberCount: channel.subscriberCount,
-      },
+      channel: { name: channel.title, avatar: channel.avatar },
       videos: channel.videos,
     });
   } catch (error) {
     console.error(`[Channel API] Error:`, error);
-    return NextResponse.json(
-      { error: 'Server error. Please try again.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
 
 export async function OPTIONS() {
   return new NextResponse(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    },
+    headers: { 'Access-Control-Allow-Origin': '*' },
   });
 }

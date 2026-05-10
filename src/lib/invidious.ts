@@ -1,6 +1,6 @@
 /**
- * Invidious API Fetcher with Instance Rotation
- * Tries multiple Invidious instances until one works
+ * Invidious API Helper with Instance Rotation
+ * API-KEY-FREE, tries multiple instances until one works
  */
 
 export interface InvidiousVideo {
@@ -8,16 +8,11 @@ export interface InvidiousVideo {
   title: string;
   thumbnail: string;
   duration: number;
-  views: number;
-  published: string;
 }
 
 export interface InvidiousChannel {
   title: string;
-  banner: string;
   avatar: string;
-  description: string;
-  subscriberCount: number;
   videos: InvidiousVideo[];
 }
 
@@ -28,43 +23,43 @@ export interface InvidiousStream {
   audioUrl: string;
 }
 
-// Primary Invidious instances (decentralized, more reliable)
+// Stable Invidious instances (decentralized)
 const INVIDIOUS_INSTANCES = [
   'https://yewtu.be',
-  'https://invidious.nerdvpn.de',
-  'https://invidious.projectsegfau.lt',
+  'https://invidious.lunar.icu',
   'https://iv.ggtyler.dev',
+  'https://invidious.flokinet.to',
+  'https://invidious.nerdvpn.de',
 ];
 
 /**
- * Fetch from Invidious with instance rotation and timeout
+ * Fetch with fallback - tries each instance until one works
  */
-async function fetchFromInvidious<T>(path: string): Promise<{ data: T; instance: string } | null> {
+async function fetchWithFallback<T>(path: string): Promise<{ data: T; instance: string } | null> {
   for (const instance of INVIDIOUS_INSTANCES) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-      const url = `${instance}${path}`;
-      const response = await fetch(url, {
+      const response = await fetch(`${instance}${path}`, {
         signal: controller.signal,
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'IslahAudio/1.0',
-        },
+        headers: { Accept: 'application/json' },
       });
 
       clearTimeout(timeoutId);
 
-      if (response.ok) {
-        console.log(`[Invidious] Success: ${instance}${path}`);
-        const data = await response.json();
-        return { data, instance };
-      } else if (response.status === 404) {
-        // Specific video not found - don't try other instances
-        console.log(`[Invidious] Not found: ${instance}${path}`);
-        return null;
+      if (!response.ok) continue;
+
+      // Check if response is JSON (not HTML)
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        console.log(`[Invidious] ${instance} returned non-JSON, trying next...`);
+        continue;
       }
+
+      const data = await response.json();
+      console.log(`[Invidious] Success: ${instance}${path}`);
+      return { data, instance };
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'timeout';
       console.log(`[Invidious] Failed: ${instance}${path} - ${msg}`);
@@ -78,61 +73,49 @@ async function fetchFromInvidious<T>(path: string): Promise<{ data: T; instance:
  * Get channel videos
  */
 export async function getChannelVideos(channelId: string): Promise<InvidiousChannel | null> {
-  const result = await fetchFromInvidious<any>(`/api/v1/channels/${channelId}`);
+  const result = await fetchWithFallback<any>(`/api/v1/channels/${channelId}`);
+
   if (!result) return null;
 
   const { data } = result;
 
   return {
     title: data.title || '',
-    banner: data.banner || '',
     avatar: data.avatar || '',
-    description: data.description || '',
-    subscriberCount: data.subscriberCount || 0,
     videos: (data.latestVideos || []).map((v: any) => ({
       videoId: v.videoId,
       title: v.title,
       thumbnail: v.thumbnails?.[0]?.url || v.thumbnail || '',
       duration: v.lengthSeconds || 0,
-      views: 0,
-      published: v.published || '',
     })),
   };
 }
 
 /**
- * Get video info with audio streams
+ * Get video stream with audio-only URL
  */
 export async function getVideoStream(videoId: string): Promise<InvidiousStream | null> {
-  const result = await fetchFromInvidious<any>(`/api/v1/videos/${videoId}`);
+  const result = await fetchWithFallback<any>(`/api/v1/videos/${videoId}`);
+
   if (!result) return null;
 
   const { data } = result;
 
-  // Find audio-only streams (adaptiveFormats with audio)
-  const audioStreams = (data.adaptiveFormats || [])
+  // Filter for audio-only formats
+  const audioFormats = (data.adaptiveFormats || [])
     .filter((f: any) => f.type?.startsWith('audio/'))
-    .map((f: any) => ({
-      url: f.url,
-      bitrate: f.bitrate || 0,
-      type: f.type,
-    }));
+    .map((f: any) => ({ url: f.url, bitrate: f.bitrate || 0 }))
+    .sort((a: any, b: any) => b.bitrate - a.bitrate);
 
-  if (audioStreams.length === 0) {
-    console.log(`[Invidious] No audio-only streams for: ${videoId}`);
-    return null;
-  }
-
-  // Sort by bitrate (highest quality first)
-  audioStreams.sort((a: any, b: any) => b.bitrate - a.bitrate);
+  if (audioFormats.length === 0) return null;
 
   return {
     title: data.title || '',
-    thumbnail: data.thumbnails?.[0]?.url || data.thumbnail || '',
+    thumbnail: data.thumbnails?.[0]?.url || '',
     duration: data.lengthSeconds || 0,
-    audioUrl: audioStreams[0].url,
+    audioUrl: audioFormats[0].url,
   };
 }
 
-// Hardcoded Channel ID for Islah BD
+// Default channel ID
 export const DEFAULT_CHANNEL_ID = 'UCGv3nK48XG7f5O7fR05M90g';
