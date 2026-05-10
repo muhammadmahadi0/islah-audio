@@ -118,4 +118,4 @@ export async function getVideoStream(videoId: string): Promise<InvidiousStream |
 }
 
 // Default channel ID
-export const DEFAULT_CHANNEL_ID = 'UCGv3nK48XG7f5O7fR05M90g';
+export const DEFAULT_CHANNEL_ID = 'UC8NjCrYUV5YrpK2j6XTwGSA';

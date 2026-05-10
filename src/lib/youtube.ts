@@ -118,4 +118,4 @@ export function hasApiKey(): boolean {
   return !!API_KEY;
 }
 
-export const TARGET_CHANNEL_ID = 'UCGv3nK48XG7f5O7fR05M90g';
+export const TARGET_CHANNEL_ID = 'UC8NjCrYUV5YrpK2j6XTwGSA';
