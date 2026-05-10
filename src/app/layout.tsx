@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import AudioPlayer from '@/components/AudioPlayer';
-import FloatingPlayer from '@/components/FloatingPlayer';
+import MiniPlayer from '@/components/Player/MiniPlayer';
 import BottomNav from '@/components/BottomNav';
 
 export const metadata: Metadata = {
@@ -22,13 +22,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="antialiased bg-black">
         <div className="flex flex-col h-screen">
-          <div className="flex-1 flex overflow-hidden">
+          {/* Main content area - scrollable */}
+          <div className="flex-1 overflow-auto">
             {children}
           </div>
 
-          <FloatingPlayer />
-          <AudioPlayer />
+          {/* Fixed at bottom - z-index 90 */}
+          <MiniPlayer />
+
+          {/* Fixed at bottom - z-index 100 */}
           <BottomNav />
+
+          {/* Hidden audio element */}
+          <AudioPlayer />
         </div>
       </body>
     </html>

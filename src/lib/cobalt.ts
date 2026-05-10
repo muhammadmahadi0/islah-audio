@@ -28,22 +28,22 @@ export async function getAudioStream(videoId: string): Promise<CobaltStream | nu
       },
       body: JSON.stringify({
         url: youtubeUrl,
-        vCodec: 'h264',
-        vQuality: '360',
-        aFormat: 'mp3',
-        isAudioOnly: true,
+        downloadMode: 'audio',
+        audioFormat: 'mp3',
       }),
     });
 
     if (!response.ok) {
       console.error('[Cobalt] API error:', response.status);
+      const errorText = await response.text();
+      console.error('[Cobalt] Error response:', errorText);
       return null;
     }
 
     const data: CobaltResponse = await response.json();
 
     if (!data.url) {
-      console.error('[Cobalt] No URL returned');
+      console.error('[Cobalt] No URL returned:', data);
       return null;
     }
 

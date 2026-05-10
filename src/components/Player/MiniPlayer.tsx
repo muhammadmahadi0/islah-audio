@@ -170,7 +170,7 @@ export default function MiniPlayer() {
     );
   }
 
-  // Mini Player (collapsed) - Mobile first design
+  // Mini Player (collapsed) - Mobile first design (~60px height)
   return (
     <>
       <div
@@ -184,10 +184,10 @@ export default function MiniPlayer() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="bg-[#121212] border-t border-[#282828] p-3 flex items-center gap-3 cursor-pointer hover:bg-[#1a1a1a] transition-colors"
+          className="bg-[#121212] border-t border-[#282828] px-3 py-2 flex items-center gap-3 cursor-pointer hover:bg-[#1a1a1a] transition-colors"
         >
-          {/* Thumbnail */}
-          <div className="w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-[#1DB954]">
+          {/* Small Thumbnail */}
+          <div className="w-10 h-10 flex-shrink-0 rounded overflow-hidden bg-[#1DB954]">
             {currentTrack.thumbnail ? (
               <img
                 src={currentTrack.thumbnail}
@@ -196,52 +196,37 @@ export default function MiniPlayer() {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <Music size={20} className="text-black" />
+                <Music size={16} className="text-black" />
               </div>
             )}
           </div>
 
-          {/* Track Info with scrolling title */}
+          {/* Track Info - title scrolls if long */}
           <div className="flex-1 min-w-0">
             <p className="text-white text-sm font-medium truncate">{currentTrack.title}</p>
-            <p className="text-gray-400 text-xs truncate">{currentTrack.channelName}</p>
           </div>
 
-          {/* Controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsPlaying(!isPlaying);
-              }}
-              className="w-10 h-10 rounded-full bg-[#1DB954] flex items-center justify-center flex-shrink-0"
-            >
-              {isLoading ? (
-                <Loader2 size={18} className="animate-spin text-black" />
-              ) : isPlaying ? (
-                <Pause size={18} fill="black" className="text-black" />
-              ) : (
-                <Play size={18} fill="black" className="text-black ml-0.5" />
-              )}
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                playNext();
-              }}
-              className="text-gray-400 hover:text-white"
-            >
-              <SkipForward size={20} />
-            </button>
-          </div>
-
-          {/* Expand indicator */}
-          <ChevronUp size={20} className="text-gray-500" />
+          {/* Play/Pause Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsPlaying(!isPlaying);
+            }}
+            className="w-8 h-8 rounded-full bg-[#1DB954] flex items-center justify-center flex-shrink-0"
+          >
+            {isLoading ? (
+              <Loader2 size={14} className="animate-spin text-black" />
+            ) : isPlaying ? (
+              <Pause size={14} fill="black" className="text-black" />
+            ) : (
+              <Play size={14} fill="black" className="text-black ml-0.5" />
+            )}
+          </button>
         </div>
       </div>
 
       {/* Spacer to prevent content from being hidden behind mini player */}
-      <div className="h-20" />
+      <div className="h-16" />
     </>
   );
 }

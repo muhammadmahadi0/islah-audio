@@ -1,17 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Hls from 'hls.js';
 import { usePlayerStore } from '@/store/player-store';
 
-interface AudioPlayerProps {
-  className?: string;
+interface StreamData {
+  url: string;
+  title: string;
+  thumbnail: string;
+  duration: number;
 }
 
-export default function AudioPlayer({ className }: AudioPlayerProps) {
+export default function AudioPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
-
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
 
   const {
@@ -24,116 +24,69 @@ export default function AudioPlayer({ className }: AudioPlayerProps) {
     setIsPlaying,
     setIsLoading,
     setVolume,
+    playNext,
   } = usePlayerStore();
 
-  // Fetch audio stream URL when track changes
+  // Fetch audio stream when track changes
   useEffect(() => {
     if (!currentTrack?.videoId) {
       setStreamUrl(null);
       return;
     }
 
-    const fetchAudioStream = async () => {
+    const fetchStream = async () => {
+      setIsLoading(true);
       try {
-        // Use Invidious API for audio stream
-        const response = await fetch(`/api/stream/${currentTrack.videoId}`);
-        const data = await response.json();
+        const res = await fetch(`/api/stream/${currentTrack.videoId}`);
+        const data = await res.json();
 
         if (data.success && data.data?.url) {
           setStreamUrl(data.data.url);
         } else {
-          console.error('Failed to get audio URL:', data.error);
+          console.error('[AudioPlayer] Stream fetch failed:', data.error);
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('Error fetching audio stream:', error);
+        console.error('[AudioPlayer] Fetch error:', error);
         setIsLoading(false);
       }
     };
 
-    fetchAudioStream();
+    fetchStream();
   }, [currentTrack?.videoId, setIsLoading]);
 
-  // Initialize HLS.js when stream URL is available
+  // Handle stream URL and playback
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !streamUrl) return;
 
-    // Clean up previous HLS instance
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
+    audio.src = streamUrl;
+    audio.load();
 
-    setIsLoading(true);
-
-    // Check if HLS is supported
-    if (Hls.isSupported() && streamUrl.includes('.m3u8')) {
-      const hls = new Hls({
-        defaultAudioCodec: 'mp4a.40.2',
-        startLevel: 0,
-        autoStartLoad: true,
+    if (isPlaying) {
+      audio.play().catch((err) => {
+        console.error('[AudioPlayer] Play error:', err);
+        setIsPlaying(false);
       });
-
-      hls.loadSource(streamUrl);
-      hls.attachMedia(audio);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        setIsLoading(false);
-        if (hls.levels.length > 0) {
-          hls.currentLevel = 0;
-        }
-      });
-
-      hls.on(Hls.Events.ERROR, (_event, data) => {
-        console.error('HLS error:', data);
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              hls.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              hls.recoverMediaError();
-              break;
-            default:
-              hls.destroy();
-              break;
-          }
-        }
-      });
-
-      hlsRef.current = hls;
     }
-    // Direct audio URL (for non-HLS streams)
-    else {
-      audio.src = streamUrl;
-      setIsLoading(false);
-    }
+  }, [streamUrl, isPlaying, setIsPlaying]);
 
-    return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
-    };
-  }, [streamUrl, setIsLoading]);
-
-  // Handle play/pause state changes
+  // Handle play/pause state
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !currentTrack || !streamUrl) return;
+    if (!audio || !streamUrl || isLoading) return;
 
-    if (isPlaying && !isLoading) {
+    if (isPlaying) {
       audio.play().catch((err) => {
-        console.error('Play error:', err);
+        console.error('[AudioPlayer] Play error:', err);
         setIsPlaying(false);
       });
     } else {
       audio.pause();
     }
-  }, [isPlaying, currentTrack, streamUrl, isLoading, setIsPlaying]);
+  }, [isPlaying, streamUrl, isLoading, setIsPlaying]);
 
-  // Handle volume changes
+  // Handle volume
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
@@ -153,23 +106,32 @@ export default function AudioPlayer({ className }: AudioPlayerProps) {
     }
   };
 
-  // This component is hidden - MiniPlayer handles all UI
-  // Only render the audio element
+  const handleEnded = () => {
+    playNext();
+  };
+
+  const handlePlaying = () => {
+    setIsLoading(false);
+  };
+
+  const handleWaiting = () => {
+    setIsLoading(true);
+  };
+
+  const handleError = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    console.error('[AudioPlayer] Error:', e);
+    setIsLoading(false);
+  };
+
   return (
     <audio
       ref={audioRef}
       onTimeUpdate={handleTimeUpdate}
       onLoadedMetadata={handleLoadedMetadata}
-      onEnded={() => {
-        // Trigger next track via store
-        const { playNext } = usePlayerStore.getState();
-        playNext();
-      }}
-      onPlaying={() => {
-        setIsLoading(false);
-      }}
-      onWaiting={() => setIsLoading(true)}
-      onError={(e) => console.error('Audio error:', e)}
+      onEnded={handleEnded}
+      onPlaying={handlePlaying}
+      onWaiting={handleWaiting}
+      onError={handleError}
       crossOrigin="anonymous"
       playsInline
       preload="metadata"
