@@ -1,35 +1,53 @@
 /**
- * Channel Videos API - Uses ytdl-core directly
+ * Channel Videos API using Consumet
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getChannelVideos } from '@/lib/youtube';
+import { getChannel, DEFAULT_CHANNEL_ID } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const handle = searchParams.get('handle') || '@islahbd';
-  const limit = parseInt(searchParams.get('limit') || '50');
+  const handle = searchParams.get('handle') || DEFAULT_CHANNEL_ID;
+
+  console.log(`[Channel API] Fetching: ${handle}`);
 
   try {
-    const videos = await getChannelVideos(handle.replace('@', ''), limit);
+    const channel = await getChannel(handle);
 
-    if (videos.length === 0) {
+    if (!channel) {
+      console.error(`[Channel API] Failed to fetch: ${handle}`);
       return NextResponse.json(
-        { error: 'No videos found for channel' },
-        { status: 404 }
+        { error: 'Channel not found or unavailable' },
+        { status: 502 }
       );
     }
 
+    const videos = (channel.videos || []).map((v: any) => ({
+      videoId: v.videoId,
+      title: v.title,
+      thumbnail: v.thumbnail,
+      duration: v.duration || 0,
+      views: v.views || 0,
+    }));
+
+    console.log(`[Channel API] Success: ${handle} - ${videos.length} videos`);
+
     return NextResponse.json({
       success: true,
+      channel: {
+        name: channel.name,
+        avatar: channel.avatar,
+        banner: channel.banner,
+        subscriberCount: channel.subscriberCount,
+      },
       videos,
     });
   } catch (error) {
-    console.error('[Channel API] Error:', error);
+    console.error(`[Channel API] Error:`, error);
     return NextResponse.json(
-      { error: 'Failed to fetch channel videos' },
+      { error: 'Failed to fetch channel. Please try again later.' },
       { status: 500 }
     );
   }

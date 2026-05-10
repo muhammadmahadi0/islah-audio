@@ -35,12 +35,12 @@ export default function AudioPlayer({ className }: AudioPlayerProps) {
 
     const fetchAudioStream = async () => {
       try {
-        // Use ytdl-core based stream API
-        const response = await fetch(`/api/stream/${currentTrack.videoId}`);
+        // Use Consumet API for audio stream
+        const response = await fetch(`/api/audio/${currentTrack.videoId}`);
         const data = await response.json();
 
-        if (data.success && data.data?.audioUrl) {
-          setStreamUrl(data.data.audioUrl);
+        if (data.success && data.data?.url) {
+          setStreamUrl(data.data.url);
         } else {
           console.error('Failed to get audio URL:', data.error);
           setIsLoading(false);

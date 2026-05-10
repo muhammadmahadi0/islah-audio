@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
-import { Play, Pause, Music, Loader2, RefreshCw } from 'lucide-react';
+import { Play, Pause, Music, Loader2, RefreshCw, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DEFAULT_CHANNEL_ID } from '@/lib/api';
 
-const CHANNEL_HANDLE = '@islahbd';
+const CHANNEL_HANDLE = DEFAULT_CHANNEL_ID;
 
 interface VideoItem {
   videoId: string;
@@ -97,8 +98,30 @@ function VideoCard({
       >
         {video.title}
       </h3>
-      <p className="text-[#727272] text-xs">{formatViews(video.views)} views</p>
+      <p className="text-[#b3b3b3] text-xs">{formatViews(video.views)} views</p>
     </div>
+  );
+}
+
+// Maintenance/Error Screen
+function ErrorScreen({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <main className="flex-1 flex items-center justify-center bg-black">
+      <div className="text-center p-8">
+        <div className="w-20 h-20 rounded-full bg-[#1DB954]/20 flex items-center justify-center mx-auto mb-6">
+          <WifiOff size={40} className="text-[#1DB954]" />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-3">Currently Under Maintenance</h1>
+        <p className="text-[#b3b3b3] mb-6 max-w-md">{message}</p>
+        <button
+          onClick={onRetry}
+          className="flex items-center gap-2 mx-auto px-6 py-3 bg-[#1DB954] text-black rounded-full font-medium hover:scale-105 transition-transform"
+        >
+          <RefreshCw size={18} />
+          Try Again
+        </button>
+      </div>
+    </main>
   );
 }
 
@@ -115,10 +138,13 @@ export default function HomePage() {
       setIsLoading(true);
       setError(null);
 
-      const res = await fetch(`/api/channel?handle=${encodeURIComponent(CHANNEL_HANDLE)}&limit=50`);
+      console.log('[Page] Fetching channel videos...');
+
+      const res = await fetch(`/api/channel?handle=${encodeURIComponent(CHANNEL_HANDLE)}`);
 
       if (!res.ok) {
-        throw new Error('Failed to fetch videos');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error: ${res.status}`);
       }
 
       const data = await res.json();
@@ -128,9 +154,14 @@ export default function HomePage() {
       }
 
       setVideos(data.videos);
+      if (data.channel?.name) {
+        setChannelName(data.channel.name);
+      }
+
+      console.log(`[Page] Loaded ${data.videos.length} videos`);
     } catch (err) {
-      console.error('Failed to fetch videos:', err);
-      setError('Failed to load videos. Please try again.');
+      console.error('[Page] Error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load. Please check your connection.');
     } finally {
       setIsLoading(false);
     }
@@ -146,7 +177,7 @@ export default function HomePage() {
       title: video.title,
       thumbnail: video.thumbnail,
       duration: video.duration,
-      channelName: CHANNEL_HANDLE.replace('@', ''),
+      channelName: channelName,
       videoId: video.videoId,
     };
 
@@ -155,13 +186,13 @@ export default function HomePage() {
       title: v.title,
       thumbnail: v.thumbnail,
       duration: v.duration,
-      channelName: CHANNEL_HANDLE.replace('@', ''),
+      channelName: channelName,
       videoId: v.videoId,
     }));
 
     const currentIndex = videos.findIndex((v) => v.videoId === video.videoId);
     playTrack(track, trackList, currentIndex >= 0 ? currentIndex : 0);
-  }, [videos, playTrack]);
+  }, [videos, channelName, playTrack]);
 
   const handleTogglePlay = useCallback(() => {
     if (currentTrack) {
@@ -169,9 +200,15 @@ export default function HomePage() {
     }
   }, [currentTrack, isPlaying, setIsPlaying]);
 
+  // Error state
+  if (error && !isLoading) {
+    return <ErrorScreen message={error} onRetry={fetchVideos} />;
+  }
+
   return (
-    <main className="flex-1 overflow-auto bg-gradient-to-b from-[#181818] to-[#121212] pb-24 md:pb-0">
+    <main className="flex-1 overflow-auto bg-gradient-to-b from-[#181818] to-black pb-24 md:pb-0">
       <div className="p-4 md:p-6">
+        {/* Loading */}
         {isLoading && (
           <div className="flex items-center justify-center h-64">
             <div className="flex items-center gap-3 text-[#b3b3b3]">
@@ -181,23 +218,9 @@ export default function HomePage() {
           </div>
         )}
 
-        {error && !isLoading && (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-[#1DB954] text-center">
-              <p className="text-lg mb-2">{error}</p>
-              <button
-                onClick={fetchVideos}
-                className="flex items-center gap-2 text-[#727272] text-sm hover:text-white mx-auto"
-              >
-                <RefreshCw size={16} />
-                Try again
-              </button>
-            </div>
-          </div>
-        )}
-
-        {channelName && !isLoading && !error && (
-          <div className="md:hidden flex items-center gap-3 mb-4">
+        {/* Mobile Header */}
+        {!isLoading && !error && (
+          <div className="flex items-center gap-3 mb-4">
             <div className="w-14 h-14 rounded-full bg-[#1DB954] flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xl font-bold">إ</span>
             </div>
@@ -208,6 +231,7 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* Play Button */}
         {!error && !isLoading && videos.length > 0 && (
           <div className="mb-6">
             <button
@@ -223,12 +247,14 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* Section Header */}
         {!error && !isLoading && (
           <div className="mb-4 md:mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-white">Lectures</h2>
           </div>
         )}
 
+        {/* Video Grid */}
         {!error && !isLoading && videos.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4 lg:gap-6">
             {videos.map((video) => (
@@ -243,6 +269,7 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* Empty */}
         {!error && !isLoading && videos.length === 0 && (
           <div className="flex items-center justify-center h-64">
             <div className="text-[#b3b3b3] text-center">
