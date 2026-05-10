@@ -1,16 +1,22 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { pipedService, type PipedChannel, type PipedVideo } from '@/lib/piped-service';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
-import { Play, Pause, Music, Loader2, RefreshCw, Home as HomeIcon } from 'lucide-react';
+import { Play, Pause, Music, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Configuration
-const CHANNEL_HANDLE = process.env.NEXT_PUBLIC_CHANNEL_HANDLE || '@islahbd';
-const PIPED_API = process.env.NEXT_PUBLIC_PIPED_API || 'https://pipedapi.kavin.rocks';
+const CHANNEL_HANDLE = 'islahbd';
 
-// Helper functions
+interface ChannelVideo {
+  title: string;
+  videoId: string;
+  thumbnail: string;
+  duration: number;
+  uploaderName: string;
+  views: number;
+}
+
 function formatDuration(seconds: number): string {
   if (!seconds || seconds <= 0) return '0:00';
   const hours = Math.floor(seconds / 3600);
@@ -43,8 +49,8 @@ function VideoCard({
   isPlaying,
   isCurrentTrack,
 }: {
-  video: PipedVideo;
-  onPlay: (video: PipedVideo) => void;
+  video: ChannelVideo;
+  onPlay: (video: ChannelVideo) => void;
   isPlaying: boolean;
   isCurrentTrack: boolean;
 }) {
@@ -110,47 +116,96 @@ function VideoCard({
 
 // Main Page Component
 export default function HomePage() {
-  const [channel, setChannel] = useState<PipedChannel | null>(null);
-  const [videos, setVideos] = useState<PipedVideo[]>([]);
+  const [channelName, setChannelName] = useState<string>('');
+  const [channelAvatar, setChannelAvatar] = useState<string>('');
+  const [channelDesc, setChannelDesc] = useState<string>('');
+  const [channelSubs, setChannelSubs] = useState<number>(0);
+  const [videos, setVideos] = useState<ChannelVideo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
 
-  const fetchChannelData = async () => {
+  const fetchChannelData = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const channelId = await pipedService.resolveChannelId(CHANNEL_HANDLE);
-      if (!channelId) {
+      // Step 1: Search for the channel
+      const searchUrl = `/api/piped?path=${encodeURIComponent(`/search?q=${CHANNEL_HANDLE}&filter=channels`)}`;
+      const searchRes = await fetch(searchUrl);
+
+      if (!searchRes.ok) {
+        throw new Error('Failed to search for channel');
+      }
+
+      const searchData = await searchRes.json();
+
+      if (!searchData.items || searchData.items.length === 0) {
         setError(`Channel "${CHANNEL_HANDLE}" not found`);
         return;
       }
 
-      const channelData = await pipedService.getChannel(channelId);
-      if (!channelData) {
-        setError(`Failed to fetch channel data for "${CHANNEL_HANDLE}"`);
+      // Get first channel result
+      const channelItem = searchData.items[0];
+      const channelUrl = channelItem.url;
+      const channelIdMatch = channelUrl.match(/\/channel\/([a-zA-Z0-9_-]+)/);
+
+      if (!channelIdMatch) {
+        setError('Could not parse channel ID');
         return;
       }
 
-      setChannel(channelData);
-      setVideos(channelData.relatedStreams || []);
+      const channelId = channelIdMatch[1];
+      setChannelName(channelItem.name);
+      setChannelAvatar(channelItem.avatar || '');
+
+      // Step 2: Get channel details
+      const channelUrl2 = `/api/piped?path=${encodeURIComponent(`/channel/${channelId}`)}`;
+      const channelRes = await fetch(channelUrl2);
+
+      if (!channelRes.ok) {
+        throw new Error('Failed to fetch channel');
+      }
+
+      const channelData = await channelRes.json();
+
+      setChannelName(channelData.name || channelItem.name);
+      setChannelAvatar(channelData.avatar || channelItem.avatar);
+      setChannelDesc(channelData.description || '');
+      setChannelSubs(channelData.subscriberCount || 0);
+
+      // Get videos from relatedStreams
+      const videoList: ChannelVideo[] = (channelData.relatedStreams || []).map((v: {
+        title: string;
+        videoId: string;
+        thumbnail: string;
+        duration: number;
+        uploaderName: string;
+        views: number;
+      }) => ({
+        title: v.title,
+        videoId: v.videoId,
+        thumbnail: v.thumbnail,
+        duration: v.duration,
+        uploaderName: v.uploaderName,
+        views: v.views || 0,
+      }));
+
+      setVideos(videoList);
     } catch (err) {
       console.error('Failed to fetch channel:', err);
       setError('Failed to load channel data. Please check your network connection.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchChannelData();
-  }, []);
+  }, [fetchChannelData]);
 
-  const filteredVideos = useMemo(() => videos, [videos]);
-
-  const handlePlayVideo = (video: PipedVideo) => {
+  const handlePlayVideo = useCallback((video: ChannelVideo) => {
     const track: Track = {
       id: video.videoId,
       title: video.title,
@@ -160,7 +215,7 @@ export default function HomePage() {
       videoId: video.videoId,
     };
 
-    const trackList: Track[] = filteredVideos.map((v) => ({
+    const trackList: Track[] = videos.map((v) => ({
       id: v.videoId,
       title: v.title,
       thumbnail: v.thumbnail,
@@ -169,20 +224,20 @@ export default function HomePage() {
       videoId: v.videoId,
     }));
 
-    const currentIndex = filteredVideos.findIndex((v) => v.videoId === video.videoId);
+    const currentIndex = videos.findIndex((v) => v.videoId === video.videoId);
     playTrack(track, trackList, currentIndex >= 0 ? currentIndex : 0);
-  };
+  }, [videos, playTrack]);
 
-  const handleTogglePlay = () => {
+  const handleTogglePlay = useCallback(() => {
     if (currentTrack) {
       setIsPlaying(!isPlaying);
     }
-  };
+  }, [currentTrack, isPlaying, setIsPlaying]);
 
-  // Mobile-first layout - no sidebar, full width content
+  // Mobile-first layout
   return (
     <main className="flex-1 overflow-auto bg-gradient-to-b from-[#181818] to-[#121212] pb-24 md:pb-0">
-      {/* Header - Hidden on mobile, visible on desktop */}
+      {/* Header - Hidden on mobile */}
       <header className="hidden md:sticky md:top-0 md:z-10 md:bg-gradient-to-b md:from-[#181818]/95 md:to-transparent md:p-6">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-2xl font-bold text-white">{CHANNEL_HANDLE}</h1>
@@ -218,11 +273,11 @@ export default function HomePage() {
         )}
 
         {/* Channel Hero - Hidden on mobile */}
-        {channel && !isLoading && !error && (
+        {channelName && !isLoading && !error && (
           <div className="hidden md:flex items-end gap-6 mb-8">
             <div className="w-40 h-40 lg:w-52 lg:h-52 flex-shrink-0 rounded-lg overflow-hidden shadow-xl">
-              {channel.avatar ? (
-                <img src={channel.avatar} alt={channel.name} className="w-full h-full object-cover" />
+              {channelAvatar ? (
+                <img src={channelAvatar} alt={channelName} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-[#282828] flex items-center justify-center">
                   <Music size={48} className="text-[#727272]" />
@@ -231,38 +286,38 @@ export default function HomePage() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-white mb-2">Channel</p>
-              <h1 className="text-3xl lg:text-5xl font-bold text-white mb-4">{channel.name}</h1>
-              {channel.description && (
-                <p className="text-[#b3b3b3] text-sm mt-2 max-w-xl line-clamp-2">{channel.description}</p>
+              <h1 className="text-3xl lg:text-5xl font-bold text-white mb-4">{channelName}</h1>
+              {channelDesc && (
+                <p className="text-[#b3b3b3] text-sm mt-2 max-w-xl line-clamp-2">{channelDesc}</p>
               )}
-              <p className="text-[#727272] text-sm mt-2">{formatSubscribers(channel.subscriberCount)} subscribers</p>
+              <p className="text-[#727272] text-sm mt-2">{formatSubscribers(channelSubs)} subscribers</p>
             </div>
           </div>
         )}
 
         {/* Mobile: Simple channel header */}
-        {channel && !isLoading && !error && (
+        {channelName && !isLoading && !error && (
           <div className="md:hidden flex items-center gap-3 mb-4">
             <div className="w-14 h-14 rounded-full overflow-hidden bg-[#282828] flex-shrink-0">
-              {channel.avatar && (
-                <img src={channel.avatar} alt={channel.name} className="w-full h-full object-cover" />
+              {channelAvatar && (
+                <img src={channelAvatar} alt={channelName} className="w-full h-full object-cover" />
               )}
             </div>
             <div className="min-w-0">
               <p className="text-xs text-[#b3b3b3]">Channel</p>
-              <h1 className="text-lg font-bold text-white truncate">{channel.name}</h1>
+              <h1 className="text-lg font-bold text-white truncate">{channelName}</h1>
             </div>
           </div>
         )}
 
         {/* Play Button */}
-        {!error && !isLoading && filteredVideos.length > 0 && (
+        {!error && !isLoading && videos.length > 0 && (
           <div className="mb-6">
             <button
               onClick={
                 currentTrack
                   ? handleTogglePlay
-                  : () => handlePlayVideo(filteredVideos[0])
+                  : () => handlePlayVideo(videos[0])
               }
               className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#1DB954] flex items-center justify-center hover:scale-105 transition-transform shadow-lg"
             >
@@ -279,15 +334,15 @@ export default function HomePage() {
         {!error && !isLoading && (
           <div className="mb-4 md:mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-white">
-              {channel ? 'Lectures' : 'Latest Videos'}
+              {channelName ? 'Lectures' : 'Latest Videos'}
             </h2>
           </div>
         )}
 
         {/* Video Grid */}
-        {!error && !isLoading && filteredVideos.length > 0 && (
+        {!error && !isLoading && videos.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4 lg:gap-6">
-            {filteredVideos.map((video) => (
+            {videos.map((video) => (
               <VideoCard
                 key={video.videoId}
                 video={video}
@@ -300,7 +355,7 @@ export default function HomePage() {
         )}
 
         {/* Empty State */}
-        {!error && !isLoading && filteredVideos.length === 0 && (
+        {!error && !isLoading && videos.length === 0 && (
           <div className="flex items-center justify-center h-64">
             <div className="text-[#b3b3b3] text-center">
               <Music size={48} className="mx-auto mb-4 opacity-50" />

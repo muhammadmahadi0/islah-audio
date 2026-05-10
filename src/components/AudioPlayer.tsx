@@ -35,7 +35,8 @@ export default function AudioPlayer({ className }: AudioPlayerProps) {
 
     const fetchAudioStream = async () => {
       try {
-        const response = await fetch(`/api/audio?videoId=${currentTrack.videoId}`);
+        // Use the new stream API with fallback instances
+        const response = await fetch(`/api/stream/${currentTrack.videoId}`);
         const data = await response.json();
 
         if (data.success && data.data?.audioUrl) {
