@@ -13,9 +13,11 @@ import {
   Clock,
   Eye,
   ListMusic,
+  ListPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
+import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CHANNEL_ID = DEFAULT_CHANNEL_ID;
@@ -79,13 +81,17 @@ function VideoCard({
   onPlay,
   isPlaying,
   isCurrentTrack,
+  channelName,
 }: {
   video: VideoItem;
   index: number;
   onPlay: (video: VideoItem) => void;
   isPlaying: boolean;
   isCurrentTrack: boolean;
+  channelName: string;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -93,7 +99,7 @@ function VideoCard({
       transition={{ delay: Math.min(index, 11) * 0.04, duration: 0.4 }}
       onClick={() => onPlay(video)}
       className={cn(
-        'group cursor-pointer rounded-2xl border p-3 transition-all duration-300',
+        'group relative cursor-pointer rounded-2xl border p-3 transition-all duration-300',
         'hover:-translate-y-1 hover:shadow-card',
         isCurrentTrack
           ? 'border-brand/50 bg-brand/[0.07] shadow-glow'
@@ -139,6 +145,18 @@ function VideoCard({
             Playing
           </span>
         )}
+        {/* Save to playlist */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((v) => !v);
+          }}
+          aria-label="Save to playlist"
+          title="Save to playlist"
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 backdrop-blur border border-white/15 text-white/80 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-gold-light hover:border-gold/50 transition-all"
+        >
+          <ListPlus size={15} />
+        </button>
       </div>
       <h3
         className={cn(
@@ -156,6 +174,19 @@ function VideoCard({
           </span>
         )}
       </div>
+      {menuOpen && (
+        <AddToPlaylistMenu
+          track={{
+            id: video.videoId || video.id || '',
+            title: video.title,
+            thumbnail: video.thumbnail,
+            duration: video.duration || 0,
+            channelName,
+            videoId: video.videoId || video.id || '',
+          }}
+          onClose={() => setMenuOpen(false)}
+        />
+      )}
     </motion.div>
   );
 }
@@ -425,6 +456,7 @@ export default function HomePage() {
                     !!currentTrack &&
                     currentTrack.videoId === (video.videoId || video.id)
                   }
+                  channelName={channelName}
                 />
               ))}
             </AnimatePresence>

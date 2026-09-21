@@ -2,9 +2,10 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
-import { Search as SearchIcon, Music, Loader2, X } from 'lucide-react';
+import { Search as SearchIcon, Music, Loader2, X, ListPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
+import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 
 interface ChannelVideo {
   videoId: string;
@@ -24,6 +25,90 @@ function formatDuration(seconds: number): string {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+function SearchRow({
+  video,
+  onPlay,
+  isActive,
+  isPlaying,
+}: {
+  video: ChannelVideo;
+  onPlay: () => void;
+  isActive: boolean;
+  isPlaying: boolean;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const videoId = video.videoId || video.id || '';
+
+  return (
+    <div
+      onClick={onPlay}
+      className={cn(
+        'relative flex items-center gap-3.5 p-3 cursor-pointer transition-colors',
+        isActive ? 'bg-brand/[0.08]' : 'hover:bg-white/[0.04]'
+      )}
+    >
+      <div className="w-16 h-12 shrink-0 rounded-lg overflow-hidden bg-ink-700 ring-1 ring-white/10">
+        <img
+          src={video.thumbnail}
+          alt={video.title}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p
+          className={cn(
+            'text-sm font-semibold leading-snug clamp-2',
+            isActive ? 'text-brand-light' : 'text-white'
+          )}
+        >
+          {video.title}
+        </p>
+        <p className="text-mist-dark text-xs mt-0.5">Islah</p>
+      </div>
+      {video.duration > 0 && (
+        <span className="shrink-0 text-xs font-medium text-mist-dark tabular-nums">
+          {formatDuration(video.duration)}
+        </span>
+      )}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setMenuOpen((v) => !v);
+        }}
+        aria-label="Save to playlist"
+        className="p-1.5 rounded-lg text-mist-dark hover:text-gold-light hover:bg-white/10 transition-colors shrink-0"
+      >
+        <ListPlus size={16} />
+      </button>
+      {isActive && isPlaying && (
+        <span className="flex items-end gap-[3px] h-4 text-brand-light shrink-0 pr-1">
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="eq-bar h-full"
+              style={{ animationDelay: `${i * 0.22}s` }}
+            />
+          ))}
+        </span>
+      )}
+      {menuOpen && (
+        <AddToPlaylistMenu
+          track={{
+            id: videoId,
+            title: video.title,
+            thumbnail: video.thumbnail,
+            duration: video.duration || 0,
+            channelName: 'Islah',
+            videoId,
+          }}
+          onClose={() => setMenuOpen(false)}
+        />
+      )}
+    </div>
+  );
 }
 
 export default function SearchPage() {
@@ -142,52 +227,14 @@ export default function SearchPage() {
               <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden divide-y divide-white/[0.05]">
                 {results.map((video) => {
                   const videoId = video.videoId || video.id || '';
-                  const active = currentTrack?.videoId === videoId;
                   return (
-                    <div
+                    <SearchRow
                       key={videoId}
-                      onClick={() => handlePlayVideo(video)}
-                      className={cn(
-                        'flex items-center gap-3.5 p-3 cursor-pointer transition-colors',
-                        active ? 'bg-brand/[0.08]' : 'hover:bg-white/[0.04]'
-                      )}
-                    >
-                      <div className="w-16 h-12 shrink-0 rounded-lg overflow-hidden bg-ink-700 ring-1 ring-white/10">
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={cn(
-                            'text-sm font-semibold leading-snug clamp-2',
-                            active ? 'text-brand-light' : 'text-white'
-                          )}
-                        >
-                          {video.title}
-                        </p>
-                        <p className="text-mist-dark text-xs mt-0.5">Islah</p>
-                      </div>
-                      {video.duration > 0 && (
-                        <span className="shrink-0 text-xs font-medium text-mist-dark tabular-nums">
-                          {formatDuration(video.duration)}
-                        </span>
-                      )}
-                      {active && isPlaying && (
-                        <span className="flex items-end gap-[3px] h-4 text-brand-light shrink-0 pr-1">
-                          {[0, 1, 2].map((i) => (
-                            <span
-                              key={i}
-                              className="eq-bar h-full"
-                              style={{ animationDelay: `${i * 0.22}s` }}
-                            />
-                          ))}
-                        </span>
-                      )}
-                    </div>
+                      video={video}
+                      onPlay={() => handlePlayVideo(video)}
+                      isActive={currentTrack?.videoId === videoId}
+                      isPlaying={isPlaying}
+                    />
                   );
                 })}
               </div>
