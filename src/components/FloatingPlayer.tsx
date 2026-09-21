@@ -68,8 +68,10 @@ export default function FloatingPlayer() {
             step={0.1}
             value={currentTime}
             onChange={(e) => {
+              const time = parseFloat(e.target.value);
+              window.dispatchEvent(new CustomEvent('islah:seek', { detail: time }));
               const audio = document.querySelector('audio');
-              if (audio) audio.currentTime = parseFloat(e.target.value);
+              if (audio) audio.currentTime = time;
             }}
             className="w-full h-1 bg-[#4d4d4d] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
           />

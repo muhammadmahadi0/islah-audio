@@ -63,11 +63,14 @@ export default function MiniPlayer() {
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value);
+    // Primary engine is the hidden YouTube player (see AudioPlayer).
+    window.dispatchEvent(new CustomEvent('islah:seek', { detail: time }));
+    // Fallback for any plain <audio> element (legacy / tests).
     const audio = document.querySelector('audio');
     if (audio) {
       audio.currentTime = time;
-      setCurrentTime(time);
     }
+    setCurrentTime(time);
   };
 
   // Don't render if no track

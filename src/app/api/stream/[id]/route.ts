@@ -1,9 +1,17 @@
 /**
- * Stream API - Uses Cobalt for audio extraction
+ * Stream API — metadata endpoint.
+ *
+ * Playback is handled client-side by the hidden YouTube embed player
+ * (see `src/components/AudioPlayer.tsx`), so no audio-URL extraction
+ * service is needed here. This route returns the video metadata plus
+ * official watch/embed URLs and stays compatible with the previous
+ * `{ success, data: { url, title, thumbnail, duration } }` shape.
+ *
+ * NOTE: The old Cobalt integration (`api.cobalt.tools`) was removed —
+ * that public API was shut down in November 2024.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAudioStream } from '@/lib/cobalt';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,36 +25,62 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid video ID' }, { status: 400 });
   }
 
-  console.log(`[Stream API] Fetching: ${videoId}`);
+  const apiKey = process.env.YOUTUBE_API_KEY;
+
+  let title = '';
+  let thumbnail = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+  let duration = 0;
 
   try {
-    const stream = await getAudioStream(videoId);
+    if (apiKey) {
+      const url = new URL('https://www.googleapis.com/youtube/v3/videos');
+      url.searchParams.set('key', apiKey);
+      url.searchParams.set('part', 'snippet,contentDetails');
+      url.searchParams.set('id', videoId);
 
-    if (!stream) {
-      return NextResponse.json(
-        { error: 'Could not extract audio' },
-        { status: 502 }
+      const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+      if (res.ok) {
+        const data = await res.json();
+        const item = data?.items?.[0];
+        if (item) {
+          title = item.snippet?.title || '';
+          thumbnail =
+            item.snippet?.thumbnails?.medium?.url ||
+            item.snippet?.thumbnails?.default?.url ||
+            thumbnail;
+        }
+      }
+    } else {
+      // Keyless fallback: public oEmbed endpoint (title only)
+      const res = await fetch(
+        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
+        { headers: { Accept: 'application/json' } }
       );
+      if (res.ok) {
+        const data = await res.json();
+        title = data?.title || '';
+        thumbnail = data?.thumbnail_url || thumbnail;
+      }
     }
-
-    console.log(`[Stream API] Success: ${videoId}`);
-
-    const response = NextResponse.json({
-      success: true,
-      data: {
-        url: stream.url,
-        title: stream.title,
-        thumbnail: stream.thumbnail,
-        duration: stream.duration,
-      },
-    });
-
-    response.headers.set('Cache-Control', 'public, max-age=3600');
-    return response;
   } catch (error) {
-    console.error('[Stream API] Error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error('[Stream API] metadata fetch failed:', error);
   }
+
+  const response = NextResponse.json({
+    success: true,
+    data: {
+      // Official playback URLs — the client plays these in the embed player.
+      url: `https://www.youtube.com/watch?v=${videoId}`,
+      embedUrl: `https://www.youtube.com/embed/${videoId}`,
+      videoId,
+      title,
+      thumbnail,
+      duration,
+    },
+  });
+
+  response.headers.set('Cache-Control', 'public, max-age=86400');
+  return response;
 }
 
 export async function OPTIONS() {

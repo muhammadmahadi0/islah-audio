@@ -39,11 +39,16 @@ export async function GET(request: NextRequest) {
 
     console.log(`[Channel API] Success: ${channel.videos.length} videos`);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       channel: { name: channel.name, avatar: channel.avatar },
       videos: channel.videos,
     });
+
+    // Cache at the CDN for an hour to save YouTube API quota.
+    // Browser always revalidates so users get fresh data after stale.
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    return response;
   } catch (error) {
     console.error('[Channel API] Error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

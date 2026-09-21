@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Search, Library } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,9 +21,9 @@ export default function BottomNav() {
         const Icon = item.icon;
 
         return (
-          <button
+          <Link
             key={item.href}
-            onClick={() => (window.location.href = item.href)}
+            href={item.href}
             className={cn(
               'flex flex-col items-center justify-center gap-1 px-6 py-2 transition-colors',
               isActive ? 'text-[#1DB954]' : 'text-gray-400 hover:text-white'
@@ -30,7 +31,7 @@ export default function BottomNav() {
           >
             <Icon size={24} />
             <span className="text-[10px] font-medium">{item.label}</span>
-          </button>
+          </Link>
         );
       })}
       {/* Safe area padding for iPhone notch */}

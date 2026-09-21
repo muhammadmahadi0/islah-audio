@@ -5,9 +5,14 @@
 
 export interface YouTubeVideo {
   id: string;
+  /** Alias of `id` — kept for frontend compatibility. */
+  videoId: string;
   title: string;
   thumbnail: string;
   publishedAt: string;
+  /** Duration in seconds (0 when unavailable). */
+  duration: number;
+  views: number;
 }
 
 export interface YouTubeChannel {
@@ -61,14 +66,63 @@ export async function getPlaylistVideos(playlistId: string, maxResults = 50) {
 
   if (!data?.items) return [];
 
-  return data.items
-    .filter((item: any) => item.snippet?.resourceId?.videoId)
-    .map((item: any) => ({
-      id: item.snippet.resourceId.videoId,
+  const items = data.items.filter((item: any) => item.snippet?.resourceId?.videoId);
+
+  const videoIds = items.map((item: any) => item.snippet.resourceId.videoId as string);
+  const details = await getVideoDetails(videoIds);
+
+  return items.map((item: any) => {
+    const videoId: string = item.snippet.resourceId.videoId;
+    const meta = details.get(videoId);
+    return {
+      id: videoId,
+      videoId,
       title: item.snippet.title,
       thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
       publishedAt: item.snippet.publishedAt,
-    }));
+      duration: meta?.duration ?? 0,
+      views: meta?.views ?? 0,
+    };
+  });
+}
+
+/** Parse an ISO8601 duration (e.g. PT1H2M3S) into seconds. */
+export function parseDuration(iso: string): number {
+  if (!iso) return 0;
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
+  const hours = parseInt(match[1] || '0', 10);
+  const minutes = parseInt(match[2] || '0', 10);
+  const seconds = parseInt(match[3] || '0', 10);
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+/**
+ * Batch-fetch durations + view counts for up to 50 videos per request.
+ */
+async function getVideoDetails(
+  videoIds: string[]
+): Promise<Map<string, { duration: number; views: number }>> {
+  const result = new Map<string, { duration: number; views: number }>();
+  if (videoIds.length === 0) return result;
+
+  // YouTube allows max 50 ids per videos.list call
+  for (let i = 0; i < videoIds.length; i += 50) {
+    const batch = videoIds.slice(i, i + 50);
+    const data = await getYouTubeAPI<any>('videos', {
+      part: 'contentDetails,statistics',
+      id: batch.join(','),
+    });
+
+    for (const item of data?.items || []) {
+      result.set(item.id, {
+        duration: parseDuration(item.contentDetails?.duration || ''),
+        views: parseInt(item.statistics?.viewCount || '0', 10) || 0,
+      });
+    }
+  }
+
+  return result;
 }
 
 export async function getChannelVideos(channelId: string): Promise<YouTubeChannel | null> {

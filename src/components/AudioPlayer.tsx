@@ -1,141 +1,259 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePlayerStore } from '@/store/player-store';
 
-interface StreamData {
-  url: string;
-  title: string;
-  thumbnail: string;
-  duration: number;
+/**
+ * Name of the window CustomEvent used to request a seek.
+ * UI components (MiniPlayer, etc.) dispatch:
+ *   window.dispatchEvent(new CustomEvent('islah:seek', { detail: seconds }))
+ */
+export const SEEK_EVENT = 'islah:seek';
+
+declare global {
+  interface Window {
+    YT?: any;
+    onYouTubeIframeAPIReady?: () => void;
+  }
 }
 
+let apiPromise: Promise<any> | null = null;
+
+function loadYouTubeAPI(): Promise<any> {
+  if (typeof window === 'undefined') return Promise.reject(new Error('No window'));
+  if (window.YT?.Player) return Promise.resolve(window.YT);
+  if (apiPromise) return apiPromise;
+
+  apiPromise = new Promise((resolve, reject) => {
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      prev?.();
+      resolve(window.YT);
+    };
+
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    tag.async = true;
+    tag.onerror = () => {
+      apiPromise = null;
+      reject(new Error('Failed to load YouTube player'));
+    };
+    document.head.appendChild(tag);
+
+    // Safety timeout — don't hang the player forever
+    setTimeout(() => {
+      if (!window.YT?.Player) {
+        apiPromise = null;
+        reject(new Error('YouTube player timed out'));
+      }
+    }, 15000);
+  });
+
+  return apiPromise;
+}
+
+/**
+ * Hidden YouTube embed player wired to the global player store.
+ *
+ * Why an embed instead of audio-stream extraction?
+ * Public extraction APIs (Cobalt v7, Piped, Invidious) are all dead or
+ * blocked (HTTP 403/525) as of late 2024, and direct scraping gets blocked
+ * on serverless IPs. The official embed always works and needs no backend.
+ */
 export default function AudioPlayer() {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+  const readyRef = useRef(false);
+  const trackIdRef = useRef<string | null>(null);
 
   const {
     currentTrack,
     isPlaying,
-    isLoading,
     volume,
     setCurrentTime,
     setDuration,
     setIsPlaying,
     setIsLoading,
-    setVolume,
     playNext,
   } = usePlayerStore();
 
-  // Fetch audio stream when track changes
+  // Keep latest callbacks in refs for YT event handlers
+  const storeRef = useRef({ setCurrentTime, setDuration, setIsPlaying, setIsLoading, playNext });
+  storeRef.current = { setCurrentTime, setDuration, setIsPlaying, setIsLoading, playNext };
+  const playingRef = useRef(isPlaying);
+  playingRef.current = isPlaying;
+
+  // Create the hidden player once
   useEffect(() => {
-    if (!currentTrack?.videoId) {
-      setStreamUrl(null);
-      return;
-    }
+    let cancelled = false;
 
-    const fetchStream = async () => {
-      setIsLoading(true);
+    loadYouTubeAPI()
+      .then((YT) => {
+        if (cancelled || !containerRef.current || playerRef.current) return;
+
+        playerRef.current = new YT.Player(containerRef.current, {
+          height: '0',
+          width: '0',
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            disablekb: 1,
+            rel: 0,
+            playsinline: 1,
+          },
+          events: {
+            onReady: (e: any) => {
+              readyRef.current = true;
+              e.target.setVolume(Math.round(usePlayerStore.getState().volume * 100));
+              // If a track was selected before the player was ready, load it now
+              const track = usePlayerStore.getState().currentTrack;
+              if (track?.videoId && trackIdRef.current !== track.videoId) {
+                trackIdRef.current = track.videoId;
+                storeRef.current.setIsLoading(true);
+                if (playingRef.current) e.target.loadVideoById(track.videoId);
+                else e.target.cueVideoById(track.videoId);
+              }
+            },
+            onStateChange: (e: any) => {
+              const YTNS = window.YT?.PlayerState;
+              const s = storeRef.current;
+              switch (e.data) {
+                case YTNS?.PLAYING:
+                  s.setIsPlaying(true);
+                  s.setIsLoading(false);
+                  break;
+                case YTNS?.PAUSED:
+                  s.setIsPlaying(false);
+                  break;
+                case YTNS?.BUFFERING:
+                  s.setIsLoading(true);
+                  break;
+                case YTNS?.CUED:
+                  s.setIsLoading(false);
+                  if (playingRef.current) e.target.playVideo();
+                  break;
+                case YTNS?.ENDED:
+                  s.setIsPlaying(false);
+                  s.playNext();
+                  break;
+              }
+            },
+            onError: () => {
+              // Unplayable video (removed, region-blocked, embed-restricted):
+              // stop the spinner and skip to the next track.
+              storeRef.current.setIsLoading(false);
+              storeRef.current.playNext();
+            },
+          },
+        });
+      })
+      .catch((err) => {
+        console.error('[AudioPlayer]', err);
+        storeRef.current.setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load a new track when it changes
+  useEffect(() => {
+    const player = playerRef.current;
+    const videoId = currentTrack?.videoId;
+    if (!videoId) return;
+    if (trackIdRef.current === videoId) return;
+    trackIdRef.current = videoId;
+
+    setIsLoading(true);
+    setCurrentTime(0);
+
+    if (player && readyRef.current) {
       try {
-        const res = await fetch(`/api/stream/${currentTrack.videoId}`);
-        const data = await res.json();
-
-        if (data.success && data.data?.url) {
-          setStreamUrl(data.data.url);
-        } else {
-          console.error('[AudioPlayer] Stream fetch failed:', data.error);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('[AudioPlayer] Fetch error:', error);
+        if (playingRef.current) player.loadVideoById(videoId);
+        else player.cueVideoById(videoId);
+      } catch (err) {
+        console.error('[AudioPlayer] load error:', err);
         setIsLoading(false);
       }
-    };
-
-    fetchStream();
-  }, [currentTrack?.videoId, setIsLoading]);
-
-  // Handle stream URL and playback
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !streamUrl) return;
-
-    audio.src = streamUrl;
-    audio.load();
-
-    if (isPlaying) {
-      audio.play().catch((err) => {
-        console.error('[AudioPlayer] Play error:', err);
-        setIsPlaying(false);
-      });
     }
-  }, [streamUrl, isPlaying, setIsPlaying]);
+    // If the player isn't ready yet, onReady picks the track up.
+  }, [currentTrack?.videoId, setIsLoading, setCurrentTime]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle play/pause state
+  // Play / pause
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !streamUrl || isLoading) return;
-
-    if (isPlaying) {
-      audio.play().catch((err) => {
-        console.error('[AudioPlayer] Play error:', err);
-        setIsPlaying(false);
-      });
-    } else {
-      audio.pause();
+    const player = playerRef.current;
+    if (!player || !readyRef.current || !currentTrack) return;
+    try {
+      if (isPlaying) player.playVideo();
+      else player.pauseVideo();
+    } catch (err) {
+      console.error('[AudioPlayer] play/pause error:', err);
     }
-  }, [isPlaying, streamUrl, isLoading, setIsPlaying]);
+  }, [isPlaying, currentTrack]);
 
-  // Handle volume
+  // Volume
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
+    const player = playerRef.current;
+    if (!player || !readyRef.current) return;
+    try {
+      player.setVolume(Math.round(volume * 100));
+    } catch {
+      // ignore — player may be tearing down
     }
   }, [volume]);
 
-  // Event handlers
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  };
+  // Progress polling + seek requests
+  useEffect(() => {
+    const onSeek = (e: Event) => {
+      const player = playerRef.current;
+      if (!player || !readyRef.current) return;
+      const time = (e as CustomEvent<number>).detail;
+      if (typeof time !== 'number' || isNaN(time)) return;
+      try {
+        player.seekTo(time, true);
+        storeRef.current.setCurrentTime(time);
+      } catch (err) {
+        console.error('[AudioPlayer] seek error:', err);
+      }
+    };
 
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
-  };
+    window.addEventListener(SEEK_EVENT, onSeek as EventListener);
 
-  const handleEnded = () => {
-    playNext();
-  };
+    const id = setInterval(() => {
+      const player = playerRef.current;
+      if (!player || !readyRef.current) return;
+      try {
+        if (typeof player.getCurrentTime === 'function') {
+          storeRef.current.setCurrentTime(player.getCurrentTime() || 0);
+        }
+        if (typeof player.getDuration === 'function') {
+          const d = player.getDuration() || 0;
+          if (d > 0) storeRef.current.setDuration(d);
+        }
+      } catch {
+        // ignore transient errors during track switches
+      }
+    }, 500);
 
-  const handlePlaying = () => {
-    setIsLoading(false);
-  };
+    return () => {
+      window.removeEventListener(SEEK_EVENT, onSeek as EventListener);
+      clearInterval(id);
+    };
+  }, []);
 
-  const handleWaiting = () => {
-    setIsLoading(true);
-  };
-
-  const handleError = (e: React.SyntheticEvent<HTMLAudioElement>) => {
-    console.error('[AudioPlayer] Error:', e);
-    setIsLoading(false);
-  };
-
+  // Hidden container — the iframe gets injected here by the YT API
   return (
-    <audio
-      ref={audioRef}
-      onTimeUpdate={handleTimeUpdate}
-      onLoadedMetadata={handleLoadedMetadata}
-      onEnded={handleEnded}
-      onPlaying={handlePlaying}
-      onWaiting={handleWaiting}
-      onError={handleError}
-      crossOrigin="anonymous"
-      playsInline
-      preload="metadata"
-      className="hidden"
+    <div
+      ref={containerRef}
+      aria-hidden="true"
+      style={{
+        position: 'absolute',
+        width: 0,
+        height: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+      }}
     />
   );
 }

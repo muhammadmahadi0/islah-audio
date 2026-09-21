@@ -1,10 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { pipedService, type PipedVideo } from '@/lib/piped-service';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import { Search as SearchIcon, Play, Pause, Music, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
+
+interface ChannelVideo {
+  videoId: string;
+  id?: string;
+  title: string;
+  thumbnail: string;
+  duration: number;
+  publishedAt?: string;
+}
 
 function formatDuration(seconds: number): string {
   if (!seconds || seconds <= 0) return '0:00';
@@ -19,56 +28,61 @@ function formatDuration(seconds: number): string {
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<PipedVideo[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [submittedQuery, setSubmittedQuery] = useState('');
+  const [videos, setVideos] = useState<ChannelVideo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-
-    setIsSearching(true);
-    try {
-      // Search via Piped API
-      const channelId = await pipedService.resolveChannelId('@islahbd');
-      if (channelId) {
-        const channel = await pipedService.getChannel(channelId);
-        if (channel?.relatedStreams) {
-          const filtered = channel.relatedStreams.filter((v) =>
-            v.title.toLowerCase().includes(query.toLowerCase())
-          );
-          setResults(filtered);
+  // Load the channel catalog once — search filters it client-side.
+  // (Previously this used the Piped API, whose public instances are dead.)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/channel?id=${DEFAULT_CHANNEL_ID}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.success && Array.isArray(data.videos)) {
+          setVideos(data.videos);
         }
+      } catch (error) {
+        console.error('Search catalog load error:', error);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handlePlayVideo = (video: PipedVideo) => {
-    const track: Track = {
-      id: video.videoId,
-      title: video.title,
-      thumbnail: video.thumbnail,
-      duration: video.duration,
-      channelName: video.uploaderName,
-      videoId: video.videoId,
+    })();
+    return () => {
+      cancelled = true;
     };
+  }, []);
 
-    const trackList: Track[] = results.map((v) => ({
-      id: v.videoId,
-      title: v.title,
-      thumbnail: v.thumbnail,
-      duration: v.duration,
-      channelName: v.uploaderName,
-      videoId: v.videoId,
-    }));
+  const handleSearch = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittedQuery(query.trim());
+  }, [query]);
 
-    const currentIndex = results.findIndex((v) => v.videoId === video.videoId);
-    playTrack(track, trackList, currentIndex >= 0 ? currentIndex : 0);
+  const results = useMemo(() => {
+    const q = submittedQuery.toLowerCase();
+    if (!q) return [];
+    return videos.filter((v) => v.title.toLowerCase().includes(q));
+  }, [videos, submittedQuery]);
+
+  const toTrack = (video: ChannelVideo): Track => ({
+    id: video.videoId || video.id || '',
+    title: video.title,
+    thumbnail: video.thumbnail,
+    duration: video.duration || 0,
+    channelName: 'Islah',
+    videoId: video.videoId || video.id || '',
+  });
+
+  const handlePlayVideo = (video: ChannelVideo) => {
+    const trackList: Track[] = results.map(toTrack);
+    const currentIndex = results.findIndex(
+      (v) => (v.videoId || v.id) === (video.videoId || video.id)
+    );
+    playTrack(toTrack(video), trackList, currentIndex >= 0 ? currentIndex : 0);
   };
 
   return (
@@ -91,58 +105,61 @@ export default function SearchPage() {
 
       {/* Results */}
       <div className="p-4">
-        {isSearching && (
+        {isLoading && (
           <div className="flex items-center justify-center h-32">
             <Loader2 size={24} className="animate-spin text-[#b3b3b3]" />
           </div>
         )}
 
-        {!isSearching && results.length > 0 && (
+        {!isLoading && results.length > 0 && (
           <div className="space-y-2">
-            {results.map((video) => (
-              <div
-                key={video.videoId}
-                onClick={() => handlePlayVideo(video)}
-                className={cn(
-                  'flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-[#282828] transition-colors',
-                  currentTrack?.videoId === video.videoId && 'bg-[#282828]'
-                )}
-              >
-                <div className="w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-[#333333]">
-                  <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={cn(
-                    'text-sm font-medium truncate',
-                    currentTrack?.videoId === video.videoId ? 'text-[#1DB954]' : 'text-white'
-                  )}>
-                    {video.title}
-                  </p>
-                  <p className="text-[#727272] text-xs">{video.uploaderName}</p>
-                </div>
-                {video.duration > 0 && (
-                  <span className="text-[#727272] text-xs">{formatDuration(video.duration)}</span>
-                )}
-                {currentTrack?.videoId === video.videoId && isPlaying && (
-                  <div className="flex items-center gap-0.5">
-                    <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" />
-                    <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                    <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+            {results.map((video) => {
+              const videoId = video.videoId || video.id || '';
+              return (
+                <div
+                  key={videoId}
+                  onClick={() => handlePlayVideo(video)}
+                  className={cn(
+                    'flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-[#282828] transition-colors',
+                    currentTrack?.videoId === videoId && 'bg-[#282828]'
+                  )}
+                >
+                  <div className="w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-[#333333]">
+                    <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
                   </div>
-                )}
-              </div>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <p className={cn(
+                      'text-sm font-medium truncate',
+                      currentTrack?.videoId === videoId ? 'text-[#1DB954]' : 'text-white'
+                    )}>
+                      {video.title}
+                    </p>
+                    <p className="text-[#727272] text-xs">Islah</p>
+                  </div>
+                  {video.duration > 0 && (
+                    <span className="text-[#727272] text-xs">{formatDuration(video.duration)}</span>
+                  )}
+                  {currentTrack?.videoId === videoId && isPlaying && (
+                    <div className="flex items-center gap-0.5">
+                      <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" />
+                      <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                      <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {!isSearching && query && results.length === 0 && (
+        {!isLoading && submittedQuery && results.length === 0 && (
           <div className="text-center text-[#b3b3b3] py-8">
             <SearchIcon size={48} className="mx-auto mb-4 opacity-50" />
-            <p>No results found for "{query}"</p>
+            <p>No results found for "{submittedQuery}"</p>
           </div>
         )}
 
-        {!isSearching && !query && (
+        {!isLoading && !submittedQuery && (
           <div className="text-center text-[#b3b3b3] py-8">
             <SearchIcon size={48} className="mx-auto mb-4 opacity-50" />
             <p>Search for lectures</p>
