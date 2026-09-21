@@ -138,7 +138,7 @@ function VideoCard({
           </span>
         </div>
         {video.duration > 0 && (
-          <span className="absolute bottom-2 right-2 rounded-md bg-black/75 backdrop-blur px-1.5 py-0.5 text-[11px] font-semibold text-white tabular-nums">
+          <span className="absolute bottom-2 right-2 rounded-md bg-black/75 backdrop-blur px-1.5 py-0.5 text-[11px] font-semibold text-[#FFFFFF] tabular-nums">
             {formatDuration(video.duration)}
           </span>
         )}
@@ -155,7 +155,7 @@ function VideoCard({
           }}
           aria-label="Save to playlist"
           title="Save to playlist"
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 backdrop-blur border border-white/15 text-white/80 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-gold-light hover:border-gold/50 transition-all"
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 backdrop-blur border border-[#FFFFFF]/20 text-[#FFFFFF]/80 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-[#E7C55A] hover:border-gold/50 transition-all"
         >
           <ListPlus size={15} />
         </button>
