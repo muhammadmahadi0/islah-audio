@@ -31,7 +31,7 @@ playlists, search, and a mobile-first design.
 | Framework| Next.js 14 (App Router)                                     |
 | Styling  | Tailwind CSS + custom design tokens (`tailwind.config.js`)  |
 | State    | Zustand (`player-store`, persisted `playlist-store`)        |
-| Data     | YouTube Data API v3 (channel listing + metadata)            |
+| Data     | **BETA:** keyless InnerTube listing first, YouTube Data API v3 fallback |
 | Playback | YouTube IFrame Player API (official embed, no extraction)   |
 | Hosting  | Netlify (`@netlify/plugin-nextjs`)                          |
 
@@ -40,7 +40,7 @@ playlists, search, and a mobile-first design.
 ### Prerequisites
 
 - Node.js 20+
-- A **YouTube Data API v3** key
+- A **YouTube Data API v3** key — fallback only on this branch
   ([enable it here](https://console.cloud.google.com/apis/library/youtube.googleapis.com))
 
 ### Setup
@@ -57,7 +57,7 @@ npm run dev                  # http://localhost:3000
 
 | Variable             | Required | Description                              |
 | -------------------- | -------- | ---------------------------------------- |
-| `YOUTUBE_API_KEY`    | Yes      | YouTube Data API v3 key (server-side)    |
+| `YOUTUBE_API_KEY`    | No (fallback) | YouTube Data API v3 key — listing prefers keyless InnerTube on this branch |
 | `NEXT_PUBLIC_CHANNEL_HANDLE` | No | Displayed channel handle (default `@islahbd`) |
 
 > On Netlify, set `YOUTUBE_API_KEY` under **Site settings → Environment variables**.
@@ -81,6 +81,15 @@ npm run start   # serve production build
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (playback is client-side) |
 | `GET /api/proxy?url=`  | CORS proxy helper                                                  |
 
+## How Listing Works (beta experiment)
+
+Like the Flow Android app, this branch lists channel videos through YouTube's
+**private InnerTube API** (`lib/innertube.ts`, via youtubei.js) instead of the
+quota-limited Data API: uploads playlist → `LockupView` parsing → stateless
+browse continuations. No key, no quota (≈1 unit per fresh load for the totals
+lookup when a key exists). If InnerTube fails, routes fall back to the Data API
+automatically — check the `source` field in API responses to see which served.
+
 ## Project Structure
 
 ```
@@ -89,23 +98,26 @@ src/
 │   ├── page.tsx            # Home — hero, filters, lecture grid
 │   ├── search/page.tsx     # Search across the catalog
 │   ├── library/page.tsx    # Library — Queue + Playlists tabs (merged)
-│   └── api/                # channel / stream / proxy routes
+│   └── api/                # channel / live / hls / stream / proxy routes
 ├── components/
-│   ├── AudioPlayer.tsx     # hidden YouTube embed playback engine
+│   ├── AudioPlayer.tsx     # hidden YouTube embed + stream playback engine
 │   ├── Sidebar.tsx         # desktop navigation
 │   ├── BottomNav.tsx       # mobile navigation
+│   ├── BetaBadge.tsx       # floating BETA marker (beta branch only)
 │   ├── AddToPlaylistMenu.tsx # save-to-playlist panel
 │   └── Player/MiniPlayer.tsx # floating mini + full-screen player
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)
-│   └── playlist-store.ts   # user playlists, persisted to localStorage
+│   ├── playlist-store.ts   # user playlists, persisted to localStorage
+│   └── theme-store.ts      # light/dark theme, persisted
 └── lib/
-    ├── youtube.ts          # YouTube Data API helpers
+    ├── youtube.ts          # YouTube Data API helpers (fallback)
+    ├── innertube.ts        # keyless InnerTube listing (primary on beta)
+    ├── live.ts             # live-status types
     └── utils.ts            # classnames helper
 ```
 
 ## How Playback Works
-
 Third-party audio-extraction APIs (Cobalt v7, public Piped/Invidious instances) are
 dead or blocked, so YouTube tracks play through the **official YouTube embed**
 (`AudioPlayer.tsx` creates a hidden `YT.Player`). The **islahbd live broadcast**
