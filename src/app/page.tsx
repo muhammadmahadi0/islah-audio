@@ -14,10 +14,12 @@ import {
   Eye,
   ListMusic,
   ListPlus,
+  Radio,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
+import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CHANNEL_ID = DEFAULT_CHANNEL_ID;
@@ -227,6 +229,7 @@ export default function HomePage() {
   const [channelName, setChannelName] = useState('Islah');
   const [channelAvatar, setChannelAvatar] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const [live, setLive] = useState<LiveStatus | null>(null);
 
   const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
 
@@ -260,6 +263,27 @@ export default function HomePage() {
   useEffect(() => {
     fetchVideos();
   }, [fetchVideos]);
+
+  // Live status from islahbd.com (polled)
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/live');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.success) setLive(data.live);
+      } catch (error) {
+        console.error('[Page] Live status error:', error);
+      }
+    };
+    load();
+    const id = setInterval(load, LIVE_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     if (filter === 'bayan') return videos.filter((v) => (v.duration || 0) > SHORT_MAX_SECONDS);
@@ -307,6 +331,41 @@ export default function HomePage() {
     const shuffled = [...filtered].sort(() => Math.random() - 0.5);
     playList(shuffled, 0);
   }, [filtered, playList]);
+
+  const isLiveTrackActive =
+    !!currentTrack && (currentTrack.id === 'live' || currentTrack.id === 'live-recording');
+
+  const handleLive = useCallback(() => {
+    if (!live) return;
+    if (isLiveTrackActive) {
+      setIsPlaying(!isPlaying);
+      return;
+    }
+    if (live.isLive && live.streamUrl) {
+      const track: Track = {
+        id: 'live',
+        title: live.title || 'Live Broadcast',
+        thumbnail: channelAvatar,
+        duration: 0,
+        channelName: live.speaker || 'Islah Live',
+        videoId: '',
+        hlsUrl: live.streamUrl,
+        isLive: true,
+      };
+      playTrack(track, [track], 0);
+    } else if (live.recording?.audioUrl) {
+      const track: Track = {
+        id: 'live-recording',
+        title: live.recording.title || 'Last Live Broadcast',
+        thumbnail: channelAvatar,
+        duration: live.recording.durationSeconds || 0,
+        channelName: live.recording.speaker || 'Islah',
+        videoId: '',
+        audioUrl: live.recording.audioUrl,
+      };
+      playTrack(track, [track], 0);
+    }
+  }, [live, isLiveTrackActive, isPlaying, setIsPlaying, playTrack, channelAvatar]);
 
   if (error && !isLoading) {
     return <ErrorScreen onRetry={fetchVideos} />;
@@ -378,9 +437,53 @@ export default function HomePage() {
                     {formatTotalHours(videos)} of content
                   </span>
                 </div>
+                {live?.isLive && (
+                  <button
+                    onClick={handleLive}
+                    className="flex items-center gap-2 mt-3 text-[13px] font-semibold text-red-300 hover:text-red-200 transition-colors"
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    </span>
+                    <span className="truncate">
+                      Live now{live.title ? `: ${live.title}` : ''}
+                      {live.listeners > 0 ? ` • ${live.listeners} listening` : ''}
+                    </span>
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
+                {/* Live / replay-last-broadcast */}
+                <button
+                  onClick={handleLive}
+                  disabled={!live || (!live.isLive && !live.recording)}
+                  title={live?.isLive ? 'Play live broadcast' : 'Play last broadcast'}
+                  aria-label={live?.isLive ? 'Play live' : 'Play last broadcast'}
+                  className={cn(
+                    'h-12 pl-3.5 pr-4 rounded-full flex items-center gap-2 text-sm font-extrabold transition-all disabled:opacity-40',
+                    live?.isLive
+                      ? 'bg-red-500 text-white shadow-[0_8px_32px_rgba(239,68,68,0.45)] hover:scale-105 active:scale-95'
+                      : 'border border-gold/50 bg-gold/10 text-gold-light hover:border-gold hover:shadow-gold'
+                  )}
+                >
+                  {live?.isLive ? (
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
+                    </span>
+                  ) : (
+                    <Radio size={17} />
+                  )}
+                  {live?.isLive
+                    ? isLiveTrackActive && isPlaying
+                      ? 'Listening'
+                      : 'LIVE'
+                    : live?.recording
+                      ? 'Last Live'
+                      : 'Live'}
+                </button>
                 <button
                   onClick={handlePlayAll}
                   className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg hover:scale-105 active:scale-95 transition-transform"

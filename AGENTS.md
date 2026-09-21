@@ -11,10 +11,13 @@ This file orients AI coding agents working in this repo. Read it before making c
 
 ## Architecture (do not break these contracts)
 
-1. **Playback = hidden YouTube embed.** `src/components/AudioPlayer.tsx` owns a
-   `YT.Player` and syncs it with `usePlayerStore`. Seeking from any UI goes through
-   the `islah:seek` window `CustomEvent` (`detail` = seconds). Never query
-   `document.querySelector('audio')` as the primary mechanism (legacy fallback only).
+1. **Playback = hidden YouTube embed + hidden `<audio>` for streams.**
+   `src/components/AudioPlayer.tsx` owns both engines. Tracks with `hlsUrl` /
+   `audioUrl` (live broadcast, recordings) use `<audio>` + hls.js; everything
+   else uses the `YT.Player` embed. Seeking from any UI goes through the
+   `islah:seek` window `CustomEvent` (`detail` = seconds), ignored for live
+   (`track.isLive`). Never query `document.querySelector('audio')` as the
+   primary mechanism (legacy fallback only).
 2. **No audio-extraction services.** Cobalt v7 (`api.cobalt.tools`) is shut down;
    public Piped/Invidious instances return 403/525. Do NOT reintroduce `cobalt.ts`,
    `ytdl-core`, or third-party extractors. `/api/stream/[id]` intentionally returns
@@ -31,7 +34,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
    `currentTrack` for the same reason).
-6. **Netlify.** `netlify.toml` uses `@netlify/plugin-nextjs`. Never add manual
+7. **Live (islahbd.com).** Status via `/api/live` (proxies
+   `api.islahbd.com/api/live/status/`); HLS via `/api/hls` proxy fallback.
+   Live button lives in the Home hero (`page.tsx`); live tracks use
+   `id: 'live'` / `'live-recording'` with `isLive` set for real broadcasts.
+8. **Netlify.** `netlify.toml` uses `@netlify/plugin-nextjs`. Never add manual
    `/api/*` or `/_next/*` redirects, and never add invalid `[functions.*]` keys.
 
 ## Conventions

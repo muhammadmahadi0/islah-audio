@@ -78,6 +78,8 @@ export default function MiniPlayer() {
 
   if (!currentTrack) return null;
 
+  const isLive = !!currentTrack.isLive;
+
   /* ---------------- Full-screen player ---------------- */
   if (isExpanded) {
     return (
@@ -127,9 +129,20 @@ export default function MiniPlayer() {
           </div>
 
           <div className="px-7 pt-5">
-            <h2 className="text-xl font-extrabold text-white tracking-tight clamp-2">
-              {currentTrack.title}
-            </h2>
+            <div className="flex items-center gap-2">
+              {isLive && (
+                <span className="flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white shrink-0">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                  </span>
+                  Live
+                </span>
+              )}
+              <h2 className="text-xl font-extrabold text-white tracking-tight clamp-2">
+                {currentTrack.title}
+              </h2>
+            </div>
             <p className="text-gold/90 text-sm font-medium mt-1 truncate">
               {currentTrack.channelName}
             </p>
@@ -143,13 +156,14 @@ export default function MiniPlayer() {
               step="0.1"
               value={currentTime}
               onChange={handleSeek}
-              className="w-full"
+              disabled={isLive}
+              className={cn('w-full', isLive && 'opacity-40')}
               style={{ '--fill': `${progress}%` } as React.CSSProperties}
               aria-label="Seek"
             />
             <div className="flex justify-between text-xs font-medium text-mist mt-1.5 tabular-nums">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
+              <span>{isLive ? 'LIVE' : formatTime(currentTime)}</span>
+              <span>{isLive ? '' : formatTime(duration)}</span>
             </div>
           </div>
 
@@ -228,8 +242,14 @@ export default function MiniPlayer() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-white text-sm font-semibold truncate">
-            {currentTrack.title}
+          <p className="flex items-center gap-1.5 text-white text-sm font-semibold truncate">
+            {isLive && (
+              <span className="flex items-center gap-1 rounded-full bg-red-500 px-1.5 py-px text-[9px] font-extrabold uppercase tracking-widest text-white shrink-0">
+                <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
+                Live
+              </span>
+            )}
+            <span className="truncate">{currentTrack.title}</span>
           </p>
           <div className="flex items-center gap-2">
             <p className="text-mist-dark text-xs truncate">{currentTrack.channelName}</p>

@@ -9,6 +9,8 @@ export interface Track {
   videoId: string;
   audioUrl?: string;
   hlsUrl?: string;
+  /** True for the live broadcast — duration is unknown, seeking disabled. */
+  isLive?: boolean;
   publishedAt?: string;
   description?: string;
 }
