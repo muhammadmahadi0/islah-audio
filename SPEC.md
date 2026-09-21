@@ -72,12 +72,10 @@
 - Large rounded search field with clear button; result count; rows with
   thumbnail, duration, save-to-playlist button, equalizer on current track
 
-#### Library (Queue + Playlists tabs — playlists live here, no separate nav)
+#### Library (Queue + Playlists tabs — user playlists live here, no separate nav)
 
 - **Queue**: current playback queue with track numbers
-- **Playlists → From YouTube**: the channel's real YouTube playlists
-  (cover, counts, expandable, play-all)
-- **Playlists → Your Playlists**: create/rename/delete, save tracks from
+- **Playlists**: create/rename/delete your own playlists, save tracks from
   Home/Search, play-all, remove tracks; persisted in `localStorage`
 
 #### Mini Player
@@ -90,27 +88,27 @@
 
 ### Core Features
 
-1. **Channel Catalog** — `/api/channel` lists latest uploads with durations
-   and view counts (CDN-cached to save API quota).
-2. **Channel Playlists** — `/api/playlists` lists the channel's YouTube
-   playlists; items lazy-load per playlist.
-3. **Lecture Playback** — hidden YouTube embed driven by the player store
+1. **Channel Catalog** — `/api/channel/[id]` lists the newest 100 uploads with
+   durations and view counts, plus a `nextPageToken` and `total`;
+   `/api/channel/[id]/more/[token]` appends older videos in 200-chunks
+   (the API caps pages at 50 items). Home has a Show-more button; Search
+   indexes every chunk in the background. Responses are CDN-cached to save quota.
+2. **Lecture Playback** — hidden YouTube embed driven by the player store
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
    volume, progress polling). Unplayable videos auto-skip.
-4. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
+3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
    red LIVE button plays HLS when on air, gold Last Live replays the latest
    recording when offline. HLS falls back to the `/api/hls` CORS proxy.
-5. **User Playlists** — persisted zustand store (`islah-playlists` key);
+4. **User Playlists** — persisted zustand store (`islah-playlists` key);
    duplicate-guarded adds, delete with confirm.
-6. **Search** — client-side filter over the loaded catalog.
+5. **Search** — client-side filter over the fully indexed catalog.
 
 ### API Routes (all `force-dynamic`)
 
 | Route | Purpose |
 | ----- | ------- |
-| `GET /api/channel/[id]` | Channel info + videos `{ videoId, title, thumbnail, duration, views, publishedAt }` |
-| `GET /api/playlists?id=` | Channel playlists `{ id, title, thumbnail, itemCount }` |
-| `GET /api/playlist-items/[id]` | Playlist items (same video shape) |
+| `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
+| `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls?url=` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (compat) |
@@ -142,7 +140,7 @@
 4. ✅ Mini player shows track info, progress, play/pause/next/prev/stop
 5. ✅ Seek + volume work (seek locked on live edge)
 6. ✅ LIVE button plays live HLS when on air, recording when offline
-7. ✅ Channel playlists listed with playable items
+7. ✅ Entire catalog reachable (100 first + Show-more chunks, search indexes all)
 8. ✅ User playlists creatable, persisted, playable
 9. ✅ Search filters the catalog
 10. ✅ Emerald + gold theme, sidebar on desktop, bottom nav on mobile

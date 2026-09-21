@@ -28,12 +28,14 @@ This file orients AI coding agents working in this repo. Read it before making c
    **IDs must travel in URL paths, not query strings** — Netlify drops query
    params before function invocation (proven in prod: `?id=` and `?playlistId=`
    were silently ignored). Same rule for `/api/playlist-items/[id]`.
-4. **Playlists** live in `src/store/playlist-store.ts` (zustand `persist`,
-   key `islah-playlists`). Playlists UI is merged into the **Library** page tabs —
-   do not add a separate Playlists nav item without asking the user. The channel's
-   real YouTube playlists come from `/api/playlists` (`getChannelPlaylists` /
-   `getPlaylistItems` in `lib/youtube.ts`).
-5. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
+4. **Playlists = user playlists only** (`src/store/playlist-store.ts`, persist key
+   `islah-playlists`), merged into the Library tabs. The channel-YouTube-playlists
+   section was removed (plus `/api/playlists`, `/api/playlist-items/*`,
+   `getChannelPlaylists`, `getPlaylistItems`) — do not re-add without asking.
+5. **Catalog pagination.** YouTube caps pages at 50 items: initial load fetches
+   `INITIAL_PAGES` (100 videos), "more" chunks fetch `MORE_PAGES` (200) via
+   `/api/channel/[id]/more/[token]` (`getPlaylistVideosPaged` in `lib/youtube.ts`).
+6. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
    `currentTrack` for the same reason).

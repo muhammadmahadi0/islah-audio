@@ -14,9 +14,8 @@ playlists, search, and a mobile-first design.
   durations, and view counts
 - **Audio playback** — hidden YouTube embed player wired to a global player store
   (play/pause, next/previous, seek, volume, autoplay-next)
-- **Playlists** — the channel's real YouTube playlists plus your own custom ones
-  (create, save any lecture from Home/Search, play them back; yours are stored in
-  `localStorage` so they survive reloads — all merged into the **Library** tab)
+- **Playlists** — create your own playlists and save any lecture from
+  Home/Search (stored in `localStorage`, merged into the **Library** tab)
 - **Live broadcast** — a LIVE button in the Home hero plays the islahbd.com live
   audio stream (HLS via hls.js) when on air, and the last broadcast recording
   when offline; live status is polled from their public status API
@@ -74,9 +73,8 @@ npm run start   # serve production build
 
 | Route                  | Description                                                        |
 | ---------------------- | ------------------------------------------------------------------ |
-| `GET /api/channel?id=` | Channel info + latest videos as `{ videoId, title, thumbnail, duration, views, publishedAt }` |
-| `GET /api/playlists?id=` | The channel's YouTube playlists as `{ id, title, thumbnail, itemCount }` |
-| `GET /api/playlists?playlistId=` | Items of one playlist as `{ videoId, title, thumbnail, duration, views }` |
+| `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
+| `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
 | `GET /api/live` | islahbd.com live status as `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls?url=` | HLS manifest/media proxy with open CORS (fallback when the live CDN blocks cross-origin fetch) |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (playback is client-side) |

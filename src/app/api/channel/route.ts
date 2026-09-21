@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
       success: true,
       channel: { name: channel.name, avatar: channel.avatar },
       videos: channel.videos,
+      nextPageToken: channel.nextPageToken,
+      total: channel.total,
     });
 
     // Cache at the CDN for an hour to save YouTube API quota.

@@ -19,13 +19,11 @@ export interface YouTubeChannel {
   name: string;
   avatar: string;
   videos: YouTubeVideo[];
-}
-
-export interface YouTubePlaylist {
-  id: string;
-  title: string;
-  thumbnail: string;
-  itemCount: number;
+  uploadsPlaylistId: string;
+  /** Token for the next chunk of uploads (null when exhausted). */
+  nextPageToken: string | null;
+  /** Total videos in the uploads playlist. */
+  total: number;
 }
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
@@ -64,21 +62,56 @@ export async function getChannelDetails(channelId: string) {
   };
 }
 
-export async function getPlaylistVideos(playlistId: string, maxResults = 50) {
-  const data = await getYouTubeAPI<any>('playlistItems', {
-    part: 'snippet',
-    playlistId,
-    maxResults: maxResults.toString(),
-  });
+/** First page size for listings (2 API pages — keeps responses fast). */
+export const INITIAL_PAGES = 2;
+/** Chunk size for "load more" requests (4 API pages). */
+export const MORE_PAGES = 4;
+const PAGE_SIZE = 50;
 
-  if (!data?.items) return [];
+export async function getPlaylistVideos(playlistId: string, maxPages = INITIAL_PAGES) {
+  const { videos } = await getPlaylistVideosPaged(playlistId, undefined, maxPages);
+  return videos;
+}
 
-  const items = data.items.filter((item: any) => item.snippet?.resourceId?.videoId);
+/**
+ * Fetch consecutive playlist pages starting at `pageToken`.
+ * Returns videos plus the token for the next chunk (null when exhausted).
+ */
+export async function getPlaylistVideosPaged(
+  playlistId: string,
+  pageToken?: string,
+  maxPages = MORE_PAGES
+): Promise<{ videos: YouTubeVideo[]; nextPageToken: string | null; total: number }> {
+  const allItems: any[] = [];
+  let token: string | undefined = pageToken;
+  let total = 0;
+
+  for (let page = 0; page < maxPages; page++) {
+    const params: Record<string, string> = {
+      part: 'snippet',
+      playlistId,
+      maxResults: PAGE_SIZE.toString(),
+    };
+    if (token) params.pageToken = token;
+
+    const data = await getYouTubeAPI<any>('playlistItems', params);
+    if (!data?.items) break;
+
+    if (page === 0 && typeof data.pageInfo?.totalResults === 'number') {
+      total = data.pageInfo.totalResults;
+    }
+
+    allItems.push(...data.items);
+    token = data.nextPageToken;
+    if (!token) break;
+  }
+
+  const items = allItems.filter((item: any) => item.snippet?.resourceId?.videoId);
 
   const videoIds = items.map((item: any) => item.snippet.resourceId.videoId as string);
   const details = await getVideoDetails(videoIds);
 
-  return items.map((item: any) => {
+  const videos = items.map((item: any) => {
     const videoId: string = item.snippet.resourceId.videoId;
     const meta = details.get(videoId);
     return {
@@ -91,6 +124,8 @@ export async function getPlaylistVideos(playlistId: string, maxResults = 50) {
       views: meta?.views ?? 0,
     };
   });
+
+  return { videos, nextPageToken: token || null, total };
 }
 
 /** Parse an ISO8601 duration (e.g. PT1H2M3S) into seconds. */
@@ -106,6 +141,7 @@ export function parseDuration(iso: string): number {
 
 /**
  * Batch-fetch durations + view counts for up to 50 videos per request.
+ * Batches run in parallel to keep multi-page listings fast.
  */
 async function getVideoDetails(
   videoIds: string[]
@@ -114,13 +150,21 @@ async function getVideoDetails(
   if (videoIds.length === 0) return result;
 
   // YouTube allows max 50 ids per videos.list call
+  const batches: string[][] = [];
   for (let i = 0; i < videoIds.length; i += 50) {
-    const batch = videoIds.slice(i, i + 50);
-    const data = await getYouTubeAPI<any>('videos', {
-      part: 'contentDetails,statistics',
-      id: batch.join(','),
-    });
+    batches.push(videoIds.slice(i, i + 50));
+  }
 
+  const responses = await Promise.all(
+    batches.map((batch) =>
+      getYouTubeAPI<any>('videos', {
+        part: 'contentDetails,statistics',
+        id: batch.join(','),
+      })
+    )
+  );
+
+  for (const data of responses) {
     for (const item of data?.items || []) {
       result.set(item.id, {
         duration: parseDuration(item.contentDetails?.duration || ''),
@@ -149,13 +193,20 @@ export async function getChannelVideos(channelId: string): Promise<YouTubeChanne
     return null;
   }
 
-  const videos = await getPlaylistVideos(channelDetails.uploadsPlaylistId, 50);
+  const {
+    videos,
+    nextPageToken,
+    total,
+  } = await getPlaylistVideosPaged(channelDetails.uploadsPlaylistId, undefined, INITIAL_PAGES);
   console.log('[YouTube] Got', videos.length, 'videos');
 
   return {
     name: channelDetails.title,
     avatar: channelDetails.thumbnail,
     videos,
+    uploadsPlaylistId: channelDetails.uploadsPlaylistId,
+    nextPageToken,
+    total,
   };
 }
 
@@ -177,77 +228,6 @@ async function getChannelDetailsByHandle(handle: string) {
 
 export function hasApiKey(): boolean {
   return !!API_KEY;
-}
-
-/** Resolve a handle like `@islahbd` to its UC channel ID. */
-export async function resolveChannelId(channelIdOrHandle: string): Promise<string> {
-  if (!channelIdOrHandle.startsWith('@')) return channelIdOrHandle;
-
-  const data = await getYouTubeAPI<any>('channels', {
-    part: 'id',
-    forHandle: channelIdOrHandle.replace('@', ''),
-  });
-
-  return data?.items?.[0]?.id || channelIdOrHandle;
-}
-
-/** List a channel's public playlists (up to 50). */
-export async function getChannelPlaylists(channelIdOrHandle: string): Promise<YouTubePlaylist[]> {
-  const channelId = await resolveChannelId(channelIdOrHandle);
-
-  const data = await getYouTubeAPI<any>('playlists', {
-    part: 'snippet,contentDetails',
-    channelId,
-    maxResults: '50',
-  });
-
-  if (!data?.items) return [];
-
-  return data.items.map((item: any) => ({
-    id: item.id,
-    title: item.snippet?.title || 'Untitled playlist',
-    thumbnail:
-      item.snippet?.thumbnails?.medium?.url ||
-      item.snippet?.thumbnails?.default?.url ||
-      '',
-    itemCount: item.contentDetails?.itemCount || 0,
-  }));
-}
-
-/** Get items of a YouTube playlist (first 50), skipping deleted/private videos. */
-export async function getPlaylistItems(playlistId: string): Promise<YouTubeVideo[]> {
-  const data = await getYouTubeAPI<any>('playlistItems', {
-    part: 'snippet',
-    playlistId,
-    maxResults: '50',
-  });
-
-  if (!data?.items) return [];
-
-  const items = data.items.filter(
-    (item: any) =>
-      item.snippet?.resourceId?.videoId &&
-      item.snippet.title !== 'Deleted video' &&
-      item.snippet.title !== 'Private video'
-  );
-
-  const videoIds = items.map((item: any) => item.snippet.resourceId.videoId as string);
-  const details = await getVideoDetails(videoIds);
-
-  return items.map((item: any) => {
-    const videoId: string = item.snippet.resourceId.videoId;
-    const meta = details.get(videoId);
-    return {
-      id: videoId,
-      videoId,
-      title: item.snippet.title,
-      thumbnail:
-        item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
-      publishedAt: item.snippet.publishedAt,
-      duration: meta?.duration ?? 0,
-      views: meta?.views ?? 0,
-    };
-  });
 }
 
 export const TARGET_CHANNEL_ID = 'UC8NjCrYUV5YrpK2j6XTwGSA';

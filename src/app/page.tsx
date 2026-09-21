@@ -230,6 +230,9 @@ export default function HomePage() {
   const [channelAvatar, setChannelAvatar] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [live, setLive] = useState<LiveStatus | null>(null);
+  const [nextToken, setNextToken] = useState<string | null>(null);
+  const [totalVideos, setTotalVideos] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
 
@@ -252,6 +255,8 @@ export default function HomePage() {
       }
 
       setVideos(data.videos);
+      setNextToken(data.nextPageToken || null);
+      setTotalVideos(data.total || data.videos.length);
       if (data.channel?.name) setChannelName(data.channel.name);
       if (data.channel?.avatar) setChannelAvatar(data.channel.avatar);
     } catch (err) {
@@ -333,6 +338,29 @@ export default function HomePage() {
     const shuffled = [...filtered].sort(() => Math.random() - 0.5);
     playList(shuffled, 0);
   }, [filtered, playList]);
+
+  const handleLoadMore = useCallback(async () => {
+    if (!nextToken || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(
+        `/api/channel/${CHANNEL_ID}/more/${encodeURIComponent(nextToken)}`
+      );
+      const data = await res.json();
+      if (data.success && Array.isArray(data.videos)) {
+        setVideos((prev) => {
+          const seen = new Set(prev.map((v) => v.videoId || v.id));
+          const fresh = data.videos.filter((v: VideoItem) => !seen.has(v.videoId || v.id));
+          return [...prev, ...fresh];
+        });
+        setNextToken(data.nextPageToken || null);
+      }
+    } catch (err) {
+      console.error('[Page] Load more error:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [nextToken, loadingMore]);
 
   const isLiveTrackActive =
     !!currentTrack && (currentTrack.id === 'live' || currentTrack.id === 'live-recording');
@@ -432,7 +460,7 @@ export default function HomePage() {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5 text-[13px] text-mist">
                   <span className="flex items-center gap-1.5">
                     <ListMusic size={14} className="text-brand-light" />
-                    {videos.length} lectures
+                    {totalVideos || videos.length} lectures
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Clock size={14} className="text-brand-light" />
@@ -548,24 +576,55 @@ export default function HomePage() {
         )}
 
         {!isLoading && !error && filtered.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-            <AnimatePresence mode="popLayout">
-              {filtered.map((video, index) => (
-                <VideoCard
-                  key={video.videoId || video.id}
-                  video={video}
-                  index={index}
-                  onPlay={handlePlayVideo}
-                  isPlaying={isPlaying}
-                  isCurrentTrack={
-                    !!currentTrack &&
-                    currentTrack.videoId === (video.videoId || video.id)
-                  }
-                  channelName={channelName}
-                />
-              ))}
-            </AnimatePresence>
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+              <AnimatePresence mode="popLayout">
+                {filtered.map((video, index) => (
+                  <VideoCard
+                    key={video.videoId || video.id}
+                    video={video}
+                    index={index}
+                    onPlay={handlePlayVideo}
+                    isPlaying={isPlaying}
+                    isCurrentTrack={
+                      !!currentTrack &&
+                      currentTrack.videoId === (video.videoId || video.id)
+                    }
+                    channelName={channelName}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Show more — the uploads catalog is paged (100 + 200 chunks) */}
+            <div className="flex flex-col items-center mt-8 gap-2">
+              {totalVideos > 0 && (
+                <p className="text-xs font-semibold text-mist-dark tabular-nums">
+                  Showing {videos.length} of {totalVideos} lectures
+                </p>
+              )}
+              {nextToken ? (
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="flex items-center gap-2 px-7 py-3 rounded-full bg-white/[0.06] border border-white/15 text-sm font-bold text-white hover:border-brand/60 hover:shadow-glow transition-all disabled:opacity-50"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin text-brand-light" />
+                      Loading…
+                    </>
+                  ) : (
+                    'Show more'
+                  )}
+                </button>
+              ) : (
+                videos.length > 0 && (
+                  <p className="text-xs text-mist-dark">You’ve reached the end ✓</p>
+                )
+              )}
+            </div>
+          </>
         )}
 
         {!isLoading && !error && filtered.length === 0 && (

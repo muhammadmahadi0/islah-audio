@@ -116,9 +116,13 @@ export default function SearchPage() {
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [videos, setVideos] = useState<ChannelVideo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [indexing, setIndexing] = useState(false);
+  const [totalVideos, setTotalVideos] = useState(0);
 
   const { playTrack, currentTrack, isPlaying } = usePlayerStore();
 
+  // Index the whole catalog in the background (100 first, then 200-chunks)
+  // so search covers every video, not just the first page.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -130,11 +134,31 @@ export default function SearchPage() {
         const data = await res.json();
         if (!cancelled && data.success && Array.isArray(data.videos)) {
           setVideos(data.videos);
+          setTotalVideos(data.total || data.videos.length);
+          let token: string | null = data.nextPageToken || null;
+          if (token) setIndexing(true);
+          const seen = new Set(data.videos.map((v: ChannelVideo) => v.videoId || v.id));
+          while (token && !cancelled) {
+            const more = await fetch(
+              `/api/channel/${DEFAULT_CHANNEL_ID}/more/${encodeURIComponent(token)}`
+            );
+            const mdata = await more.json();
+            if (!mdata.success || !Array.isArray(mdata.videos)) break;
+            const fresh = mdata.videos.filter(
+              (v: ChannelVideo) => !seen.has(v.videoId || v.id)
+            );
+            fresh.forEach((v: ChannelVideo) => seen.add(v.videoId || v.id));
+            if (!cancelled) setVideos((prev) => [...prev, ...fresh]);
+            token = mdata.nextPageToken || null;
+          }
         }
       } catch (error) {
         console.error('Search catalog load error:', error);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+          setIndexing(false);
+        }
       }
     })();
     return () => {
@@ -186,6 +210,11 @@ export default function SearchPage() {
         </h1>
         <p className="text-sm text-mist-dark mb-5">
           Find bayans, waz and nasheeds from the channel
+          {indexing && (
+            <span className="ml-2 text-brand-light">
+              • indexing {videos.length}{totalVideos ? `/${totalVideos}` : ''}…
+            </span>
+          )}
         </p>
 
         <form onSubmit={handleSearch}>

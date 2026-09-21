@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import { usePlaylistStore, type SavedPlaylist } from '@/store/playlist-store';
 import {
@@ -14,11 +14,8 @@ import {
   Play,
   X,
   ChevronDown,
-  Loader2,
-  Youtube,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
 
 function formatDuration(seconds: number): string {
   if (!seconds || seconds <= 0) return '0:00';
@@ -227,188 +224,11 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
 
 type Tab = 'queue' | 'playlists';
 
-interface ChannelPlaylist {
-  id: string;
-  title: string;
-  thumbnail: string;
-  itemCount: number;
-}
-
-/** A real YouTube playlist from the channel — items lazy-load on expand. */
-function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
-  const [expanded, setExpanded] = useState(false);
-  const [tracks, setTracks] = useState<Track[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
-
-  const ensureTracks = async (): Promise<Track[]> => {
-    if (tracks) return tracks;
-    setIsLoading(true);
-    try {
-      // NOTE: playlist ID goes in the path — query strings are dropped
-      // by our hosting before function invocation.
-      const res = await fetch(`/api/playlist-items/${playlist.id}`);
-      const data = await res.json();
-      if (data.success && Array.isArray(data.videos)) {
-        const mapped: Track[] = data.videos.map((v: any) => ({
-          id: v.videoId || v.id,
-          title: v.title,
-          thumbnail: v.thumbnail,
-          duration: v.duration || 0,
-          channelName: 'Islah',
-          videoId: v.videoId || v.id,
-        }));
-        setTracks(mapped);
-        return mapped;
-      }
-    } catch (error) {
-      console.error('Playlist items load error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-    // Never leave tracks null — that would spin the loader forever.
-    setTracks([]);
-    return [];
-  };
-
-  const toggle = () => {
-    if (!expanded) ensureTracks();
-    setExpanded((v) => !v);
-  };
-
-  const playAll = async () => {
-    const list = await ensureTracks();
-    if (list.length === 0) return;
-    if (!expanded) setExpanded(true);
-    playTrack(list[0], list, 0);
-  };
-
-  const playOne = (track: Track, index: number) => {
-    if (!tracks) return;
-    if (currentTrack?.id === track.id) setIsPlaying(!isPlaying);
-    else playTrack(track, tracks, index);
-  };
-
-  return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
-      <div className="flex items-center gap-3.5 p-3.5">
-        <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-ink-700 ring-1 ring-white/10">
-          {playlist.thumbnail ? (
-            <img src={playlist.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <ListVideo size={22} className="text-brand-light" />
-            </div>
-          )}
-          <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[9px] font-bold text-white text-center py-0.5 tabular-nums">
-            {playlist.itemCount}
-          </span>
-        </div>
-        <button onClick={toggle} className="flex-1 min-w-0 text-left">
-          <p className="flex items-center gap-1.5 text-white font-bold truncate">
-            <Youtube size={15} className="text-red-400 shrink-0" />
-            <span className="truncate">{playlist.title}</span>
-          </p>
-          <p className="text-mist-dark text-xs mt-0.5">
-            YouTube playlist • {playlist.itemCount} video{playlist.itemCount === 1 ? '' : 's'}
-          </p>
-        </button>
-        <button
-          onClick={playAll}
-          disabled={isLoading}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow hover:scale-105 active:scale-95 transition-transform shrink-0 disabled:opacity-40"
-          aria-label={`Play ${playlist.title}`}
-        >
-          {isLoading ? (
-            <Loader2 size={16} className="animate-spin text-ink-950" />
-          ) : (
-            <Play size={16} fill="#060D0A" className="text-ink-950 ml-0.5" />
-          )}
-        </button>
-        <button
-          onClick={toggle}
-          className="p-2 rounded-xl text-mist-dark hover:text-white hover:bg-white/10 transition-colors shrink-0"
-          aria-label={expanded ? 'Collapse' : 'Expand'}
-        >
-          <ChevronDown size={17} className={cn('transition-transform', expanded && 'rotate-180')} />
-        </button>
-      </div>
-
-      {expanded && (
-        <div className="border-t border-white/[0.06]">
-          {isLoading || tracks === null ? (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 size={22} className="animate-spin text-brand-light" />
-            </div>
-          ) : tracks.length === 0 ? (
-            <p className="px-4 py-5 text-[13px] text-mist-dark text-center">
-              This playlist is empty or unavailable.
-            </p>
-          ) : (
-            <div className="divide-y divide-white/[0.05]">
-              {tracks.map((t, i) => (
-                <TrackRow
-                  key={t.id}
-                  track={t}
-                  index={i}
-                  showIndex={false}
-                  onPlay={() => playOne(t, i)}
-                  isActive={currentTrack?.id === t.id}
-                  isPlaying={isPlaying}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function LibraryPage() {
   const [tab, setTab] = useState<Tab>('queue');
   const [newName, setNewName] = useState('');
-  const [ytPlaylists, setYtPlaylists] = useState<ChannelPlaylist[] | null>(null);
-  const [ytLoading, setYtLoading] = useState(false);
-  const [ytError, setYtError] = useState(false);
   const { playlist, currentTrack, isPlaying, playTrack, setIsPlaying } = usePlayerStore();
   const { playlists, createPlaylist } = usePlaylistStore();
-
-  // Lazy-load the channel's YouTube playlists when the tab opens
-  useEffect(() => {
-    if (tab !== 'playlists' || ytPlaylists !== null || ytLoading) return;
-    let cancelled = false;
-    (async () => {
-      setYtLoading(true);
-      setYtError(false);
-      try {
-        const res = await fetch(`/api/playlists?id=${DEFAULT_CHANNEL_ID}`);
-        const data = await res.json();
-        if (!cancelled && data.success && Array.isArray(data.playlists)) {
-          setYtPlaylists(data.playlists);
-        } else if (!cancelled) {
-          setYtError(true);
-          setYtPlaylists([]);
-        }
-      } catch (error) {
-        console.error('Channel playlists load error:', error);
-        if (!cancelled) {
-          setYtError(true);
-          setYtPlaylists([]);
-        }
-      } finally {
-        if (!cancelled) setYtLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [tab, ytPlaylists, ytLoading]);
-
-  const retryYtPlaylists = () => {
-    setYtError(false);
-    setYtPlaylists(null);
-  };
 
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
@@ -499,42 +319,6 @@ export default function LibraryPage() {
           )
         ) : (
           <div>
-            {/* Channel's YouTube playlists */}
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold mb-2.5">
-              From YouTube
-            </p>
-            {ytLoading || ytPlaylists === null ? (
-              <div className="flex items-center justify-center py-8 rounded-2xl border border-white/[0.07] bg-white/[0.02]">
-                <Loader2 size={22} className="animate-spin text-brand-light" />
-              </div>
-            ) : ytPlaylists.length > 0 ? (
-              <div className="space-y-3 mb-7">
-                {ytPlaylists.map((p) => (
-                  <ChannelPlaylistCard key={p.id} playlist={p} />
-                ))}
-              </div>
-            ) : ytError ? (
-              <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center mb-7">
-                <p className="text-[13px] text-mist-dark mb-3">
-                  Couldn’t load channel playlists.
-                </p>
-                <button
-                  onClick={retryYtPlaylists}
-                  className="px-5 py-2 rounded-full bg-white/[0.06] border border-white/15 text-sm font-bold text-white hover:border-brand/60 transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : (
-              <p className="text-[13px] text-mist-dark rounded-2xl border border-dashed border-white/10 px-4 py-5 text-center mb-7">
-                No public playlists on this channel yet.
-              </p>
-            )}
-
-            {/* User playlists */}
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold mb-2.5">
-              Your Playlists
-            </p>
             {/* Create */}
             <div className="flex items-center gap-2 mb-4">
               <input
