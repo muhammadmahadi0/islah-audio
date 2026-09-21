@@ -51,7 +51,11 @@ This file orients AI coding agents working in this repo. Read it before making c
 - Client components that touch the stores or `window` need `'use client'`.
 - Secrets: never commit `.env.local` (gitignored). Mirror new env vars in
   `.env.example` and document them in `README.md`.
-- Commits: concise imperative messages. Only commit/push when the user asks.
+- Standing rules from the user (always follow, no need to ask):
+  - **Always update `SPEC.md` and `AGENTS.md`** whenever behavior,
+    architecture, APIs, or conventions change.
+  - **Commit and push to origin without asking** after verified work.
+- Commits: concise imperative messages.
 
 ## Gotchas
 
