@@ -230,4 +230,15 @@ export function hasApiKey(): boolean {
   return !!API_KEY;
 }
 
+/** Total uploaded videos of a channel (1 quota unit). Null when unavailable. */
+export async function getChannelVideoCount(channelId: string): Promise<number | null> {
+  const data = await getYouTubeAPI<any>('channels', {
+    part: 'statistics',
+    id: channelId,
+  });
+
+  const count = parseInt(data?.items?.[0]?.statistics?.videoCount || '', 10);
+  return Number.isFinite(count) ? count : null;
+}
+
 export const TARGET_CHANNEL_ID = 'UC8NjCrYUV5YrpK2j6XTwGSA';

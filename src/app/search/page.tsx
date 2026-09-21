@@ -134,7 +134,7 @@ export default function SearchPage() {
         const data = await res.json();
         if (!cancelled && data.success && Array.isArray(data.videos)) {
           setVideos(data.videos);
-          setTotalVideos(data.total || data.videos.length);
+          setTotalVideos(typeof data.total === 'number' ? data.total : 0);
           let token: string | null = data.nextPageToken || null;
           if (token) setIndexing(true);
           const seen = new Set(data.videos.map((v: ChannelVideo) => v.videoId || v.id));

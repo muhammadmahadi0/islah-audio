@@ -94,11 +94,14 @@
 
 ### Core Features
 
-1. **Channel Catalog** — `/api/channel/[id]` lists the newest 100 uploads with
-   durations and view counts, plus a `nextPageToken` and `total`;
-   `/api/channel/[id]/more/[token]` appends older videos in 200-chunks
-   (the API caps pages at 50 items). Home has a Show-more button; Search
-   indexes every chunk in the background. Responses are CDN-cached to save quota.
+1. **Channel Catalog (BETA: InnerTube first)** — `/api/channel/[id]` lists the
+   newest 100 uploads with durations and view counts, plus a `nextPageToken`
+   and `total`; `/api/channel/[id]/more/[token]` appends older videos in
+   200-chunks. Listing goes through keyless InnerTube (no quota) with the
+   Data API as fallback; `total` comes from a 1-unit statistics call when a
+   key exists, else the UI shows counts without a total. Home has a Show-more
+   button; Search indexes every chunk in the background. Responses are
+   CDN-cached to save quota.
 2. **Lecture Playback** — hidden YouTube embed driven by the player store
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
    volume, progress polling). Unplayable videos auto-skip.

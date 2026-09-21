@@ -256,7 +256,8 @@ export default function HomePage() {
 
       setVideos(data.videos);
       setNextToken(data.nextPageToken || null);
-      setTotalVideos(data.total || data.videos.length);
+      // BETA: total can be null when InnerTube has no key for statistics.
+      setTotalVideos(typeof data.total === 'number' ? data.total : 0);
       if (data.channel?.name) setChannelName(data.channel.name);
       if (data.channel?.avatar) setChannelAvatar(data.channel.avatar);
     } catch (err) {

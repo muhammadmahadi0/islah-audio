@@ -27,7 +27,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    The frontend reads `videoId` — keep both `id` and `videoId` populated.
    **IDs must travel in URL paths, not query strings** — Netlify drops query
    params before function invocation (proven in prod: `?id=` and `?playlistId=`
-   were silently ignored). Same rule for `/api/playlist-items/[id]`.
+   were silently ignored). Same rule for `/api/channel/[id]/more/[token]`.
+   **BETA branch: InnerTube first.** Listing tries keyless `lib/innertube.ts`
+   (youtubei.js uploads playlist + stateless browse continuations) before the
+   Data API fallback. Long tokens (>50 chars) are InnerTube continuations,
+   short ones are Data API page tokens - the more-route branches on that.
 4. **Playlists = user playlists only** (`src/store/playlist-store.ts`, persist key
    `islah-playlists`), merged into the Library tabs. The channel-YouTube-playlists
    section was removed (plus `/api/playlists`, `/api/playlist-items/*`,
