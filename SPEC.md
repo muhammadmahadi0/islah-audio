@@ -108,9 +108,9 @@
 
 | Route | Purpose |
 | ----- | ------- |
-| `GET /api/channel?id=` | Channel info + videos `{ videoId, title, thumbnail, duration, views, publishedAt }` |
+| `GET /api/channel/[id]` | Channel info + videos `{ videoId, title, thumbnail, duration, views, publishedAt }` |
 | `GET /api/playlists?id=` | Channel playlists `{ id, title, thumbnail, itemCount }` |
-| `GET /api/playlists?playlistId=` | Playlist items (same video shape) |
+| `GET /api/playlist-items/[id]` | Playlist items (same video shape) |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls?url=` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (compat) |
@@ -118,6 +118,9 @@
 
 ### Data Handling
 
+- **IDs travel in URL paths, never query strings** — the hosting layer drops
+  query parameters before function invocation (`/api/channel/[id]`,
+  `/api/playlist-items/[id]`). The legacy `?id=` variants remain as fallbacks.
 - CDN caching on API routes (`s-maxage` + `stale-while-revalidate`); no-store
   for live status.
 - Queue in memory (zustand); user playlists in `localStorage`.

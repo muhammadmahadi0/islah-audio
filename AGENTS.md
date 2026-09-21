@@ -22,9 +22,12 @@ This file orients AI coding agents working in this repo. Read it before making c
    public Piped/Invidious instances return 403/525. Do NOT reintroduce `cobalt.ts`,
    `ytdl-core`, or third-party extractors. `/api/stream/[id]` intentionally returns
    metadata + official URLs only.
-3. **Channel API shape.** `/api/channel` returns videos as
+3. **Channel API shape.** `/api/channel/[id]` returns videos as
    `{ id, videoId, title, thumbnail, publishedAt, duration, views }`.
    The frontend reads `videoId` — keep both `id` and `videoId` populated.
+   **IDs must travel in URL paths, not query strings** — Netlify drops query
+   params before function invocation (proven in prod: `?id=` and `?playlistId=`
+   were silently ignored). Same rule for `/api/playlist-items/[id]`.
 4. **Playlists** live in `src/store/playlist-store.ts` (zustand `persist`,
    key `islah-playlists`). Playlists UI is merged into the **Library** page tabs —
    do not add a separate Playlists nav item without asking the user. The channel's

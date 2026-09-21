@@ -245,7 +245,9 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
     if (tracks) return tracks;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/playlists?playlistId=${playlist.id}`);
+      // NOTE: playlist ID goes in the path — query strings are dropped
+      // by our hosting before function invocation.
+      const res = await fetch(`/api/playlist-items/${playlist.id}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.videos)) {
         const mapped: Track[] = data.videos.map((v: any) => ({
@@ -264,6 +266,8 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
     } finally {
       setIsLoading(false);
     }
+    // Never leave tracks null — that would spin the loader forever.
+    setTracks([]);
     return [];
   };
 
@@ -366,6 +370,7 @@ export default function LibraryPage() {
   const [newName, setNewName] = useState('');
   const [ytPlaylists, setYtPlaylists] = useState<ChannelPlaylist[] | null>(null);
   const [ytLoading, setYtLoading] = useState(false);
+  const [ytError, setYtError] = useState(false);
   const { playlist, currentTrack, isPlaying, playTrack, setIsPlaying } = usePlayerStore();
   const { playlists, createPlaylist } = usePlaylistStore();
 
@@ -375,17 +380,22 @@ export default function LibraryPage() {
     let cancelled = false;
     (async () => {
       setYtLoading(true);
+      setYtError(false);
       try {
         const res = await fetch(`/api/playlists?id=${DEFAULT_CHANNEL_ID}`);
         const data = await res.json();
         if (!cancelled && data.success && Array.isArray(data.playlists)) {
           setYtPlaylists(data.playlists);
         } else if (!cancelled) {
+          setYtError(true);
           setYtPlaylists([]);
         }
       } catch (error) {
         console.error('Channel playlists load error:', error);
-        if (!cancelled) setYtPlaylists([]);
+        if (!cancelled) {
+          setYtError(true);
+          setYtPlaylists([]);
+        }
       } finally {
         if (!cancelled) setYtLoading(false);
       }
@@ -394,6 +404,11 @@ export default function LibraryPage() {
       cancelled = true;
     };
   }, [tab, ytPlaylists, ytLoading]);
+
+  const retryYtPlaylists = () => {
+    setYtError(false);
+    setYtPlaylists(null);
+  };
 
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
@@ -497,6 +512,18 @@ export default function LibraryPage() {
                 {ytPlaylists.map((p) => (
                   <ChannelPlaylistCard key={p.id} playlist={p} />
                 ))}
+              </div>
+            ) : ytError ? (
+              <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center mb-7">
+                <p className="text-[13px] text-mist-dark mb-3">
+                  Couldn’t load channel playlists.
+                </p>
+                <button
+                  onClick={retryYtPlaylists}
+                  className="px-5 py-2 rounded-full bg-white/[0.06] border border-white/15 text-sm font-bold text-white hover:border-brand/60 transition-colors"
+                >
+                  Retry
+                </button>
               </div>
             ) : (
               <p className="text-[13px] text-mist-dark rounded-2xl border border-dashed border-white/10 px-4 py-5 text-center mb-7">

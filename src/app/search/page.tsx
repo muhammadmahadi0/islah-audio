@@ -123,7 +123,9 @@ export default function SearchPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/channel?id=${DEFAULT_CHANNEL_ID}`);
+        // NOTE: channel ID goes in the path — query strings are dropped
+        // by our hosting before function invocation.
+        const res = await fetch(`/api/channel/${DEFAULT_CHANNEL_ID}`);
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled && data.success && Array.isArray(data.videos)) {

@@ -238,7 +238,9 @@ export default function HomePage() {
       setIsLoading(true);
       setError(null);
 
-      const res = await fetch(`/api/channel?id=${CHANNEL_ID}`);
+      // NOTE: channel ID goes in the path — query strings are dropped
+      // by our hosting before function invocation.
+      const res = await fetch(`/api/channel/${CHANNEL_ID}`);
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `Server error: ${res.status}`);
