@@ -405,14 +405,14 @@ export default function HomePage() {
     <main className="pb-44 md:pb-36">
       <div className="mx-auto max-w-6xl px-4 md:px-8 pt-4 md:pt-8">
         {isLoading ? (
-          <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-6 md:p-8 mb-6">
-            <div className="flex items-center gap-5">
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl shimmer shrink-0" />
+          <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-4 md:p-8 mb-4 md:mb-6">
+            <div className="flex items-center gap-4">
               <div className="flex-1">
-                <div className="h-3 w-32 rounded shimmer mb-3" />
-                <div className="h-8 w-56 rounded-lg shimmer mb-3" />
-                <div className="h-4 w-40 rounded shimmer" />
+                <div className="h-3 w-28 rounded shimmer mb-2.5" />
+                <div className="h-7 w-48 rounded-lg shimmer mb-2.5" />
+                <div className="h-3.5 w-36 rounded shimmer" />
               </div>
+              <div className="w-14 h-14 md:w-24 md:h-24 rounded-2xl md:rounded-3xl shimmer shrink-0" />
             </div>
           </div>
         ) : (
@@ -420,7 +420,7 @@ export default function HomePage() {
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-brand-deep/60 via-ink-800 to-ink-900 p-6 md:p-9 mb-6"
+            className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-brand-deep/60 via-ink-800 to-ink-900 p-4 md:p-9 mb-4 md:mb-6"
           >
             {/* Ambient glows */}
             <div className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full bg-brand/25 blur-[100px]" />
@@ -437,54 +437,57 @@ export default function HomePage() {
               }}
             />
 
-            <div className="relative flex flex-col sm:flex-row sm:items-center gap-5 md:gap-7">
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl overflow-hidden shrink-0 ring-2 ring-gold/50 shadow-gold bg-gradient-to-br from-brand to-emerald-950 flex items-center justify-center">
-                {channelAvatar ? (
-                  <img
-                    src={channelAvatar}
-                    alt={channelName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-gold-light text-4xl md:text-5xl font-bold">إ</span>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold mb-1.5">
-                  Islamic Lectures
-                </p>
-                <h1 className="text-3xl md:text-[2.75rem] leading-none font-extrabold tracking-tight text-white truncate">
-                  {channelName}
-                </h1>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5 text-[13px] text-mist">
-                  <span className="flex items-center gap-1.5">
-                    <ListMusic size={14} className="text-brand-light" />
-                    {totalVideos || videos.length} lectures
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock size={14} className="text-brand-light" />
-                    {formatTotalHours(videos)} of content
-                  </span>
+            <div className="relative flex flex-col gap-3.5 md:gap-7 md:flex-row md:items-center">
+              {/* Top row on mobile: text left, logo right */}
+              <div className="flex items-center gap-3.5 md:contents">
+                <div className="flex-1 min-w-0 order-1 md:order-2">
+                  <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.25em] text-gold mb-1 md:mb-1.5">
+                    Islamic Lectures
+                  </p>
+                  <h1 className="text-2xl md:text-[2.75rem] leading-none font-extrabold tracking-tight text-white truncate">
+                    {channelName}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-x-3 md:gap-x-4 gap-y-0.5 md:gap-y-1 mt-1.5 md:mt-2.5 text-xs md:text-[13px] text-mist">
+                    <span className="flex items-center gap-1.5">
+                      <ListMusic size={13} className="text-brand-light" />
+                      {totalVideos || videos.length} lectures
+                    </span>
+                    <span className="hidden sm:flex items-center gap-1.5">
+                      <Clock size={13} className="text-brand-light" />
+                      {formatTotalHours(videos)} of content
+                    </span>
+                  </div>
+                  {live?.isLive && (
+                    <button
+                      onClick={handleLive}
+                      className="flex items-center gap-2 mt-2 md:mt-3 text-xs md:text-[13px] font-semibold text-red-300 hover:text-red-200 transition-colors"
+                    >
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                      </span>
+                      <span className="truncate">
+                        Live now{live.title ? `: ${live.title}` : ''}
+                        {live.listeners > 0 ? ` • ${live.listeners} listening` : ''}
+                      </span>
+                    </button>
+                  )}
                 </div>
-                {live?.isLive && (
-                  <button
-                    onClick={handleLive}
-                    className="flex items-center gap-2 mt-3 text-[13px] font-semibold text-red-300 hover:text-red-200 transition-colors"
-                  >
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-                    </span>
-                    <span className="truncate">
-                      Live now{live.title ? `: ${live.title}` : ''}
-                      {live.listeners > 0 ? ` • ${live.listeners} listening` : ''}
-                    </span>
-                  </button>
-                )}
+
+                <div className="order-2 md:order-1 w-14 h-14 md:w-24 md:h-24 rounded-2xl md:rounded-3xl overflow-hidden shrink-0 ring-2 ring-gold/50 shadow-gold bg-gradient-to-br from-brand to-emerald-950 flex items-center justify-center">
+                  {channelAvatar ? (
+                    <img
+                      src={channelAvatar}
+                      alt={channelName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-gold-light text-3xl md:text-5xl font-bold">إ</span>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="order-3 flex items-center gap-2.5 md:gap-3 shrink-0">
                 {/* Live / replay-last-broadcast */}
                 <button
                   onClick={handleLive}
@@ -492,7 +495,7 @@ export default function HomePage() {
                   title={live?.isLive ? 'Play live broadcast' : 'Play last broadcast'}
                   aria-label={live?.isLive ? 'Play live' : 'Play last broadcast'}
                   className={cn(
-                    'h-12 pl-3.5 pr-4 rounded-full flex items-center gap-2 text-sm font-extrabold transition-all disabled:opacity-40',
+                    'h-10 md:h-12 pl-3 pr-3.5 md:pl-3.5 md:pr-4 rounded-full flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-extrabold transition-all disabled:opacity-40',
                     live?.isLive
                       ? 'bg-red-500 text-white shadow-[0_8px_32px_rgba(239,68,68,0.45)] hover:scale-105 active:scale-95'
                       : 'border border-gold/50 bg-gold/10 text-gold-light hover:border-gold hover:shadow-gold'
@@ -516,22 +519,22 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={handlePlayAll}
-                  className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg hover:scale-105 active:scale-95 transition-transform"
+                  className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg hover:scale-105 active:scale-95 transition-transform"
                   aria-label={currentTrack && isPlaying ? 'Pause' : 'Play all'}
                 >
                   {isPlaying && currentTrack ? (
-                    <Pause size={26} fill="#060D0A" className="text-ink-950" />
+                    <Pause size={22} fill="#060D0A" className="text-ink-950 md:w-[26px] md:h-[26px]" />
                   ) : (
-                    <Play size={26} fill="#060D0A" className="text-ink-950 ml-1" />
+                    <Play size={22} fill="#060D0A" className="text-ink-950 ml-1 md:w-[26px] md:h-[26px]" />
                   )}
                 </button>
                 <button
                   onClick={handleShuffle}
-                  className="w-12 h-12 rounded-full border border-white/15 bg-white/[0.05] backdrop-blur flex items-center justify-center text-white hover:border-gold/60 hover:text-gold-light transition-colors"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/15 bg-white/[0.05] backdrop-blur flex items-center justify-center text-white hover:border-gold/60 hover:text-gold-light transition-colors"
                   aria-label="Shuffle play"
                   title="Shuffle play"
                 >
-                  <Shuffle size={20} />
+                  <Shuffle size={17} className="md:w-5 md:h-5" />
                 </button>
               </div>
             </div>
