@@ -15,27 +15,29 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-black border-t border-white/10 flex justify-around items-center z-50">
-      {navItems.map((item) => {
-        const isActive = pathname === item.href;
-        const Icon = item.icon;
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'flex flex-col items-center justify-center gap-1 px-6 py-2 transition-colors',
-              isActive ? 'text-[#1DB954]' : 'text-gray-400 hover:text-white'
-            )}
-          >
-            <Icon size={24} />
-            <span className="text-[10px] font-medium">{item.label}</span>
-          </Link>
-        );
-      })}
-      {/* Safe area padding for iPhone notch */}
-      <div className="pb-env(safe-area-inset-bottom)" />
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t border-white/10 glass">
+      <div className="grid grid-cols-3 px-6 pt-2 safe-bottom">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'relative flex flex-col items-center gap-1 py-2 text-[10px] font-semibold transition-colors',
+                isActive ? 'text-brand-light' : 'text-mist-dark'
+              )}
+            >
+              {isActive && (
+                <span className="absolute -top-px h-0.5 w-10 rounded-full bg-gradient-to-r from-brand to-gold shadow-glow" />
+              )}
+              <Icon size={22} strokeWidth={isActive ? 2.4 : 2} />
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

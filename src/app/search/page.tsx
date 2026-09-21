@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
-import { Search as SearchIcon, Play, Pause, Music, Loader2 } from 'lucide-react';
+import { Search as SearchIcon, Music, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
 
@@ -32,10 +32,8 @@ export default function SearchPage() {
   const [videos, setVideos] = useState<ChannelVideo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
+  const { playTrack, currentTrack, isPlaying } = usePlayerStore();
 
-  // Load the channel catalog once — search filters it client-side.
-  // (Previously this used the Piped API, whose public instances are dead.)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -57,10 +55,18 @@ export default function SearchPage() {
     };
   }, []);
 
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmittedQuery(query.trim());
-  }, [query]);
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      setSubmittedQuery(query.trim());
+    },
+    [query]
+  );
+
+  const clearSearch = useCallback(() => {
+    setQuery('');
+    setSubmittedQuery('');
+  }, []);
 
   const results = useMemo(() => {
     const q = submittedQuery.toLowerCase();
@@ -86,85 +92,130 @@ export default function SearchPage() {
   };
 
   return (
-    <main className="flex-1 overflow-auto bg-gradient-to-b from-[#181818] to-[#121212] pb-24 md:pb-0">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-[#181818] p-4">
+    <main className="pb-44 md:pb-36">
+      <div className="mx-auto max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-1">
+          Search
+        </h1>
+        <p className="text-sm text-mist-dark mb-5">
+          Find bayans, waz and nasheeds from the channel
+        </p>
+
         <form onSubmit={handleSearch}>
-          <div className="relative">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-[#727272]" size={20} />
+          <div className="relative group">
+            <SearchIcon
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-mist-dark group-focus-within:text-brand-light transition-colors"
+              size={20}
+            />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search lectures..."
-              className="w-full bg-[#282828] text-white placeholder-[#727272] rounded-full py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
+              placeholder="Search lectures…"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] py-3.5 pl-12 pr-12 text-white placeholder:text-mist-dark outline-none focus:border-brand/60 focus:bg-white/[0.06] focus:shadow-glow transition-all"
             />
+            {query && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-mist-dark hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Clear search"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
         </form>
-      </header>
 
-      {/* Results */}
-      <div className="p-4">
-        {isLoading && (
-          <div className="flex items-center justify-center h-32">
-            <Loader2 size={24} className="animate-spin text-[#b3b3b3]" />
-          </div>
-        )}
+        <div className="mt-6">
+          {isLoading && (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 size={26} className="animate-spin text-brand-light" />
+            </div>
+          )}
 
-        {!isLoading && results.length > 0 && (
-          <div className="space-y-2">
-            {results.map((video) => {
-              const videoId = video.videoId || video.id || '';
-              return (
-                <div
-                  key={videoId}
-                  onClick={() => handlePlayVideo(video)}
-                  className={cn(
-                    'flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-[#282828] transition-colors',
-                    currentTrack?.videoId === videoId && 'bg-[#282828]'
-                  )}
-                >
-                  <div className="w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-[#333333]">
-                    <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      'text-sm font-medium truncate',
-                      currentTrack?.videoId === videoId ? 'text-[#1DB954]' : 'text-white'
-                    )}>
-                      {video.title}
-                    </p>
-                    <p className="text-[#727272] text-xs">Islah</p>
-                  </div>
-                  {video.duration > 0 && (
-                    <span className="text-[#727272] text-xs">{formatDuration(video.duration)}</span>
-                  )}
-                  {currentTrack?.videoId === videoId && isPlaying && (
-                    <div className="flex items-center gap-0.5">
-                      <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" />
-                      <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                      <span className="w-1 h-3 bg-[#1DB954] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+          {!isLoading && results.length > 0 && (
+            <>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-mist-dark mb-3">
+                {results.length} result{results.length === 1 ? '' : 's'}
+              </p>
+              <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden divide-y divide-white/[0.05]">
+                {results.map((video) => {
+                  const videoId = video.videoId || video.id || '';
+                  const active = currentTrack?.videoId === videoId;
+                  return (
+                    <div
+                      key={videoId}
+                      onClick={() => handlePlayVideo(video)}
+                      className={cn(
+                        'flex items-center gap-3.5 p-3 cursor-pointer transition-colors',
+                        active ? 'bg-brand/[0.08]' : 'hover:bg-white/[0.04]'
+                      )}
+                    >
+                      <div className="w-16 h-12 shrink-0 rounded-lg overflow-hidden bg-ink-700 ring-1 ring-white/10">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={cn(
+                            'text-sm font-semibold leading-snug clamp-2',
+                            active ? 'text-brand-light' : 'text-white'
+                          )}
+                        >
+                          {video.title}
+                        </p>
+                        <p className="text-mist-dark text-xs mt-0.5">Islah</p>
+                      </div>
+                      {video.duration > 0 && (
+                        <span className="shrink-0 text-xs font-medium text-mist-dark tabular-nums">
+                          {formatDuration(video.duration)}
+                        </span>
+                      )}
+                      {active && isPlaying && (
+                        <span className="flex items-end gap-[3px] h-4 text-brand-light shrink-0 pr-1">
+                          {[0, 1, 2].map((i) => (
+                            <span
+                              key={i}
+                              className="eq-bar h-full"
+                              style={{ animationDelay: `${i * 0.22}s` }}
+                            />
+                          ))}
+                        </span>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  );
+                })}
+              </div>
+            </>
+          )}
 
-        {!isLoading && submittedQuery && results.length === 0 && (
-          <div className="text-center text-[#b3b3b3] py-8">
-            <SearchIcon size={48} className="mx-auto mb-4 opacity-50" />
-            <p>No results found for "{submittedQuery}"</p>
-          </div>
-        )}
+          {!isLoading && submittedQuery && results.length === 0 && (
+            <div className="text-center py-16 rounded-3xl border border-dashed border-white/10">
+              <SearchIcon size={40} className="mx-auto mb-4 text-mist-dark" />
+              <p className="text-white font-bold">No results for “{submittedQuery}”</p>
+              <p className="text-mist-dark text-sm mt-1">Try different keywords</p>
+            </div>
+          )}
 
-        {!isLoading && !submittedQuery && (
-          <div className="text-center text-[#b3b3b3] py-8">
-            <SearchIcon size={48} className="mx-auto mb-4 opacity-50" />
-            <p>Search for lectures</p>
-          </div>
-        )}
+          {!isLoading && !submittedQuery && (
+            <div className="text-center py-16 rounded-3xl border border-dashed border-white/10">
+              <span className="w-16 h-16 rounded-full bg-brand/10 border border-brand/25 flex items-center justify-center mx-auto mb-4">
+                <SearchIcon size={26} className="text-brand-light" />
+              </span>
+              <p className="text-white font-bold">Search the collection</p>
+              <p className="text-mist-dark text-sm mt-1">
+                {videos.length > 0
+                  ? `${videos.length} lectures indexed`
+                  : 'Type above to begin'}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

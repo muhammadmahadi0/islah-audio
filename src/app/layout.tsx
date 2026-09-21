@@ -3,15 +3,16 @@ import './globals.css';
 import AudioPlayer from '@/components/AudioPlayer';
 import MiniPlayer from '@/components/Player/MiniPlayer';
 import BottomNav from '@/components/BottomNav';
+import Sidebar from '@/components/Sidebar';
 
 export const metadata: Metadata = {
-  title: 'Islah Audio',
-  description: 'Islamic lectures audio player',
+  title: 'Islah Audio — Islamic Lectures',
+  description: 'Listen to bayans, waz and nasheeds from the Islah channel. Modern audio experience.',
   manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#000000',
+  themeColor: '#060D0A',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -20,20 +21,21 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased bg-black">
-        <div className="flex flex-col h-screen">
-          {/* Main content area - scrollable */}
-          <div className="flex-1 overflow-auto">
-            {children}
+      <body className="antialiased bg-ink-950 text-white">
+        <div className="flex h-dvh overflow-hidden">
+          {/* Desktop sidebar */}
+          <Sidebar />
+
+          {/* Main content */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            <div className="flex-1 overflow-y-auto">{children}</div>
           </div>
 
-          {/* Fixed at bottom - z-index 90 */}
+          {/* Floating mini player + mobile nav */}
           <MiniPlayer />
-
-          {/* Fixed at bottom - z-index 100 */}
           <BottomNav />
 
-          {/* Hidden audio element */}
+          {/* Hidden playback engine */}
           <AudioPlayer />
         </div>
       </body>

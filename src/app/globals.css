@@ -3,15 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --spotify-bg: #121212;
-  --spotify-bg-secondary: #181818;
-  --spotify-bg-tertiary: #282828;
-  --spotify-surface-hover: #3E3E3E;
-  --spotify-accent: #1DB954;
-  --spotify-accent-hover: #1ED760;
-  --spotify-text: #FFFFFF;
-  --spotify-text-secondary: #B3B3B3;
-  --spotify-text-muted: #727272;
+  --ink-950: #060d0a;
+  --ink-900: #0a1511;
+  --ink-800: #0e1f18;
+  --ink-700: #14291f;
+  --brand: #10b981;
+  --brand-light: #34d399;
+  --gold: #c9a227;
+  --gold-light: #e7c55a;
+  --text: #f2f5f3;
+  --text-secondary: #9db3a8;
+  --text-muted: #647c71;
 }
 
 * {
@@ -22,75 +24,146 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--spotify-bg);
-  color: var(--spotify-text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--ink-950);
+  color: var(--text);
+  font-family:
+    Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Noto Sans Bengali', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar styling */
+/* Slim, theme-matched scrollbars */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--spotify-bg-tertiary);
-  border-radius: 6px;
+  background: #1c382a;
+  border-radius: 8px;
+  border: 2px solid #060d0a;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--spotify-surface-hover);
+  background: #10b981;
 }
 
-/* Custom range input styling */
-input[type="range"] {
+/* Glass panel helper */
+.glass {
+  background: rgba(14, 31, 24, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Skeleton shimmer */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+/* Equalizer bars (now-playing indicator) */
+.eq-bar {
+  width: 3px;
+  border-radius: 9999px;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: eq 1s ease-in-out infinite;
+}
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* Range inputs — emerald thumb, hairline track */
+input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
   cursor: pointer;
 }
-
-input[type="range"]::-webkit-slider-runnable-track {
+input[type='range']::-webkit-slider-runnable-track {
   height: 4px;
-  background: var(--spotify-bg-tertiary);
-  border-radius: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--brand) 0%,
+    var(--brand) var(--fill, 0%),
+    rgba(255, 255, 255, 0.14) var(--fill, 0%),
+    rgba(255, 255, 255, 0.14) 100%
+  );
 }
-
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 12px;
-  height: 12px;
-  background: var(--spotify-text);
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
   border-radius: 50%;
-  margin-top: -4px;
-  opacity: 0;
-  transition: opacity 0.2s;
+  background: #fff;
+  border: 3px solid var(--brand);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+  transition: transform 0.15s;
 }
-
-input[type="range"]:hover::-webkit-slider-thumb {
-  opacity: 1;
+input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
 }
-
-input[type="range"]::-moz-range-track {
+input[type='range']::-moz-range-track {
   height: 4px;
-  background: var(--spotify-bg-tertiary);
-  border-radius: 2px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
 }
-
-input[type="range"]::-moz-range-thumb {
+input[type='range']::-moz-range-progress {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--brand);
+}
+input[type='range']::-moz-range-thumb {
   width: 12px;
   height: 12px;
-  background: var(--spotify-text);
   border-radius: 50%;
-  border: none;
+  background: #fff;
+  border: 3px solid var(--brand);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
 }
 
-/* Progress bar hover effect */
-.player-progress:hover input[type="range"]::-webkit-slider-thumb {
-  opacity: 1;
+/* Two-line clamp helper (no plugin needed) */
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Hide scrollbars for chip rails */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* iPhone home-indicator safe area */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
