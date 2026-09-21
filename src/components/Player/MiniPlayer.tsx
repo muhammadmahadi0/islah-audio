@@ -12,6 +12,8 @@ import {
   Music,
   Loader2,
   X,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,8 +46,12 @@ export default function MiniPlayer() {
     isLoading,
     currentTime,
     duration,
+    volume,
+    playlist,
+    playlistIndex,
     setCurrentTime,
     setIsPlaying,
+    setVolume,
     playNext,
     playPrevious,
     stop,
@@ -80,11 +86,14 @@ export default function MiniPlayer() {
 
   const isLive = !!currentTrack.isLive;
 
-  /* ---------------- Full-screen player ---------------- */
+  /* ---------------- Full-screen player (Material 3) ---------------- */
   if (isExpanded) {
+    const queueTotal = playlist.length;
+    const queuePos = playlistIndex >= 0 ? playlistIndex + 1 : null;
+
     return (
       <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-ink-950">
-        {/* Blurred artwork backdrop */}
+        {/* Blurred artwork backdrop + tonal scrim */}
         {currentTrack.thumbnail && (
           <>
             <img
@@ -97,58 +106,77 @@ export default function MiniPlayer() {
           </>
         )}
 
-        <div className="relative flex flex-col h-full max-w-lg w-full mx-auto">
-          <div className="flex items-center justify-between p-4">
+        <div className="relative mx-auto flex h-full w-full max-w-md flex-col px-5 pb-8 pt-3 safe-bottom">
+          {/* M3 top app bar: collapse • title • stop */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setIsExpanded(false)}
-              className="p-2 -ml-2 rounded-full text-white/80 hover:bg-white/10 transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/15 active:scale-95"
               aria-label="Collapse player"
             >
-              <ChevronDown size={28} />
+              <ChevronDown size={22} />
             </button>
-            <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold">
-              Now Playing
-            </span>
-            <div className="w-10" />
+            <div className="min-w-0 flex-1 text-center">
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-mist">
+                Now playing
+              </p>
+              {queueTotal > 1 && queuePos !== null && (
+                <p className="mt-0.5 text-[11px] font-semibold tabular-nums text-mist-dark">
+                  {queuePos} of {queueTotal}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                setIsExpanded(false);
+                stop();
+              }}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/15 text-red-300 transition-colors hover:bg-red-500/25 active:scale-95"
+              aria-label="Stop and close player"
+              title="Stop"
+            >
+              <X size={20} />
+            </button>
           </div>
 
-          <div className="flex-1 flex items-center justify-center px-10 min-h-0">
-            <div className="w-full aspect-square rounded-3xl overflow-hidden shadow-card ring-1 ring-white/15">
+          {/* M3 hero art — large rounded shape */}
+          <div className="flex min-h-0 flex-1 items-center justify-center py-4">
+            <div className="aspect-square w-full overflow-hidden rounded-[28px] shadow-card ring-1 ring-white/15">
               {currentTrack.thumbnail ? (
                 <img
                   src={currentTrack.thumbnail}
                   alt={currentTrack.title}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-brand-deep to-ink-800 flex items-center justify-center">
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-deep to-ink-800">
                   <Music size={64} className="text-brand-light" />
                 </div>
               )}
             </div>
           </div>
 
-          <div className="px-7 pt-5">
-            <div className="flex items-center gap-2">
-              {isLive && (
-                <span className="flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white shrink-0">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
-                  </span>
-                  Live
+          {/* Title block */}
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
                 </span>
-              )}
-              <h2 className="text-xl font-extrabold text-white tracking-tight clamp-2">
-                {currentTrack.title}
-              </h2>
-            </div>
-            <p className="text-gold/90 text-sm font-medium mt-1 truncate">
-              {currentTrack.channelName}
-            </p>
+                Live
+              </span>
+            )}
+            <h2 className="clamp-2 text-[22px] font-bold leading-snug tracking-tight text-white">
+              {currentTrack.title}
+            </h2>
           </div>
+          <p className="mt-1 truncate text-sm font-medium text-gold/90">
+            {currentTrack.channelName}
+          </p>
 
-          <div className="px-7 pt-4">
+          {/* M3 slider */}
+          <div className="pt-3">
             <input
               type="range"
               min="0"
@@ -161,40 +189,63 @@ export default function MiniPlayer() {
               style={{ '--fill': `${progress}%` } as React.CSSProperties}
               aria-label="Seek"
             />
-            <div className="flex justify-between text-xs font-medium text-mist mt-1.5 tabular-nums">
+            <div className="mt-1 flex justify-between text-xs font-medium tabular-nums text-mist">
               <span>{isLive ? 'LIVE' : formatTime(currentTime)}</span>
               <span>{isLive ? '' : formatTime(duration)}</span>
             </div>
           </div>
 
-          <div className="px-7 pt-3 pb-10 flex items-center justify-center gap-8">
+          {/* Controls: tonal side buttons + FAB */}
+          <div className="flex items-center justify-between px-1 pt-2">
             <button
               onClick={playPrevious}
-              className="p-2 text-white/80 hover:text-white transition-colors"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/15 active:scale-95"
               aria-label="Previous"
             >
-              <SkipBack size={30} fill="currentColor" />
+              <SkipBack size={24} fill="currentColor" />
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg hover:scale-105 active:scale-95 transition-transform"
+              className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 shadow-glow-lg transition-transform hover:scale-105 active:scale-95"
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isLoading ? (
-                <Loader2 size={30} className="animate-spin text-ink-950" />
+                <Loader2 size={32} className="animate-spin" />
               ) : isPlaying ? (
-                <Pause size={30} fill="#060D0A" className="text-ink-950" />
+                <Pause size={32} fill="currentColor" />
               ) : (
-                <Play size={30} fill="#060D0A" className="text-ink-950 ml-1" />
+                <Play size={32} fill="currentColor" className="ml-1" />
               )}
             </button>
             <button
               onClick={playNext}
-              className="p-2 text-white/80 hover:text-white transition-colors"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/15 active:scale-95"
               aria-label="Next"
             >
-              <SkipForward size={30} fill="currentColor" />
+              <SkipForward size={24} fill="currentColor" />
             </button>
+          </div>
+
+          {/* M3 volume row */}
+          <div className="flex items-center gap-3 px-1 pt-4">
+            <button
+              onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-mist transition-colors hover:bg-white/15 hover:text-white"
+              aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+            >
+              {volume === 0 ? <VolumeX size={19} /> : <Volume2 size={19} />}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={(e) => setVolume(parseFloat(e.target.value))}
+              className="w-full"
+              style={{ '--fill': `${Math.round(volume * 100)}%` } as React.CSSProperties}
+              aria-label="Volume"
+            />
           </div>
         </div>
       </div>
