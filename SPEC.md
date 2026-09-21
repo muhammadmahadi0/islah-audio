@@ -107,7 +107,8 @@
    volume, progress polling). Unplayable videos auto-skip.
 3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
    red LIVE button plays HLS when on air, gold Last Live replays the latest
-   recording when offline. HLS falls back to the `/api/hls` CORS proxy.
+   recording when offline. HLS falls back to the `/api/hls` CORS proxy,
+   then to the last recording, so a dead live edge still yields audio.
 4. **User Playlists** — persisted zustand store (`islah-playlists` key);
    duplicate-guarded adds, delete with confirm.
 5. **Search** — client-side filter over the fully indexed catalog.

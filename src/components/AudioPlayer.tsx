@@ -74,6 +74,8 @@ export default function AudioPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const proxyTriedRef = useRef(false);
+  const fallbackTriedRef = useRef(false);
+  const streamUrlRef = useRef<string | null>(null);
 
   const {
     currentTrack,
@@ -124,6 +126,8 @@ export default function AudioPlayer() {
     if (!audio) return;
     destroyHls();
     proxyTriedRef.current = false;
+    fallbackTriedRef.current = false;
+    streamUrlRef.current = url;
 
     const startPlayback = () => {
       if (autoplay) {
@@ -156,6 +160,28 @@ export default function AudioPlayer() {
           } catch (err) {
             console.error('[AudioPlayer] proxy retry failed:', err);
           }
+        }
+        // Live still failing → fall back to the last recording once,
+        // so the user gets audio instead of silence.
+        const track = usePlayerStore.getState().currentTrack;
+        if (track?.isLive && !fallbackTriedRef.current) {
+          fallbackTriedRef.current = true;
+          console.log('[AudioPlayer] live failed, falling back to recording');
+          fetch('/api/live')
+            .then((res) => res.json())
+            .then((live) => {
+              const recUrl: string | undefined = live?.live?.recording?.audioUrl;
+              const stillLive = usePlayerStore.getState().currentTrack?.id === 'live';
+              // Never fall back onto the URL that just failed (avoids loops).
+              if (recUrl && stillLive && recUrl !== streamUrlRef.current) {
+                proxyTriedRef.current = true; // skip proxy retry for the mp3
+                loadStream(recUrl, true);
+              } else {
+                storeRef.current.setIsLoading(false);
+              }
+            })
+            .catch(() => storeRef.current.setIsLoading(false));
+          return;
         }
         console.error('[AudioPlayer] HLS fatal error:', data);
         storeRef.current.setIsLoading(false);
