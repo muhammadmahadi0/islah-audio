@@ -134,7 +134,11 @@ export default function AudioPlayer() {
                   break;
                 case YTNS?.ENDED:
                   s.setIsPlaying(false);
-                  s.playNext();
+                  // Only auto-advance if a track is still active
+                  // (the stop button clears it — don't resume the queue).
+                  if (usePlayerStore.getState().currentTrack) {
+                    s.playNext();
+                  }
                   break;
               }
             },
@@ -157,11 +161,29 @@ export default function AudioPlayer() {
     };
   }, []);
 
-  // Load a new track when it changes
+  // Load a new track when it changes (or stop when cleared)
   useEffect(() => {
     const player = playerRef.current;
     const videoId = currentTrack?.videoId;
-    if (!videoId) return;
+
+    // Track cleared (stop button) — halt the embed immediately.
+    // NOTE: pause+seek is used instead of stopVideo() because stopVideo()
+    // can fire an ENDED event that would auto-advance the queue.
+    if (!videoId) {
+      trackIdRef.current = null;
+      setIsLoading(false);
+      setCurrentTime(0);
+      if (player && readyRef.current) {
+        try {
+          player.pauseVideo();
+          player.seekTo(0, true);
+        } catch {
+          // ignore — player may be tearing down
+        }
+      }
+      return;
+    }
+
     if (trackIdRef.current === videoId) return;
     trackIdRef.current = videoId;
 

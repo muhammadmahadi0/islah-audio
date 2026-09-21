@@ -24,8 +24,14 @@ This file orients AI coding agents working in this repo. Read it before making c
    The frontend reads `videoId` — keep both `id` and `videoId` populated.
 4. **Playlists** live in `src/store/playlist-store.ts` (zustand `persist`,
    key `islah-playlists`). Playlists UI is merged into the **Library** page tabs —
-   do not add a separate Playlists nav item without asking the user.
-5. **Netlify.** `netlify.toml` uses `@netlify/plugin-nextjs`. Never add manual
+   do not add a separate Playlists nav item without asking the user. The channel's
+   real YouTube playlists come from `/api/playlists` (`getChannelPlaylists` /
+   `getPlaylistItems` in `lib/youtube.ts`).
+5. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
+   `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
+   fire ENDED and auto-advance the queue (the ENDED handler is guarded on
+   `currentTrack` for the same reason).
+6. **Netlify.** `netlify.toml` uses `@netlify/plugin-nextjs`. Never add manual
    `/api/*` or `/_next/*` redirects, and never add invalid `[functions.*]` keys.
 
 ## Conventions

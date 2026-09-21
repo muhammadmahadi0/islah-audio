@@ -36,6 +36,8 @@ interface PlayerState {
   playPrevious: () => void;
   playTrack: (track: Track, tracks?: Track[], index?: number) => void;
   togglePlay: () => void;
+  /** Stop playback entirely and dismiss the player (keeps the queue). */
+  stop: () => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -132,4 +134,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       set({ isPlaying: !isPlaying });
     }
   },
+
+  stop: () =>
+    set({
+      currentTrack: null,
+      isPlaying: false,
+      isLoading: false,
+      currentTime: 0,
+      duration: 0,
+      playlistIndex: -1,
+    }),
 }));

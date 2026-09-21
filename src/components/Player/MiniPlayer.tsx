@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Music,
   Loader2,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -47,6 +48,7 @@ export default function MiniPlayer() {
     setIsPlaying,
     playNext,
     playPrevious,
+    stop,
   } = usePlayerStore();
 
   const touchStartY = useRef<number>(0);
@@ -250,6 +252,20 @@ export default function MiniPlayer() {
           ) : (
             <Play size={16} fill="#060D0A" className="text-ink-950 ml-0.5" />
           )}
+        </button>
+
+        {/* Stop everything + dismiss */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(false);
+            stop();
+          }}
+          className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center shrink-0 text-mist-dark hover:text-white hover:border-white/30 hover:bg-white/10 transition-colors"
+          aria-label="Stop and close player"
+          title="Stop"
+        >
+          <X size={14} />
         </button>
 
         <span className="hidden sm:flex text-mist-dark">

@@ -21,6 +21,13 @@ export interface YouTubeChannel {
   videos: YouTubeVideo[];
 }
 
+export interface YouTubePlaylist {
+  id: string;
+  title: string;
+  thumbnail: string;
+  itemCount: number;
+}
+
 const API_KEY = process.env.YOUTUBE_API_KEY;
 
 function getYouTubeAPI<T>(endpoint: string, params: Record<string, string>): Promise<T | null> {
@@ -170,6 +177,77 @@ async function getChannelDetailsByHandle(handle: string) {
 
 export function hasApiKey(): boolean {
   return !!API_KEY;
+}
+
+/** Resolve a handle like `@islahbd` to its UC channel ID. */
+export async function resolveChannelId(channelIdOrHandle: string): Promise<string> {
+  if (!channelIdOrHandle.startsWith('@')) return channelIdOrHandle;
+
+  const data = await getYouTubeAPI<any>('channels', {
+    part: 'id',
+    forHandle: channelIdOrHandle.replace('@', ''),
+  });
+
+  return data?.items?.[0]?.id || channelIdOrHandle;
+}
+
+/** List a channel's public playlists (up to 50). */
+export async function getChannelPlaylists(channelIdOrHandle: string): Promise<YouTubePlaylist[]> {
+  const channelId = await resolveChannelId(channelIdOrHandle);
+
+  const data = await getYouTubeAPI<any>('playlists', {
+    part: 'snippet,contentDetails',
+    channelId,
+    maxResults: '50',
+  });
+
+  if (!data?.items) return [];
+
+  return data.items.map((item: any) => ({
+    id: item.id,
+    title: item.snippet?.title || 'Untitled playlist',
+    thumbnail:
+      item.snippet?.thumbnails?.medium?.url ||
+      item.snippet?.thumbnails?.default?.url ||
+      '',
+    itemCount: item.contentDetails?.itemCount || 0,
+  }));
+}
+
+/** Get items of a YouTube playlist (first 50), skipping deleted/private videos. */
+export async function getPlaylistItems(playlistId: string): Promise<YouTubeVideo[]> {
+  const data = await getYouTubeAPI<any>('playlistItems', {
+    part: 'snippet',
+    playlistId,
+    maxResults: '50',
+  });
+
+  if (!data?.items) return [];
+
+  const items = data.items.filter(
+    (item: any) =>
+      item.snippet?.resourceId?.videoId &&
+      item.snippet.title !== 'Deleted video' &&
+      item.snippet.title !== 'Private video'
+  );
+
+  const videoIds = items.map((item: any) => item.snippet.resourceId.videoId as string);
+  const details = await getVideoDetails(videoIds);
+
+  return items.map((item: any) => {
+    const videoId: string = item.snippet.resourceId.videoId;
+    const meta = details.get(videoId);
+    return {
+      id: videoId,
+      videoId,
+      title: item.snippet.title,
+      thumbnail:
+        item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
+      publishedAt: item.snippet.publishedAt,
+      duration: meta?.duration ?? 0,
+      views: meta?.views ?? 0,
+    };
+  });
 }
 
 export const TARGET_CHANNEL_ID = 'UC8NjCrYUV5YrpK2j6XTwGSA';

@@ -14,8 +14,9 @@ playlists, search, and a mobile-first design.
   durations, and view counts
 - **Audio playback** — hidden YouTube embed player wired to a global player store
   (play/pause, next/previous, seek, volume, autoplay-next)
-- **Playlists** — create playlists, save any lecture from Home/Search, play them back;
-  stored in `localStorage` so they survive reloads (merged into the **Library** tab)
+- **Playlists** — the channel's real YouTube playlists plus your own custom ones
+  (create, save any lecture from Home/Search, play them back; yours are stored in
+  `localStorage` so they survive reloads — all merged into the **Library** tab)
 - **Search** — instant client-side search across the channel catalog
 - **Modern UI** — emerald + gold dark theme, desktop sidebar, mobile bottom nav,
   floating glass mini-player with full-screen expanded mode, Bayans/Shorts filters
@@ -71,6 +72,8 @@ npm run start   # serve production build
 | Route                  | Description                                                        |
 | ---------------------- | ------------------------------------------------------------------ |
 | `GET /api/channel?id=` | Channel info + latest videos as `{ videoId, title, thumbnail, duration, views, publishedAt }` |
+| `GET /api/playlists?id=` | The channel's YouTube playlists as `{ id, title, thumbnail, itemCount }` |
+| `GET /api/playlists?playlistId=` | Items of one playlist as `{ videoId, title, thumbnail, duration, views }` |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (playback is client-side) |
 | `GET /api/proxy?url=`  | CORS proxy helper                                                  |
 
