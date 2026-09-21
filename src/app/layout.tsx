@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import AudioPlayer from '@/components/AudioPlayer';
 import MiniPlayer from '@/components/Player/MiniPlayer';
 import BottomNav from '@/components/BottomNav';
 import Sidebar from '@/components/Sidebar';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export const metadata: Metadata = {
   title: 'Islah Audio — Islamic Lectures',
@@ -18,10 +20,16 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
+// Applies the persisted theme before first paint (no dark-mode flash).
+const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('islah-theme');if(s&&JSON.parse(s).state.theme==='light'){document.documentElement.classList.add('light')}}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased bg-ink-950 text-white">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {THEME_INIT_SCRIPT}
+        </Script>
         <div className="flex h-dvh overflow-hidden">
           {/* Desktop sidebar */}
           <Sidebar />
@@ -34,6 +42,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Floating mini player + mobile nav */}
           <MiniPlayer />
           <BottomNav />
+
+          {/* Floating theme toggle */}
+          <ThemeToggle />
 
           {/* Hidden playback engine */}
           <AudioPlayer />

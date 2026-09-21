@@ -131,7 +131,7 @@ export default function MiniPlayer() {
                 setIsExpanded(false);
                 stop();
               }}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/15 text-red-300 transition-colors hover:bg-red-500/25 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25 active:scale-95"
               aria-label="Stop and close player"
               title="Stop"
             >

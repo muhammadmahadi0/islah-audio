@@ -1,5 +1,14 @@
 /** @type {import('tailwindcss').Config} */
+
+// All theme colors resolve through CSS variables (see globals.css) so the
+// light/dark toggle re-themes the whole app without touching components.
+// NOTE: `white` is remapped to theme foreground — text-white becomes ink
+// text in light mode, and white veils (bg-white/5, border-white/10) become
+// ink veils. Plain `black` overlays are left untouched.
+const v = (name) => `rgb(var(${name}) / <alpha-value>)`;
+
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -8,39 +17,39 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        white: v('--white'),
         ink: {
-          950: '#060D0A',
-          900: '#0A1511',
-          800: '#0E1F18',
-          700: '#14291F',
-          600: '#1C382A',
+          950: v('--ink-950'),
+          900: v('--ink-900'),
+          800: v('--ink-800'),
+          700: v('--ink-700'),
+          600: v('--ink-600'),
         },
         brand: {
-          DEFAULT: '#10B981',
-          light: '#34D399',
-          dark: '#059669',
-          deep: '#064E3B',
+          DEFAULT: v('--brand'),
+          light: v('--brand-light'),
+          dark: v('--brand-dark'),
+          deep: v('--brand-deep'),
         },
         gold: {
-          DEFAULT: '#C9A227',
-          light: '#E7C55A',
-          dark: '#9A7B1A',
+          DEFAULT: v('--gold'),
+          light: v('--gold-light'),
         },
         mist: {
-          DEFAULT: '#9DB3A8',
-          dark: '#647C71',
+          DEFAULT: v('--mist'),
+          dark: v('--mist-dark'),
         },
         // Backwards-compat with the old Spotify-style tokens
         spotify: {
-          bg: '#060D0A',
-          'bg-secondary': '#0A1511',
-          'bg-tertiary': '#14291F',
-          'surface-hover': '#1C382A',
-          accent: '#10B981',
-          'accent-hover': '#34D399',
-          text: '#FFFFFF',
-          'text-secondary': '#9DB3A8',
-          'text-muted': '#647C71',
+          bg: v('--ink-950'),
+          'bg-secondary': v('--ink-900'),
+          'bg-tertiary': v('--ink-700'),
+          'surface-hover': v('--ink-600'),
+          accent: v('--brand'),
+          'accent-hover': v('--brand-light'),
+          text: v('--white'),
+          'text-secondary': v('--mist'),
+          'text-muted': v('--mist-dark'),
         },
       },
       fontFamily: {

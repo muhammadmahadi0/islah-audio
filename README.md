@@ -20,7 +20,8 @@ playlists, search, and a mobile-first design.
   audio stream (HLS via hls.js) when on air, and the last broadcast recording
   when offline; live status is polled from their public status API
 - **Search** — instant client-side search across the channel catalog
-- **Modern UI** — emerald + gold dark theme, desktop sidebar, mobile bottom nav,
+- **Modern UI** — emerald + gold theme with light/dark mode (floating toggle,
+  persisted), desktop sidebar, mobile bottom nav,
   floating glass mini-player with full-screen expanded mode, Bayans/Shorts filters
 
 ## Tech Stack

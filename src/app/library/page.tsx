@@ -164,7 +164,7 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => deletePlaylist(playlist.id)}
-              className="px-2.5 py-1.5 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-bold"
+              className="px-2.5 py-1.5 rounded-lg bg-red-500/15 border border-red-500/40 text-red-500 text-xs font-bold"
             >
               Delete?
             </button>

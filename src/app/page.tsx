@@ -460,7 +460,7 @@ export default function HomePage() {
                   {live?.isLive && (
                     <button
                       onClick={handleLive}
-                      className="flex items-center gap-2 mt-2 md:mt-3 text-xs md:text-[13px] font-semibold text-red-300 hover:text-red-200 transition-colors"
+                      className="flex items-center gap-2 mt-2 md:mt-3 text-xs md:text-[13px] font-semibold text-red-500 hover:text-red-400 transition-colors"
                     >
                       <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
@@ -482,7 +482,7 @@ export default function HomePage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-gold-light text-3xl md:text-5xl font-bold">إ</span>
+                    <span className="text-[#E7C55A] text-3xl md:text-5xl font-bold">إ</span>
                   )}
                 </div>
               </div>

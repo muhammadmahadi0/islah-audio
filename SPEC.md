@@ -27,13 +27,19 @@
 
 ## UI/UX Specification
 
-### Color Palette (Emerald + Gold Dark)
+### Color Palette (Emerald + Gold — dark default, light available)
 
 - **Background**: ink `#060D0A` / `#0A1511` / `#0E1F18`
+  (light: warm paper `#F4F6F3` → white surfaces)
 - **Accent Primary**: emerald `#10B981`, hover `#34D399`
+  (light: deeper `#059669` for contrast)
 - **Accent Secondary**: gold `#C9A227`, highlight `#E7C55A`
+  (light: deeper `#96700F` for text)
 - **Live**: red `#EF4444` with pulsing dot
 - **Text**: `#F2F5F3` / secondary `#9DB3A8` / muted `#647C71`
+  (light: ink text + slate secondary)
+- All tokens resolve through CSS variables (`globals.css`); `white` remaps to
+  theme foreground. A floating toggle (persisted `islah-theme`) switches themes.
 
 ### Typography
 

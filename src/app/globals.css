@@ -2,18 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theme tokens as RGB triplets. Dark is the default (:root);
+ * `html.light` overrides swap the whole palette (see tailwind.config.js,
+ * which maps every brand token + `white` through these variables).
+ */
 :root {
-  --ink-950: #060d0a;
-  --ink-900: #0a1511;
-  --ink-800: #0e1f18;
-  --ink-700: #14291f;
-  --brand: #10b981;
-  --brand-light: #34d399;
-  --gold: #c9a227;
-  --gold-light: #e7c55a;
-  --text: #f2f5f3;
-  --text-secondary: #9db3a8;
-  --text-muted: #647c71;
+  color-scheme: dark;
+  --ink-950: 6 13 10;
+  --ink-900: 10 21 17;
+  --ink-800: 14 31 24;
+  --ink-700: 20 41 31;
+  --ink-600: 28 56 42;
+  --brand: 16 185 129;
+  --brand-light: 52 211 153;
+  --brand-dark: 5 150 105;
+  --brand-deep: 6 78 59;
+  --gold: 201 162 39;
+  --gold-light: 231 197 90;
+  --mist: 157 179 168;
+  --mist-dark: 100 124 113;
+  --white: 255 255 255;
+  --veil: 255 255 255;
+  --glass: 14 31 24;
+}
+
+html.light {
+  color-scheme: light;
+  --ink-950: 244 246 243;
+  --ink-900: 255 255 255;
+  --ink-800: 236 239 233;
+  --ink-700: 226 232 226;
+  --ink-600: 211 220 210;
+  --brand: 5 150 105;
+  --brand-light: 5 150 105;
+  --brand-dark: 4 120 87;
+  --brand-deep: 6 78 59;
+  --gold: 150 113 15;
+  --gold-light: 133 100 13;
+  --mist: 74 90 80;
+  --mist-dark: 90 102 92;
+  --white: 13 26 20;
+  --veil: 6 13 10;
+  --glass: 255 255 255;
 }
 
 * {
@@ -24,8 +55,8 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--ink-950);
-  color: var(--text);
+  background-color: rgb(var(--ink-950));
+  color: rgb(var(--white));
   font-family:
     Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Noto Sans Bengali', sans-serif;
@@ -41,28 +72,32 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1c382a;
+  background: rgb(var(--ink-600));
   border-radius: 8px;
-  border: 2px solid #060d0a;
+  border: 2px solid rgb(var(--ink-950));
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #10b981;
+  background: rgb(var(--brand));
 }
 
 /* Glass panel helper */
 .glass {
-  background: rgba(14, 31, 24, 0.72);
+  background: rgb(var(--glass) / 0.78);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+html.light .glass {
+  background: rgb(var(--glass) / 0.85);
+  box-shadow: 0 8px 32px rgba(6, 13, 10, 0.1);
 }
 
 /* Skeleton shimmer */
 .shimmer {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.04) 75%
+    rgb(var(--veil) / 0.04) 25%,
+    rgb(var(--veil) / 0.1) 50%,
+    rgb(var(--veil) / 0.04) 75%
   );
   background-size: 800px 100%;
   animation: shimmer 1.6s linear infinite;
@@ -106,10 +141,10 @@ input[type='range']::-webkit-slider-runnable-track {
   border-radius: 9999px;
   background: linear-gradient(
     to right,
-    var(--brand) 0%,
-    var(--brand) var(--fill, 0%),
-    rgba(255, 255, 255, 0.14) var(--fill, 0%),
-    rgba(255, 255, 255, 0.14) 100%
+    rgb(var(--brand)) 0%,
+    rgb(var(--brand)) var(--fill, 0%),
+    rgb(var(--veil) / 0.14) var(--fill, 0%),
+    rgb(var(--veil) / 0.14) 100%
   );
 }
 input[type='range']::-webkit-slider-thumb {
@@ -120,7 +155,7 @@ input[type='range']::-webkit-slider-thumb {
   margin-top: -5px;
   border-radius: 50%;
   background: #fff;
-  border: 3px solid var(--brand);
+  border: 3px solid rgb(var(--brand));
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
   transition: transform 0.15s;
 }
@@ -130,19 +165,19 @@ input[type='range']::-webkit-slider-thumb:hover {
 input[type='range']::-moz-range-track {
   height: 4px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgb(var(--veil) / 0.14);
 }
 input[type='range']::-moz-range-progress {
   height: 4px;
   border-radius: 9999px;
-  background: var(--brand);
+  background: rgb(var(--brand));
 }
 input[type='range']::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: #fff;
-  border: 3px solid var(--brand);
+  border: 3px solid rgb(var(--brand));
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
 }
 
