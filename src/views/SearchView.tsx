@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import { Search as SearchIcon, Music, Loader2, X, ListPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
+import { useChannelStore } from '@/store/channel-store';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import { fetchJson } from '@/lib/fetch-timeout';
 
@@ -119,6 +119,7 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
   const [totalVideos, setTotalVideos] = useState(0);
 
   const { playTrack, currentTrack, isPlaying } = usePlayerStore();
+  const { channelId } = useChannelStore();
 
   // Index the whole catalog in the background (100 first, then 200-chunks)
   // so search covers every video, not just the first page.
@@ -126,9 +127,11 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
     let cancelled = false;
     (async () => {
       try {
+        setIsLoading(true);
+        setIndexing(false);
         // NOTE: channel ID goes in the path — query strings are dropped
         // by our hosting before function invocation.
-        const data = await fetchJson(`/api/channel/${DEFAULT_CHANNEL_ID}`, 20000);
+        const data = await fetchJson(`/api/channel/${channelId}`, 20000);
         if (!data.success || !Array.isArray(data.videos)) return;
         if (!cancelled && data.success && Array.isArray(data.videos)) {
           setVideos(data.videos);
@@ -138,7 +141,7 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
           const seen = new Set(data.videos.map((v: ChannelVideo) => v.videoId || v.id));
           while (token && !cancelled) {
             const mdata = await fetchJson(
-              `/api/channel/${DEFAULT_CHANNEL_ID}/more/${encodeURIComponent(token)}`,
+              `/api/channel/${channelId}/more/${encodeURIComponent(token)}`,
               25000
             );
             if (!mdata.success || !Array.isArray(mdata.videos)) break;
@@ -162,7 +165,7 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [channelId]);
 
   const handleSearch = useCallback(
     (e: React.FormEvent) => {

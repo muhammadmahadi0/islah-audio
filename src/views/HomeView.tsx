@@ -12,13 +12,13 @@ import {
   Radio,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
+import { useChannelStore } from '@/store/channel-store';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 import { fetchJson } from '@/lib/fetch-timeout';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CHANNEL_ID = DEFAULT_CHANNEL_ID;
+
 
 interface VideoItem {
   videoId: string;
@@ -258,6 +258,7 @@ export default function HomePage() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
+  const { channelId } = useChannelStore();
 
   const fetchVideos = useCallback(async () => {
     try {
@@ -266,7 +267,7 @@ export default function HomePage() {
 
       // NOTE: channel ID goes in the path — query strings are dropped
       // by our hosting before function invocation.
-      const data = await fetchJson(`/api/channel/${CHANNEL_ID}`, 20000);
+      const data = await fetchJson(`/api/channel/${channelId}`, 20000);
       if (!data.success || !data.videos) {
         throw new Error(data.error || 'No videos found');
       }
@@ -283,7 +284,7 @@ export default function HomePage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [channelId]);
 
   useEffect(() => {
     fetchVideos();
@@ -362,7 +363,7 @@ export default function HomePage() {
     setLoadingMore(true);
     try {
       const data = await fetchJson(
-        `/api/channel/${CHANNEL_ID}/more/${encodeURIComponent(nextToken)}`,
+        `/api/channel/${channelId}/more/${encodeURIComponent(nextToken)}`,
         25000
       );
       if (data.success && Array.isArray(data.videos)) {
@@ -378,7 +379,7 @@ export default function HomePage() {
     } finally {
       setLoadingMore(false);
     }
-  }, [nextToken, loadingMore]);
+  }, [nextToken, loadingMore, channelId]);
 
   const isLiveTrackActive =
     !!currentTrack && (currentTrack.id === 'live' || currentTrack.id === 'live-recording');

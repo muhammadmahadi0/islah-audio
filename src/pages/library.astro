@@ -14,5 +14,9 @@ if (hasApiKey()) {
 ---
 
 <Layout title="Library — Islah Audio">
-  <LibraryView client:only="react" initialYtPlaylists={initialYtPlaylists} />
+  <LibraryView
+    client:only="react"
+    initialYtPlaylists={initialYtPlaylists}
+    initialChannelId={TARGET_CHANNEL_ID}
+  />
 </Layout>

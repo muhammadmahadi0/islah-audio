@@ -43,30 +43,35 @@ This file orients AI coding agents working in this repo. Read it before making c
    server InnerTube calls race `withTimeout()` (8s) into fallbacks.
 4. **Playlists.** User playlists live in `playlist-store.ts` (persist key
    `islah-playlists`), merged into the Library tabs — no separate Playlists nav
-   item. **BETA:** the channel-YouTube-playlists section is back, served by
-   `/api/playlists` (fixed channel, Data API) + `/api/playlist-items/[id]`
+   item. The channel-YouTube-playlists section is served by
+   `/api/playlists/[channel]` (Data API) + `/api/playlist-items/[id]`
    (InnerTube first, Data API fallback). The list is server-rendered
-   (`library/page.tsx` passes initial data to `library-view.tsx`) so it can
+   (`library.astro` passes initial data to the island) so it can
    never hang on a client fetch; the client effect only runs as fallback.
-5. **Catalog pagination.** YouTube caps pages at 50 items: initial load fetches
+5. **Channels.** Registry in `lib/channels.ts`, active channel in
+   `channel-store.ts` (persist key `islah-channel`). Home/Search/Library all
+   follow the active channel. Sidebar shows the switcher; Android opens the
+   sidebar as a drawer (`#mobile-drawer` in the layout).
+6. **Catalog pagination.** YouTube caps pages at 50 items: initial load fetches
    `INITIAL_PAGES` (100 videos), "more" chunks fetch `MORE_PAGES` (200) via
    `/api/channel/[id]/more/[token]` (`getPlaylistVideosPaged` in `lib/youtube.ts`).
-6. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
+7. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
    `currentTrack` for the same reason).
-7. **Live (islahbd.com).** Status via `/api/live` (proxies
+8. **Live (islahbd.com).** Status via `/api/live` (proxies
    `api.islahbd.com/api/live/status/`); HLS via `/api/hls` proxy fallback.
    Live button lives in the Home hero (`page.tsx`); live tracks use
    `id: 'live'` / `'live-recording'` with `isLive` set for real broadcasts.
-8. **Netlify.** `netlify.toml` uses `@netlify/plugin-nextjs`. Never add manual
-   `/api/*` or `/_next/*` redirects, and never add invalid `[functions.*]` keys.
+9. **Netlify (BETA: Astro).** `netlify.toml` publishes `dist/`; SSR/API run as
+   functions via `@astrojs/netlify`. Never add manual `/api/*` redirects, and
+   never re-add the Next.js plugin on this branch.
 
 ## Conventions
 
 - Styling: Tailwind with brand tokens (`ink-*`, `brand`, `gold`, `mist`) defined in
   `tailwind.config.js`; shared helpers (`.glass`, `.shimmer`, `.eq-bar`, `.clamp-2`,
-  `.safe-bottom`) in `src/app/globals.css`. Keep the emerald + gold theme.
+  `.safe-bottom`) in `src/styles/globals.css`. Keep the emerald + gold theme.
 - **Theming rule.** All colors must go through the token system, which resolves
   via CSS variables with `html.light` overrides. Never hardcode theme colors in
   components — the only exceptions are elements pinned to dark surfaces:

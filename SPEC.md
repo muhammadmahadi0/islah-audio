@@ -7,8 +7,8 @@
 
 - **Project Name**: Islah Audio
 - **Type**: Web Application (Audio Streaming)
-- **Core Functionality**: Listen to Islamic lectures (bayans, waz, nasheeds) from the
-  YouTube channel `@islahbd`, its real YouTube playlists, user-created playlists, and
+- **Core Functionality**: Listen to Islamic lectures (bayans, waz, nasheeds) from
+  the YouTube channels `@islahbd` and `@IslahiGhazal`, plus user playlists and
   the islahbd.com live broadcast — all in an audio-first experience.
 - **Target Users**: Listeners of Islah BD Islamic content.
 - **Live Site**: https://islahiboyan.netlify.app/
@@ -60,10 +60,14 @@
 
 ### Components
 
-#### Sidebar (desktop)
+#### Sidebar (desktop) + drawer (Android)
 
 - Brand mark (gold `إ` on emerald) + "Islah Audio" + tagline
 - Nav: Home, Search, Library — active item gets emerald tint + gold rail
+- **Channels switcher**: all registered channels (`lib/channels.ts`) with live
+  avatars; tapping switches Home, Search, and Library; choice persists.
+  Android opens the same sidebar as a slide-over drawer via the top-bar
+  hamburger button.
 - "Source" card (channel link + live indicator) and footer note
 
 #### Home

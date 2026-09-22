@@ -20,6 +20,8 @@ playlists, search, and a mobile-first design.
 - **Live broadcast** — a LIVE button in the Home hero plays the islahbd.com live
   audio stream (HLS via hls.js) when on air, and the last broadcast recording
   when offline; live status is polled from their public status API
+- **Channels** — switch between `@islahbd` and `@IslahiGhazal` from the sidebar
+  (slide-over drawer on Android); Home, Search, and Library all follow along
 - **Search** — instant client-side search across the channel catalog
 - **Modern UI** — emerald + gold theme with light/dark mode (floating toggle,
   persisted), desktop sidebar, mobile bottom nav,
@@ -31,7 +33,7 @@ playlists, search, and a mobile-first design.
 | -------- | ----------------------------------------------------------- |
 | Framework| Astro 5 SSR + React islands (`client:only`)                 |
 | Styling  | Tailwind CSS + custom design tokens (`tailwind.config.js`)  |
-| State    | Zustand (`player-store`, persisted `playlist-store`)        |
+| State    | Zustand (`player-store`, persisted `playlist-store` + `channel-store`) |
 | Data     | Keyless InnerTube listing first, YouTube Data API v3 fallback |
 | Playback | YouTube IFrame Player API (official embed, no extraction)   |
 | Hosting  | Netlify (SSR functions via `@astrojs/netlify`)              |

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import { usePlaylistStore, type SavedPlaylist } from '@/store/playlist-store';
+import { useChannelStore } from '@/store/channel-store';
 import {
   Music,
   Clock,
@@ -397,8 +398,10 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
 
 export default function LibraryView({
   initialYtPlaylists,
+  initialChannelId,
 }: {
   initialYtPlaylists: ChannelPlaylist[] | null;
+  initialChannelId: string;
 }) {
   const [tab, setTab] = useState<Tab>('queue');
   const [newName, setNewName] = useState('');
@@ -406,24 +409,36 @@ export default function LibraryView({
   const [ytPlaylists, setYtPlaylists] = useState<ChannelPlaylist[] | null>(
     initialYtPlaylists
   );
+  const [ytForChannel, setYtForChannel] = useState(initialChannelId);
   const [ytLoading, setYtLoading] = useState(false);
   const [ytError, setYtError] = useState(false);
   const [ytErrorMsg, setYtErrorMsg] = useState('');
   const { playlist, currentTrack, isPlaying, playTrack, setIsPlaying } = usePlayerStore();
   const { playlists, createPlaylist } = usePlaylistStore();
+  const { channelId } = useChannelStore();
 
-  // Lazy-load the channel's YouTube playlists when the tab opens.
-  // The list route needs no params (fixed channel).
+  // Channel playlists follow the active channel. Server data covers the
+  // initial channel; anything else lazy-loads per channel.
   useEffect(() => {
-    if (tab !== 'playlists' || ytPlaylists !== null || ytLoading) return;
+    if (tab !== 'playlists' || ytLoading) return;
+    if (ytPlaylists !== null && ytForChannel === channelId) return;
+    // Reset when switching channels, then load below.
+    if (ytForChannel !== channelId) {
+      setYtPlaylists(null);
+      setYtForChannel(channelId);
+      return;
+    }
+    if (channelId === initialChannelId && initialYtPlaylists) {
+      setYtPlaylists(initialYtPlaylists);
+      return;
+    }
     let cancelled = false;
     (async () => {
       setYtLoading(true);
       setYtError(false);
       setYtErrorMsg('');
       try {
-        // The list route needs no params (fixed channel).
-        const data = await fetchJson('/api/playlists', 20000);
+        const data = await fetchJson(`/api/playlists/${channelId}`, 20000);
         if (!cancelled && data.success && Array.isArray(data.playlists)) {
           setYtPlaylists(data.playlists);
         } else if (!cancelled) {
@@ -443,7 +458,7 @@ export default function LibraryView({
     return () => {
       cancelled = true;
     };
-  }, [tab, ytPlaylists, ytLoading]);
+  }, [tab, ytPlaylists, ytLoading, ytForChannel, channelId, initialChannelId, initialYtPlaylists]);
 
   const retryYtPlaylists = () => {
     setYtError(false);
