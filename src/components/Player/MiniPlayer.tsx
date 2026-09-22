@@ -392,29 +392,14 @@ export default function MiniPlayer() {
     };
   }, []);
 
-  if (!currentTrack) return null;
-
-  const isLive = !!currentTrack.isLive;
-  const queueTotal = playlist.length;
-  const queuePos = playlistIndex >= 0 ? playlistIndex + 1 : null;
-
-  // Video toggle: audio ⇄ video in the same player (no restart).
-  const toggleVideo = () => {
-    setVideoMode(engine.mode === 'video' ? 'audio' : 'video');
-  };
-
-  // Up-next queue row tap: toggle if current, else jump to it.
-  const playQueueTrack = (track: (typeof playlist)[number], index: number) => {
-    if (index === playlistIndex) setIsPlaying(!isPlaying);
-    else playTrack(track, playlist, index);
-  };
-
   // Queue panel: scroll container + active row refs for auto-scroll.
+  // NOTE: must stay above `if (!currentTrack) return null` — hooks after
+  // an early return change hook order between renders and crash the island.
   const queueScrollRef = useRef<HTMLDivElement>(null);
   const queueActiveRef = useRef<HTMLButtonElement>(null);
 
   // Auto-scroll the open queue so the now-playing row is visible:
-  // top of the list on open, smooth follow when the track changes.
+  // jump on open, smooth follow when the track changes.
   const scrollQueueToActive = (smooth: boolean) => {
     const row = queueActiveRef.current;
     const box = queueScrollRef.current;
@@ -435,7 +420,24 @@ export default function MiniPlayer() {
   useEffect(() => {
     if (queueOpen) scrollQueueToActive(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playlistIndex, currentTrack?.videoId]);
+  }, [queueOpen, playlistIndex, currentTrack?.videoId]);
+
+  if (!currentTrack) return null;
+
+  const isLive = !!currentTrack.isLive;
+  const queueTotal = playlist.length;
+  const queuePos = playlistIndex >= 0 ? playlistIndex + 1 : null;
+
+  // Video toggle: audio ⇄ video in the same player (no restart).
+  const toggleVideo = () => {
+    setVideoMode(engine.mode === 'video' ? 'audio' : 'video');
+  };
+
+  // Up-next queue row tap: toggle if current, else jump to it.
+  const playQueueTrack = (track: (typeof playlist)[number], index: number) => {
+    if (index === playlistIndex) setIsPlaying(!isPlaying);
+    else playTrack(track, playlist, index);
+  };
 
   return (
     <>
