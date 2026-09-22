@@ -616,17 +616,23 @@ export default function MiniPlayer() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="glass relative overflow-hidden rounded-[28px] border border-white/10 shadow-card px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-brand/40 transition-colors"
+          className="liquid-glass relative overflow-hidden rounded-[28px] px-4 py-3 flex items-center gap-3 cursor-pointer transition-all hover:border-white/30 active:scale-[0.99]"
         >
+          {/* Specular top edge — iPhone refraction highlight */}
+          <span className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+          {/* Diagonal gloss sheen */}
+          <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.14] via-transparent to-transparent" />
+          {/* Bottom inner reflection */}
+          <span className="pointer-events-none absolute bottom-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           {/* Progress hairline */}
-          <span className="absolute top-0 left-3 right-3 h-[2px] rounded-full bg-white/10 overflow-hidden">
+          <span className="absolute top-0 left-4 right-4 h-[2px] rounded-full bg-white/10 overflow-hidden">
             <span
-              className="block h-full rounded-full bg-gradient-to-r from-gold-light to-gold transition-[width]"
+              className="block h-full rounded-full bg-gradient-to-r from-gold-light to-gold transition-[width] shadow-[0_0_8px_rgba(231,197,90,0.8)]"
               style={{ width: `${progress}%` }}
             />
           </span>
 
-          <div className="w-11 h-11 shrink-0 rounded-xl overflow-hidden bg-brand/15 ring-1 ring-white/10">
+          <div className="relative w-11 h-11 shrink-0 rounded-2xl overflow-hidden bg-white/10 ring-1 ring-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.3)]">
             {currentTrack.thumbnail ? (
               <img
                 src={currentTrack.thumbnail}
@@ -640,8 +646,8 @@ export default function MiniPlayer() {
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
-            <p className="flex items-center gap-1.5 text-white text-sm font-semibold truncate">
+          <div className="relative flex-1 min-w-0">
+            <p className="flex items-center gap-1.5 text-white text-sm font-semibold truncate drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
               {isLive && (
                 <span className="flex items-center gap-1 rounded-full bg-red-500 px-1.5 py-px text-[9px] font-extrabold uppercase tracking-widest text-white shrink-0">
                   <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
@@ -661,9 +667,11 @@ export default function MiniPlayer() {
               e.stopPropagation();
               setIsPlaying(!isPlaying);
             }}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shrink-0 shadow-glow hover:scale-105 active:scale-95 transition-transform"
+            className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shrink-0 shadow-glow hover:scale-105 active:scale-95 transition-transform ring-1 ring-white/30"
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
+            {/* Glossy top highlight on the play button */}
+            <span className="pointer-events-none absolute top-0 inset-x-2 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
             {isLoading ? (
               <Loader2 size={16} className="animate-spin text-ink-950" />
             ) : isPlaying ? (
@@ -680,7 +688,7 @@ export default function MiniPlayer() {
               setIsExpanded(false);
               stop();
             }}
-            className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center shrink-0 text-mist-dark hover:text-white hover:border-white/30 hover:bg-white/10 transition-colors"
+            className="w-7 h-7 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0 text-mist-dark hover:text-white hover:border-white/40 hover:bg-white/[0.14] transition-colors shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
             aria-label="Stop and close player"
             title="Stop"
           >

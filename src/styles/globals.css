@@ -91,33 +91,40 @@ html.light .glass {
   box-shadow: 0 8px 32px rgba(6, 13, 10, 0.1);
 }
 
-/* iPhone liquid-glass panel (floating bars) */
+/* iPhone liquid-glass panel (floating bars) — iOS 26 style:
+   deep blur + saturation, specular top edge, diagonal gloss sheen,
+   soft refractive border and floating shadow. */
 .liquid-glass {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.16),
-    rgba(255, 255, 255, 0.05) 40%,
-    rgba(255, 255, 255, 0.11)
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.07) 38%,
+    rgba(255, 255, 255, 0.14) 62%,
+    rgba(255, 255, 255, 0.05)
   );
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.12);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.28),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
-    0 12px 40px rgba(0, 0, 0, 0.35);
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.08),
+    inset 1px 0 1px rgba(255, 255, 255, 0.12),
+    0 16px 48px rgba(0, 0, 0, 0.42),
+    0 2px 8px rgba(0, 0, 0, 0.25);
 }
 html.light .liquid-glass {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0.3) 40%,
-    rgba(255, 255, 255, 0.5)
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0.45) 38%,
+    rgba(255, 255, 255, 0.62) 62%,
+    rgba(255, 255, 255, 0.4)
   );
-  border-color: rgba(6, 13, 10, 0.08);
+  border-color: rgba(255, 255, 255, 0.7);
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.8),
-    0 12px 40px rgba(6, 13, 10, 0.14);
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px rgba(6, 13, 10, 0.05),
+    0 16px 48px rgba(6, 13, 10, 0.16);
 }
 
 /* Skeleton shimmer */
