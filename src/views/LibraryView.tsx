@@ -398,18 +398,15 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
 
 export default function LibraryView({
   initialYtPlaylists,
-  initialChannelId,
 }: {
-  initialYtPlaylists: ChannelPlaylist[] | null;
-  initialChannelId: string;
+  // Server-rendered playlists keyed by channel ID (all channels, no
+  // client fetch needed). Null entry = server fetch failed for it.
+  initialYtPlaylists: Record<string, ChannelPlaylist[] | null>;
 }) {
   const [tab, setTab] = useState<Tab>('queue');
   const [newName, setNewName] = useState('');
-  // Server-rendered list when available — no client fetch needed.
-  const [ytPlaylists, setYtPlaylists] = useState<ChannelPlaylist[] | null>(
-    initialYtPlaylists
-  );
-  const [ytForChannel, setYtForChannel] = useState(initialChannelId);
+  const [ytPlaylists, setYtPlaylists] = useState<ChannelPlaylist[] | null>(null);
+  const [ytForChannel, setYtForChannel] = useState('');
   const [ytLoading, setYtLoading] = useState(false);
   const [ytError, setYtError] = useState(false);
   const [ytErrorMsg, setYtErrorMsg] = useState('');
@@ -417,20 +414,19 @@ export default function LibraryView({
   const { playlists, createPlaylist } = usePlaylistStore();
   const { channelId } = useChannelStore();
 
-  // Channel playlists follow the active channel. Server data covers the
-  // initial channel; anything else lazy-loads per channel.
+  // Channel playlists follow the active channel, served from the
+  // server-rendered map. Client fetch is only a fallback when the server
+  // had none for that channel.
   useEffect(() => {
     if (tab !== 'playlists' || ytLoading) return;
-    if (ytPlaylists !== null && ytForChannel === channelId) return;
-    // Reset when switching channels, then load below.
+    if (ytForChannel === channelId && ytPlaylists !== null) return;
     if (ytForChannel !== channelId) {
-      setYtPlaylists(null);
+      const server = initialYtPlaylists[channelId] ?? null;
       setYtForChannel(channelId);
-      return;
-    }
-    if (channelId === initialChannelId && initialYtPlaylists) {
-      setYtPlaylists(initialYtPlaylists);
-      return;
+      setYtError(false);
+      setYtErrorMsg('');
+      setYtPlaylists(server);
+      if (server) return;
     }
     let cancelled = false;
     (async () => {
@@ -458,7 +454,7 @@ export default function LibraryView({
     return () => {
       cancelled = true;
     };
-  }, [tab, ytPlaylists, ytLoading, ytForChannel, channelId, initialChannelId, initialYtPlaylists]);
+  }, [tab, ytPlaylists, ytLoading, ytForChannel, channelId, initialYtPlaylists]);
 
   const retryYtPlaylists = () => {
     setYtError(false);
