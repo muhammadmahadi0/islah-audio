@@ -153,7 +153,7 @@ export default function AudioPlayer() {
           proxyTriedRef.current = true;
           console.log('[AudioPlayer] retrying HLS via proxy');
           try {
-            hls.loadSource(`/api/hls?url=${encodeURIComponent(url)}`);
+            hls.loadSource(`/api/hls/${encodeURIComponent(url)}`);
             return;
           } catch (err) {
             console.error('[AudioPlayer] proxy retry failed:', err);
