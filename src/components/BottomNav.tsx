@@ -23,8 +23,8 @@ export default function BottomNav() {
   const pathname = usePath();
 
   return (
-    <nav className="md:hidden fixed bottom-3 inset-x-4 z-50 rounded-full glass border border-white/10 shadow-card safe-bottom">
-      <div className="grid grid-cols-3 px-4 py-1.5">
+    <nav className="md:hidden fixed bottom-2.5 inset-x-4 z-50 rounded-full liquid-glass safe-bottom">
+      <div className="grid grid-cols-3 px-3 py-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -33,11 +33,11 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center gap-0.5 rounded-full py-1.5 text-[10px] font-semibold transition-colors',
+                'flex flex-col items-center gap-px rounded-full py-1 text-[9px] font-semibold transition-colors',
                 isActive ? 'text-brand-light' : 'text-mist-dark'
               )}
             >
-              <Icon size={22} strokeWidth={isActive ? 2.4 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.25 : 0} />
+              <Icon size={20} strokeWidth={isActive ? 2.4 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.25 : 0} />
               {item.label}
             </a>
           );
