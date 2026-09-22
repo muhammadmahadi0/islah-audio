@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import { Search as SearchIcon, Music, Loader2, X, ListPlus } from 'lucide-react';
@@ -112,9 +110,9 @@ function SearchRow({
   );
 }
 
-export default function SearchPage() {
-  const [query, setQuery] = useState('');
-  const [submittedQuery, setSubmittedQuery] = useState('');
+export default function SearchPage({ initialQuery = '' }: { initialQuery?: string }) {
+  const [query, setQuery] = useState(initialQuery);
+  const [submittedQuery, setSubmittedQuery] = useState(initialQuery);
   const [videos, setVideos] = useState<ChannelVideo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [indexing, setIndexing] = useState(false);

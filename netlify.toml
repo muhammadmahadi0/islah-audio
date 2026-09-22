@@ -1,12 +1,6 @@
 [build]
   command = "npm run build"
-  publish = ".next"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
-
-# Next.js SSR/ISR/API routes on Netlify are handled by the official plugin.
-# (The old [[redirects]] for /_next and /api broke Next routing, and the
-# [functions."*"] block used invalid keys — both removed.)
-[[plugins]]
-  package = "@netlify/plugin-nextjs"

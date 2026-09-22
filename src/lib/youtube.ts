@@ -26,7 +26,7 @@ export interface YouTubeChannel {
   total: number;
 }
 
-const API_KEY = process.env.YOUTUBE_API_KEY;
+const API_KEY = process.env.YOUTUBE_API_KEY || (import.meta as any).env?.YOUTUBE_API_KEY;
 
 function getYouTubeAPI<T>(endpoint: string, params: Record<string, string>): Promise<T | null> {
   if (!API_KEY) return Promise.resolve(null);

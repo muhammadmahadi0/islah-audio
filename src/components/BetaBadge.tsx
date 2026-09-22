@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * BETA branch only — small floating badge marking beta builds.
  * Tapping it opens the owner's WhatsApp. Do not merge to master.

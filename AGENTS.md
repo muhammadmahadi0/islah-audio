@@ -2,14 +2,20 @@
 
 This file orients AI coding agents working in this repo. Read it before making changes.
 
-## Commands
+## Commands (BETA: Astro — master still uses Next.js commands)
 
-- `npm run dev` — dev server (needs `YOUTUBE_API_KEY` in `.env.local`)
-- `npm run build` — production build (includes type checking; must pass)
-- `npm run start -- --port <n>` — serve a production build for smoke tests
-- No linter is configured (`next lint` prompts for setup — do not run it interactively)
+- `npm run dev` — dev server, port 4321 (needs `YOUTUBE_API_KEY` in `.env.local`)
+- `npm run build` — production build (must pass)
+- `npm run preview` — preview the built output locally
+- No linter is configured
 
-## Architecture (do not break these contracts)
+## Architecture (do not break these contracts) — BETA Astro layout
+
+0. **Astro, not Next.** Pages live in `src/pages/*.astro`, API in
+   `src/pages/api/**` as `APIRoute` handlers, shell in `src/layouts/`.
+   Interactive UI stays React islands (`client:only="react"`). No `next/*`
+   imports anywhere. Env keys read as
+   `process.env.X || import.meta.env.X` (dev only populates the latter).
 
 1. **Playback = hidden YouTube embed + hidden `<audio>` for streams.**
    `src/components/AudioPlayer.tsx` owns both engines. Tracks with `hlsUrl` /

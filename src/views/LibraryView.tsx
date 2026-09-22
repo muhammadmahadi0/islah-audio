@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import { usePlaylistStore, type SavedPlaylist } from '@/store/playlist-store';

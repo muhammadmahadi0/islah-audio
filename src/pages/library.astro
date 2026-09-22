@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LibraryView, { type ChannelPlaylist } from '../views/LibraryView';
+import { getChannelPlaylists, hasApiKey, TARGET_CHANNEL_ID } from '../lib/youtube';
+
+let initialYtPlaylists: ChannelPlaylist[] | null = null;
+if (hasApiKey()) {
+  try {
+    initialYtPlaylists = await getChannelPlaylists(TARGET_CHANNEL_ID);
+  } catch (error) {
+    console.error('[Library] server playlists fetch failed:', error);
+  }
+}
+---
+
+<Layout title="Library — Islah Audio">
+  <LibraryView client:only="react" initialYtPlaylists={initialYtPlaylists} />
+</Layout>

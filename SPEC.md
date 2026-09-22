@@ -13,17 +13,18 @@
 - **Target Users**: Listeners of Islah BD Islamic content.
 - **Live Site**: https://islahiboyan.netlify.app/
 
-## Technical Stack
+## Technical Stack (BETA: Astro rebuild)
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Astro 5 (SSR via `@astrojs/netlify`) + React islands
+  (`client:only`) for player, views, and nav — YouTube-style shell
 - **Styling**: Tailwind CSS with custom emerald + gold dark theme
-  (tokens in `tailwind.config.js`, helpers in `src/app/globals.css`)
+  (tokens in `tailwind.config.js`, helpers in `src/styles/globals.css`)
 - **Icons**: Lucide React
 - **State Management**: Zustand (`player-store`; persisted `playlist-store`)
-- **Listing Data**: YouTube Data API v3 (requires `YOUTUBE_API_KEY`)
+- **Listing Data**: keyless InnerTube first, YouTube Data API v3 fallback
 - **Lecture Playback**: Official YouTube IFrame embed (hidden `YT.Player`)
 - **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback)
-- **Hosting**: Netlify with `@netlify/plugin-nextjs` (auto-deploy from `master`)
+- **Hosting**: Netlify (`dist` publish, SSR functions via adapter)
 
 ## UI/UX Specification
 

@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import {
@@ -10,9 +8,6 @@ import {
   RefreshCw,
   WifiOff,
   Shuffle,
-  Clock,
-  Eye,
-  ListMusic,
   ListPlus,
   Radio,
 } from 'lucide-react';
@@ -62,18 +57,36 @@ function formatViews(views: number): string {
   return `${views} views`;
 }
 
-function formatTotalHours(videos: VideoItem[]): string {
-  const total = videos.reduce((sum, v) => sum + (v.duration || 0), 0);
-  const hours = Math.round(total / 3600);
-  return hours >= 1 ? `${hours}+ hours` : `${Math.round(total / 60)} min`;
+/** ISO date → "3 weeks ago"; passes through existing relative labels. */
+function formatPublished(publishedAt?: string): string {
+  if (!publishedAt) return '';
+  if (/ago|hour|day|week|month|year|streamed|premiere/i.test(publishedAt)) return publishedAt;
+  const t = new Date(publishedAt).getTime();
+  if (isNaN(t)) return '';
+  const mins = Math.floor((Date.now() - t) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months === 1 ? '' : 's'} ago`;
+  const years = Math.floor(months / 12);
+  return `${years} year${years === 1 ? '' : 's'} ago`;
 }
 
 function VideoSkeleton() {
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3">
+    <div>
       <div className="aspect-video rounded-xl shimmer mb-3" />
-      <div className="h-4 rounded-md shimmer w-11/12 mb-2" />
-      <div className="h-3 rounded-md shimmer w-2/3" />
+      <div className="flex gap-3">
+        <div className="w-9 h-9 rounded-full shimmer shrink-0" />
+        <div className="flex-1">
+          <div className="h-4 rounded shimmer w-11/12 mb-2" />
+          <div className="h-3 rounded shimmer w-2/3" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -85,6 +98,7 @@ function VideoCard({
   isPlaying,
   isCurrentTrack,
   channelName,
+  channelAvatar,
 }: {
   video: VideoItem;
   index: number;
@@ -92,8 +106,13 @@ function VideoCard({
   isPlaying: boolean;
   isCurrentTrack: boolean;
   channelName: string;
+  channelAvatar: string;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const meta = [formatViews(video.views), formatPublished(video.publishedAt)]
+    .filter(Boolean)
+    .join(' • ');
 
   return (
     <motion.div
@@ -101,24 +120,19 @@ function VideoCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index, 11) * 0.04, duration: 0.4 }}
       onClick={() => onPlay(video)}
-      className={cn(
-        'group relative cursor-pointer rounded-2xl border p-3 transition-all duration-300',
-        'hover:-translate-y-1 hover:shadow-card',
-        isCurrentTrack
-          ? 'border-brand/50 bg-brand/[0.07] shadow-glow'
-          : 'border-white/[0.06] bg-white/[0.02] hover:border-brand/30 hover:bg-white/[0.05]'
-      )}
+      className="group relative cursor-pointer"
     >
-      <div className="relative aspect-video mb-3 overflow-hidden rounded-xl">
+      {/* YouTube-style thumbnail */}
+      <div className="relative aspect-video mb-3 overflow-hidden rounded-xl bg-ink-800">
         <img
           src={video.thumbnail}
           alt={video.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           loading="lazy"
         />
         <div
           className={cn(
-            'absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-center justify-center transition-opacity duration-300',
+            'absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent flex items-center justify-center transition-opacity duration-300',
             isCurrentTrack ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
           )}
         >
@@ -139,16 +153,40 @@ function VideoCard({
           </span>
         </div>
         {video.duration > 0 && (
-          <span className="absolute bottom-2 right-2 rounded-md bg-black/75 backdrop-blur px-1.5 py-0.5 text-[11px] font-semibold text-[#FFFFFF] tabular-nums">
+          <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-[#FFFFFF] tabular-nums">
             {formatDuration(video.duration)}
           </span>
         )}
         {isCurrentTrack && (
-          <span className="absolute top-2 left-2 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-950">
+          <span className="absolute top-1.5 left-1.5 rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-950">
             Playing
           </span>
         )}
-        {/* Save to playlist */}
+      </div>
+
+      {/* YouTube-style meta row: avatar + title + channel + stats */}
+      <div className="flex gap-3">
+        <div className="w-9 h-9 shrink-0 rounded-full overflow-hidden bg-ink-700 ring-1 ring-white/10">
+          {channelAvatar ? (
+            <img src={channelAvatar} alt={channelName} className="w-full h-full object-cover" loading="lazy" />
+          ) : (
+            <span className="w-full h-full flex items-center justify-center text-gold-light text-lg font-bold bg-gradient-to-br from-brand-deep to-ink-800">إ</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3
+            className={cn(
+              'text-sm font-medium leading-snug clamp-2 mb-1 transition-colors',
+              isCurrentTrack ? 'text-brand-light' : 'text-white'
+            )}
+          >
+            {video.title}
+          </h3>
+          <p className="text-[13px] text-mist-dark truncate hover:text-white transition-colors">
+            {channelName}
+          </p>
+          {meta && <p className="text-[13px] text-mist-dark truncate">{meta}</p>}
+        </div>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -156,26 +194,10 @@ function VideoCard({
           }}
           aria-label="Save to playlist"
           title="Save to playlist"
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 backdrop-blur border border-[#FFFFFF]/20 text-[#FFFFFF]/80 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-[#E7C55A] hover:border-gold/50 transition-all"
+          className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white/10 transition-all"
         >
-          <ListPlus size={15} />
+          <ListPlus size={17} />
         </button>
-      </div>
-      <h3
-        className={cn(
-          'text-sm font-semibold leading-snug clamp-2 mb-1.5 transition-colors',
-          isCurrentTrack ? 'text-brand-light' : 'text-white group-hover:text-brand-light'
-        )}
-      >
-        {video.title}
-      </h3>
-      <div className="flex items-center gap-1.5 text-xs text-mist-dark">
-        {video.views > 0 && (
-          <span className="flex items-center gap-1">
-            <Eye size={12} />
-            {formatViews(video.views)}
-          </span>
-        )}
       </div>
       {menuOpen && (
         <AddToPlaylistMenu
@@ -399,7 +421,7 @@ export default function HomePage() {
 
   return (
     <main className="pb-44 md:pb-36">
-      <div className="mx-auto max-w-6xl px-4 md:px-8 pt-4 md:pt-8">
+      <div className="mx-auto max-w-[1600px] px-4 md:px-6 pt-2 md:pt-4">
         {isLoading ? (
           <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-4 md:p-8 mb-4 md:mb-6">
             <div className="flex items-center gap-4">
@@ -412,155 +434,125 @@ export default function HomePage() {
             </div>
           </div>
         ) : (
-          /* ---------- Hero ---------- */
+          /* ---------- Channel header (YouTube style) ---------- */
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-brand-deep/60 via-ink-800 to-ink-900 p-4 md:p-9 mb-4 md:mb-6"
+            className="flex items-center gap-4 md:gap-6 px-1 md:px-2 pt-2 md:pt-6 pb-4"
           >
-            {/* Ambient glows */}
-            <div className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full bg-brand/25 blur-[100px]" />
-            <div className="pointer-events-none absolute -bottom-28 -left-16 w-72 h-72 rounded-full bg-gold/15 blur-[100px]" />
-            {/* Subtle pattern */}
-            <div
-              className="pointer-events-none absolute inset-0 opacity-[0.15]"
-              style={{
-                backgroundImage:
-                  'radial-gradient(rgba(255,255,255,0.35) 1px, transparent 1px)',
-                backgroundSize: '22px 22px',
-                maskImage: 'linear-gradient(to bottom, black, transparent 75%)',
-                WebkitMaskImage: 'linear-gradient(to bottom, black, transparent 75%)',
-              }}
-            />
+            <div className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 ring-1 ring-white/15 bg-gradient-to-br from-brand to-emerald-950 flex items-center justify-center">
+              {channelAvatar ? (
+                <img
+                  src={channelAvatar}
+                  alt={channelName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[#E7C55A] text-4xl md:text-6xl font-bold">إ</span>
+              )}
+            </div>
 
-            <div className="relative flex flex-col gap-3.5 md:gap-7 md:flex-row md:items-center">
-              {/* Top row on mobile: text left, logo right */}
-              <div className="flex items-center gap-3.5 md:contents">
-                <div className="flex-1 min-w-0 order-1 md:order-2">
-                  <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.25em] text-gold mb-1 md:mb-1.5">
-                    Islamic Lectures
-                  </p>
-                  <h1 className="text-2xl md:text-[2.75rem] leading-none font-extrabold tracking-tight text-white truncate">
-                    {channelName}
-                  </h1>
-                  <div className="flex flex-wrap items-center gap-x-3 md:gap-x-4 gap-y-0.5 md:gap-y-1 mt-1.5 md:mt-2.5 text-xs md:text-[13px] text-mist">
-                    <span className="flex items-center gap-1.5">
-                      <ListMusic size={13} className="text-brand-light" />
-                      {totalVideos || videos.length} lectures
-                    </span>
-                    <span className="hidden sm:flex items-center gap-1.5">
-                      <Clock size={13} className="text-brand-light" />
-                      {formatTotalHours(videos)} of content
-                    </span>
-                  </div>
-                  {live?.isLive && (
-                    <button
-                      onClick={handleLive}
-                      className="flex items-center gap-2 mt-2 md:mt-3 text-xs md:text-[13px] font-semibold text-red-500 hover:text-red-400 transition-colors"
-                    >
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-                      </span>
-                      <span className="truncate">
-                        Live now{live.title ? `: ${live.title}` : ''}
-                        {live.listeners > 0 ? ` • ${live.listeners} listening` : ''}
-                      </span>
-                    </button>
-                  )}
-                </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight text-white truncate">
+                {channelName}
+              </h1>
+              <p className="mt-1 text-[13px] md:text-sm text-mist-dark truncate">
+                @islahbd • {totalVideos || videos.length} videos
+              </p>
+              {live?.isLive ? (
+                <button
+                  onClick={handleLive}
+                  className="mt-1 flex items-center gap-1.5 text-[13px] md:text-sm font-medium text-red-500 hover:text-red-400 transition-colors"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                  </span>
+                  <span className="truncate">
+                    Live now{live.title ? ` • ${live.title}` : ''}
+                    {live.listeners > 0 ? ` • ${live.listeners} watching` : ''}
+                  </span>
+                </button>
+              ) : (
+                <p className="mt-1 hidden sm:block text-[13px] text-mist-dark truncate">
+                  Bayans • Waz • Nasheeds — listen to every lecture as audio
+                </p>
+              )}
 
-                <div className="order-2 md:order-1 w-14 h-14 md:w-24 md:h-24 rounded-2xl md:rounded-3xl overflow-hidden shrink-0 ring-2 ring-gold/50 shadow-gold bg-gradient-to-br from-brand to-emerald-950 flex items-center justify-center">
-                  {channelAvatar ? (
-                    <img
-                      src={channelAvatar}
-                      alt={channelName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-[#E7C55A] text-3xl md:text-5xl font-bold">إ</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="order-3 flex items-center gap-2.5 md:gap-3 shrink-0">
-                {/* Live / replay-last-broadcast */}
+              {/* Actions row */}
+              <div className="mt-3 flex items-center gap-2">
                 <button
                   onClick={handleLive}
                   disabled={!live || (!live.isLive && !live.recording)}
-                  title={live?.isLive ? 'Play live broadcast' : 'Play last broadcast'}
-                  aria-label={live?.isLive ? 'Play live' : 'Play last broadcast'}
                   className={cn(
-                    'h-10 md:h-12 pl-3 pr-3.5 md:pl-3.5 md:pr-4 rounded-full flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-extrabold transition-all disabled:opacity-40',
+                    'h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium transition-all disabled:opacity-40',
                     live?.isLive
-                      ? 'bg-red-500 text-white shadow-[0_8px_32px_rgba(239,68,68,0.45)] hover:scale-105 active:scale-95'
-                      : 'border border-gold/50 bg-gold/10 text-gold-light hover:border-gold hover:shadow-gold'
+                      ? 'bg-red-500 text-white hover:brightness-110 active:scale-95'
+                      : 'bg-white/10 text-white hover:bg-white/15 active:scale-95'
                   )}
                 >
                   {live?.isLive ? (
-                    <span className="relative flex h-2.5 w-2.5">
+                    <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
                     </span>
                   ) : (
-                    <Radio size={17} />
+                    <Radio size={15} />
                   )}
                   {live?.isLive
                     ? isLiveTrackActive && isPlaying
                       ? 'Listening'
-                      : 'LIVE'
+                      : 'Live'
                     : live?.recording
-                      ? 'Last Live'
+                      ? 'Last live'
                       : 'Live'}
                 </button>
                 <button
                   onClick={handlePlayAll}
-                  className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg hover:scale-105 active:scale-95 transition-transform"
+                  className="h-9 px-4 rounded-full bg-white text-black text-sm font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-95 transition-all"
                   aria-label={currentTrack && isPlaying ? 'Pause' : 'Play all'}
                 >
                   {isPlaying && currentTrack ? (
-                    <Pause size={22} fill="#060D0A" className="text-ink-950 md:w-[26px] md:h-[26px]" />
+                    <Pause size={16} fill="currentColor" />
                   ) : (
-                    <Play size={22} fill="#060D0A" className="text-ink-950 ml-1 md:w-[26px] md:h-[26px]" />
+                    <Play size={16} fill="currentColor" />
                   )}
+                  Play all
                 </button>
                 <button
                   onClick={handleShuffle}
-                  className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/15 bg-white/[0.05] backdrop-blur flex items-center justify-center text-white hover:border-gold/60 hover:text-gold-light transition-colors"
+                  className="h-9 w-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white transition-colors"
                   aria-label="Shuffle play"
                   title="Shuffle play"
                 >
-                  <Shuffle size={17} className="md:w-5 md:h-5" />
+                  <Shuffle size={18} />
                 </button>
               </div>
             </div>
           </motion.section>
         )}
 
-        {/* ---------- Filter + section header ---------- */}
+        {/* ---------- Sticky chips bar (YouTube style) ---------- */}
         {!isLoading && !error && (
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg md:text-xl font-extrabold tracking-tight text-white">
-              {filter === 'all' ? 'Latest Lectures' : filter === 'bayan' ? 'Bayans' : 'Shorts'}
-              <span className="ml-2 text-sm font-semibold text-mist-dark">
-                {filtered.length}
-              </span>
-            </h2>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          <div className="sticky top-14 z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2.5 bg-ink-950/95 backdrop-blur">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
               {FILTERS.map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setFilter(f.id)}
                   className={cn(
-                    'shrink-0 rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all',
+                    'shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                     filter === f.id
-                      ? 'bg-gradient-to-r from-brand-light to-brand-dark text-ink-950 shadow-glow'
-                      : 'bg-white/[0.05] text-mist border border-white/10 hover:text-white hover:border-white/25'
+                      ? 'bg-white text-black'
+                      : 'bg-white/10 text-white hover:bg-white/20'
                   )}
                 >
                   {f.label}
                 </button>
               ))}
+              <span className="ml-1 shrink-0 text-xs text-mist-dark tabular-nums">
+                {filter === 'all' ? `${totalVideos || videos.length} videos` : `${filtered.length} videos`}
+              </span>
             </div>
           </div>
         )}
@@ -576,7 +568,7 @@ export default function HomePage() {
 
         {!isLoading && !error && filtered.length > 0 && (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
               <AnimatePresence mode="popLayout">
                 {filtered.map((video, index) => (
                   <VideoCard
@@ -590,6 +582,7 @@ export default function HomePage() {
                       currentTrack.videoId === (video.videoId || video.id)
                     }
                     channelName={channelName}
+                    channelAvatar={channelAvatar}
                   />
                 ))}
               </AnimatePresence>

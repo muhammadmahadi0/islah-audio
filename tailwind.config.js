@@ -10,9 +10,7 @@ const v = (name) => `rgb(var(${name}) / <alpha-value>)`;
 module.exports = {
   darkMode: 'class',
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{astro,js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {

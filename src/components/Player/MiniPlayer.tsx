@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useRef } from 'react';
 import { usePlayerStore } from '@/store/player-store';
 import {
@@ -257,8 +255,8 @@ export default function MiniPlayer() {
     <div
       className={cn(
         'fixed z-40',
-        // Mobile: floating card above the bottom nav
-        'inset-x-3 bottom-[76px]',
+        // Mobile: floating pill above the bottom nav pill
+        'inset-x-4 bottom-[86px]',
         // Desktop: floating card clear of the sidebar
         'md:left-[280px] lg:left-[304px] md:right-6 md:bottom-6 md:inset-x-auto'
       )}
@@ -268,7 +266,7 @@ export default function MiniPlayer() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="glass relative overflow-hidden rounded-2xl border border-white/10 shadow-card px-3 py-2.5 flex items-center gap-3 cursor-pointer hover:border-brand/40 transition-colors"
+        className="glass relative overflow-hidden rounded-[28px] border border-white/10 shadow-card px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-brand/40 transition-colors"
       >
         {/* Progress hairline */}
         <span className="absolute top-0 left-3 right-3 h-[2px] rounded-full bg-white/10 overflow-hidden">

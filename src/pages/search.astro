@@ -1,0 +1,10 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SearchView from '../views/SearchView';
+
+const q = Astro.url.searchParams.get('q') || '';
+---
+
+<Layout title="Search — Islah Audio">
+  <SearchView client:only="react" initialQuery={q} />
+</Layout>

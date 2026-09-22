@@ -25,16 +25,16 @@ playlists, search, and a mobile-first design.
   persisted), desktop sidebar, mobile bottom nav,
   floating glass mini-player with full-screen expanded mode, Bayans/Shorts filters
 
-## Tech Stack
+## Tech Stack (BETA: Astro rebuild)
 
 | Layer    | Choice                                                      |
 | -------- | ----------------------------------------------------------- |
-| Framework| Next.js 14 (App Router)                                     |
+| Framework| Astro 5 SSR + React islands (`client:only`)                 |
 | Styling  | Tailwind CSS + custom design tokens (`tailwind.config.js`)  |
 | State    | Zustand (`player-store`, persisted `playlist-store`)        |
-| Data     | **BETA:** keyless InnerTube listing first, YouTube Data API v3 fallback |
+| Data     | Keyless InnerTube listing first, YouTube Data API v3 fallback |
 | Playback | YouTube IFrame Player API (official embed, no extraction)   |
-| Hosting  | Netlify (`@netlify/plugin-nextjs`)                          |
+| Hosting  | Netlify (SSR functions via `@astrojs/netlify`)              |
 
 ## Getting Started
 
@@ -66,9 +66,9 @@ npm run dev                  # http://localhost:3000
 ### Scripts
 
 ```bash
-npm run dev     # start dev server
+npm run dev     # astro dev server (http://localhost:4321)
 npm run build   # production build
-npm run start   # serve production build
+npm run preview # preview built output
 ```
 
 ## API Routes
@@ -95,25 +95,21 @@ automatically — check the `source` field in API responses to see which served.
 
 ```
 src/
-├── app/
-│   ├── page.tsx            # Home — hero, filters, lecture grid
-│   ├── search/page.tsx     # Search across the catalog
-│   ├── library/page.tsx    # Library — Queue + Playlists tabs (merged)
-│   └── api/                # channel / live / hls / stream / proxy routes
-├── components/
-│   ├── AudioPlayer.tsx     # hidden YouTube embed + stream playback engine
-│   ├── Sidebar.tsx         # desktop navigation
-│   ├── BottomNav.tsx       # mobile navigation
-│   ├── BetaBadge.tsx       # floating BETA marker (beta branch only)
-│   ├── AddToPlaylistMenu.tsx # save-to-playlist panel
-│   └── Player/MiniPlayer.tsx # floating mini + full-screen player
+├── pages/
+│   ├── index.astro           # Home shell (HomeView island)
+│   ├── search.astro          # Search shell (?q= → SearchView island)
+│   ├── library.astro         # Library shell (server playlists → island)
+│   └── api/                  # channel / live / hls / stream endpoints
+├── layouts/Layout.astro      # html shell, YouTube top bar, islands
+├── views/                    # React islands: Home/Search/Library
+├── components/               # player, nav, sidebar, theme toggle
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)
 │   ├── playlist-store.ts   # user playlists, persisted to localStorage
 │   └── theme-store.ts      # light/dark theme, persisted
 └── lib/
     ├── youtube.ts          # YouTube Data API helpers (fallback)
-    ├── innertube.ts        # keyless InnerTube listing (primary on beta)
+    ├── innertube.ts        # keyless InnerTube listing (primary)
     ├── live.ts             # live-status types
     └── utils.ts            # classnames helper
 ```
@@ -127,10 +123,11 @@ and its recording play through a hidden `<audio>` element + hls.js instead
 seeking). The store drives play/pause/seek/volume, and UI components request seeks
 via the `islah:seek` window event.
 
-## Deployment
+## Deployment (BETA)
 
-Pushes to `master` auto-deploy on Netlify. The `netlify.toml` uses the official
-Next.js plugin — do not add manual `/api/*` or `/_next/*` redirects; they break routing.
+Pushes to `beta` auto-deploy on Netlify (branch deploy). `netlify.toml`
+publishes `dist/`; SSR/API routes run as functions via `@astrojs/netlify`.
+Do not add manual `/api/*` redirects; they break routing.
 
 ## Contributing
 

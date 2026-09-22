@@ -1,26 +1,7 @@
-/**
- * Channel API (path-param variant) — BETA: InnerTube first.
- *
- * NOTE: Query strings are unreliable on our hosting (Netlify drops them
- * before function invocation), so the channel ID travels in the path.
- * The old query-based `/api/channel?id=` route is kept for compatibility.
- *
- * BETA: tries keyless InnerTube listing first (no quota), falls back to
- * the YouTube Data API when InnerTube fails or returns nothing.
- *
- * GET /api/channel/[id] → { success, channel, videos, nextPageToken, total, source }
- */
-
-import { NextRequest, NextResponse } from 'next/server';
+import type { APIRoute } from 'astro';
 import { getChannelVideos, hasApiKey, getChannelVideoCount } from '@/lib/youtube';
-import {
-  getInnertubeChannelVideos,
-  INNERTUBE_TIMEOUT_MS,
-  type InnertubeVideo,
-} from '@/lib/innertube';
+import { getInnertubeChannelVideos, INNERTUBE_TIMEOUT_MS, type InnertubeVideo } from '@/lib/innertube';
 import { withTimeout } from '@/lib/fetch-timeout';
-
-export const dynamic = 'force-dynamic';
 
 function toApiVideo(v: InnertubeVideo) {
   return {
@@ -34,20 +15,15 @@ function toApiVideo(v: InnertubeVideo) {
   };
 }
 
-function cached(data: unknown) {
-  const response = NextResponse.json(data);
-  // Cache at the CDN for an hour to save quota / upstream load.
-  response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-  return response;
+function json(data: unknown, status = 200, cache = 'public, s-maxage=3600, stale-while-revalidate=86400') {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': cache },
+  });
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id: rawId } = await params;
-  const channelId = decodeURIComponent(rawId);
-
+export const GET: APIRoute = async ({ params }) => {
+  const channelId = decodeURIComponent(params.id as string);
   console.log(`[Channel API] Fetching: ${channelId}`);
 
   // 1. InnerTube (keyless, quota-free) with a hard budget —
@@ -58,12 +34,8 @@ export async function GET(
       INNERTUBE_TIMEOUT_MS,
       'innertube-channel'
     );
-
     if (inner.videos.length > 0) {
       console.log(`[Channel API] InnerTube success: ${inner.videos.length} videos`);
-
-      // Total count via Data API statistics (1 unit) when a key exists;
-      // otherwise the client shows "Showing N" without a total.
       let total: number | null = null;
       if (hasApiKey()) {
         try {
@@ -72,8 +44,7 @@ export async function GET(
           // ignore — total stays unknown
         }
       }
-
-      return cached({
+      return json({
         success: true,
         channel: { name: inner.name, avatar: inner.avatar },
         videos: inner.videos.map(toApiVideo),
@@ -82,7 +53,6 @@ export async function GET(
         source: 'innertube',
       });
     }
-
     console.log('[Channel API] InnerTube returned no videos, trying Data API');
   } catch (error) {
     console.error('[Channel API] InnerTube failed, trying Data API:', error);
@@ -90,28 +60,25 @@ export async function GET(
 
   // 2. Data API fallback (needs key + quota)
   if (!hasApiKey()) {
-    return NextResponse.json(
+    return json(
       { error: 'Missing API Key. Add YOUTUBE_API_KEY to environment variables.' },
-      { status: 400 }
+      400
     );
   }
 
   try {
     const channel = await getChannelVideos(channelId);
-
     if (!channel || channel.videos.length === 0) {
-      return NextResponse.json(
+      return json(
         {
           error: 'No videos found for this channel.',
           hint: 'Check if channel exists and has public uploads. Verify API key has YouTube Data API v3 enabled.',
         },
-        { status: 404 }
+        404
       );
     }
-
     console.log(`[Channel API] Data API success: ${channel.videos.length} videos`);
-
-    return cached({
+    return json({
       success: true,
       channel: { name: channel.name, avatar: channel.avatar },
       videos: channel.videos,
@@ -121,6 +88,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('[Channel API] Error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return json({ error: 'Server error' }, 500);
   }
-}
+};

@@ -1,18 +1,9 @@
-/**
- * Live status API — proxies islahbd.com's public live-status endpoint
- * so the client never hits CORS issues.
- *
- * GET /api/live → { success, live: LiveStatus }
- */
-
-import { NextResponse } from 'next/server';
+import type { APIRoute } from 'astro';
 import type { LiveStatus } from '@/lib/live';
-
-export const dynamic = 'force-dynamic';
 
 const STATUS_URL = 'https://api.islahbd.com/api/live/status/';
 
-export async function GET() {
+export const GET: APIRoute = async () => {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
@@ -20,12 +11,14 @@ export async function GET() {
     const res = await fetch(STATUS_URL, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
-      cache: 'no-store',
     });
     clearTimeout(timeout);
 
     if (!res.ok) {
-      return NextResponse.json({ error: 'Live status unavailable' }, { status: 502 });
+      return new Response(JSON.stringify({ error: 'Live status unavailable' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await res.json();
@@ -48,12 +41,17 @@ export async function GET() {
           : null,
     };
 
-    const response = NextResponse.json({ success: true, live });
-    // Live state changes fast — cache briefly at the CDN only
-    response.headers.set('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30');
-    return response;
+    return new Response(JSON.stringify({ success: true, live }), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
+      },
+    });
   } catch (error) {
     console.error('[Live API] Error:', error);
-    return NextResponse.json({ error: 'Live status unavailable' }, { status: 502 });
+    return new Response(JSON.stringify({ error: 'Live status unavailable' }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
-}
+};
