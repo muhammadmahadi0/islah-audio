@@ -78,11 +78,13 @@
 - Large rounded search field with clear button; result count; rows with
   thumbnail, duration, save-to-playlist button, equalizer on current track
 
-#### Library (Queue + Playlists tabs — user playlists live here, no separate nav)
+#### Library (Queue + Playlists tabs — playlists live here, no separate nav)
 
 - **Queue**: current playback queue with track numbers
-- **Playlists**: create/rename/delete your own playlists, save tracks from
-  Home/Search, play-all, remove tracks; persisted in `localStorage`
+- **Playlists → From YouTube (BETA)**: the channel's real YouTube playlists
+  (cover, counts, expandable, play-all; items via InnerTube first)
+- **Playlists → Your Playlists**: create/rename/delete your own playlists, save
+  tracks from Home/Search, play-all, remove tracks; persisted in `localStorage`
 
 #### Mini Player
 
@@ -119,6 +121,8 @@
 | ----- | ------- |
 | `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
 | `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
+| `GET /api/playlists` | Channel playlists (BETA, fixed channel) |
+| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first (BETA) |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls?url=` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (compat) |

@@ -174,9 +174,42 @@ export async function getInnertubeMore(
   let current: string | null = token;
 
   for (let i = 0; i < pages && current; i++) {
-    const page = await fetchContinuationPage(current);
-    videos.push(...page.videos);
-    current = page.nextToken;
+    try {
+      const page = await fetchContinuationPage(current);
+      videos.push(...page.videos);
+      current = page.nextToken;
+    } catch {
+      // Past the end (youtubei.js throws on empty continuations) — keep partial.
+      current = null;
+    }
+  }
+
+  return { videos, nextToken: current };
+}
+
+/**
+ * Items of any (non-uploads) playlist: first page + chained continuations.
+ * Used for the channel's YouTube playlists in Library.
+ */
+export async function getInnertubePlaylistItems(
+  playlistId: string,
+  pages = 2
+): Promise<{ videos: InnertubeVideo[]; nextToken: string | null }> {
+  const yt = await getSession();
+  const playlist = await yt.getPlaylist(playlistId);
+
+  const videos = extractItems(playlist);
+  let current = extractToken(playlist);
+
+  for (let i = 1; i < pages && current; i++) {
+    try {
+      const page = await fetchContinuationPage(current);
+      videos.push(...page.videos);
+      current = page.nextToken;
+    } catch {
+      // Past the end (youtubei.js throws on empty continuations) — keep partial.
+      current = null;
+    }
   }
 
   return { videos, nextToken: current };

@@ -32,10 +32,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    (youtubei.js uploads playlist + stateless browse continuations) before the
    Data API fallback. Long tokens (>50 chars) are InnerTube continuations,
    short ones are Data API page tokens - the more-route branches on that.
-4. **Playlists = user playlists only** (`src/store/playlist-store.ts`, persist key
-   `islah-playlists`), merged into the Library tabs. The channel-YouTube-playlists
-   section was removed (plus `/api/playlists`, `/api/playlist-items/*`,
-   `getChannelPlaylists`, `getPlaylistItems`) — do not re-add without asking.
+4. **Playlists.** User playlists live in `playlist-store.ts` (persist key
+   `islah-playlists`), merged into the Library tabs — no separate Playlists nav
+   item. **BETA:** the channel-YouTube-playlists section is back, served by
+   `/api/playlists` (fixed channel, Data API) + `/api/playlist-items/[id]`
+   (InnerTube first, Data API fallback).
 5. **Catalog pagination.** YouTube caps pages at 50 items: initial load fetches
    `INITIAL_PAGES` (100 videos), "more" chunks fetch `MORE_PAGES` (200) via
    `/api/channel/[id]/more/[token]` (`getPlaylistVideosPaged` in `lib/youtube.ts`).
