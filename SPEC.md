@@ -111,10 +111,10 @@
 2. **Lecture Playback** — hidden YouTube embed driven by the player store
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
    volume, progress polling). Playback always starts audio-only (hidden
-   iframe, lowest quality). Expanded = artwork + gear button; first gear tap
-   opens the real video in the same player, further taps pick quality
-   (Auto/1080p/720p/480p/360p/240p/144p, persisted). Collapsing returns to
-   audio-only. Unplayable videos auto-skip.
+   iframe, lowest quality). Expanded = artwork + video toggle button; tapping
+   it shows the real video in the same player, tapping again returns to
+   audio-only. Collapsing also returns to audio-only.
+   Unplayable videos auto-skip.
 3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
    red LIVE button plays HLS when on air, gold Last Live replays the latest
    recording when offline. HLS falls back to the `/api/hls` CORS proxy,

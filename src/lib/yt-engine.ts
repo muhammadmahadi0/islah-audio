@@ -1,10 +1,10 @@
 /**
  * Shared YouTube-embed engine (BETA video mode).
  *
- * Owns the single hidden YT.Player instance plus playback mode + quality.
- * - `audio` mode (minimized player): iframe hidden, lowest quality (data saver).
- * - `video` mode (expanded player): iframe shown in the artwork slot at the
- *   user's chosen quality.
+ * Owns the single YT.Player instance plus playback mode.
+ * - `audio` mode (default): iframe hidden, lowest quality (data saver).
+ * - `video` mode (opt-in via the video toggle): iframe shown in the
+ *   artwork slot, same player, no restart.
  *
  * MiniPlayer renders the persistent mount node; AudioPlayer never touches it.
  */
@@ -18,35 +18,16 @@ export const SEEK_EVENT = 'islah:seek';
 
 export type VideoMode = 'audio' | 'video';
 
-export const QUALITY_LABELS: Record<string, string> = {
-  auto: 'Auto',
-  hd1080: '1080p',
-  hd720: '720p',
-  large: '480p',
-  medium: '360p',
-  small: '240p',
-  tiny: '144p',
-};
-
-const QUALITY_ORDER = ['hd1080', 'hd720', 'large', 'medium', 'small', 'tiny'];
-const QUALITY_KEY = 'islah-quality';
-
 interface EngineState {
   player: any | null;
   ready: boolean;
   mode: VideoMode;
-  /** 'auto' or a YT quality level. */
-  quality: string;
 }
 
 const engine: EngineState = {
   player: null,
   ready: false,
   mode: 'audio',
-  quality:
-    typeof localStorage !== 'undefined'
-      ? localStorage.getItem(QUALITY_KEY) || 'auto'
-      : 'auto',
 };
 
 type Listener = () => void;
@@ -69,16 +50,15 @@ export function subscribeEngine(fn: Listener): () => void {
   };
 }
 
-let cachedSnapshot: { mode: VideoMode; quality: string; ready: boolean } | null = null;
+let cachedSnapshot: { mode: VideoMode; ready: boolean } | null = null;
 
-export function getEngineSnapshot(): { mode: VideoMode; quality: string; ready: boolean } {
+export function getEngineSnapshot(): { mode: VideoMode; ready: boolean } {
   // useSyncExternalStore compares by reference — a fresh object every call
   // looks like changed state and infinite-loops the subscriber. Cache it.
-  const next = { mode: engine.mode, quality: engine.quality, ready: engine.ready };
+  const next = { mode: engine.mode, ready: engine.ready };
   if (
     !cachedSnapshot ||
     cachedSnapshot.mode !== next.mode ||
-    cachedSnapshot.quality !== next.quality ||
     cachedSnapshot.ready !== next.ready
   ) {
     cachedSnapshot = next;
@@ -126,15 +106,13 @@ export function setEnginePlayer(player: any | null) {
   emit();
 }
 
-/** Show or hide the video frame; minimized always drops to lowest quality. */
+/** Show or hide the video frame; audio mode drops to lowest quality. */
 export function setVideoMode(mode: VideoMode) {
   engine.mode = mode;
   const player = engine.player;
   if (player) {
     try {
-      if (mode === 'video') {
-        applyQuality();
-      } else {
+      if (mode === 'audio') {
         player.setPlaybackQuality('tiny');
       }
     } catch {
@@ -142,38 +120,4 @@ export function setVideoMode(mode: VideoMode) {
     }
   }
   emit();
-}
-
-function applyQuality() {
-  const player = engine.player;
-  if (!player) return;
-  try {
-    player.setPlaybackQuality(engine.quality === 'auto' ? 'default' : engine.quality);
-  } catch {
-    // ignore
-  }
-}
-
-export function setQuality(quality: string) {
-  engine.quality = quality;
-  try {
-    localStorage.setItem(QUALITY_KEY, quality);
-  } catch {
-    // private mode etc.
-  }
-  if (engine.mode === 'video') applyQuality();
-  emit();
-}
-
-/** Levels the current video actually offers, high → low. Empty when unknown. */
-export function getAvailableQualities(): string[] {
-  try {
-    const levels: string[] = engine.player?.getAvailableQualityLevels?.() || [];
-    const known = levels.filter((l) => QUALITY_ORDER.includes(l));
-    return [...known].sort(
-      (a, b) => QUALITY_ORDER.indexOf(a) - QUALITY_ORDER.indexOf(b)
-    );
-  } catch {
-    return [];
-  }
 }

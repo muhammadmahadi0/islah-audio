@@ -19,7 +19,7 @@ This file orients AI coding agents working in this repo. Read it before making c
 
 1. **Playback = hidden YouTube embed + hidden `<audio>` for streams.**
    The YT engine lives in `lib/yt-engine.ts` (single player, video/audio
-   modes, persisted quality) and is mounted by MiniPlayer in a node that must
+   modes) and is mounted by MiniPlayer in a node that must
    NEVER unmount mid-track — the expanded sheet + mini pill toggle via CSS
    visibility, not conditional returns. If the iframe detaches (e.g. after
    stop), the track effect rebinds a fresh player. `AudioPlayer.tsx` owns only

@@ -12,19 +12,15 @@ import {
   X,
   Volume2,
   VolumeX,
-  Settings2,
-  Check,
+  Video,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   loadYouTubeAPI,
   setEnginePlayer,
   setVideoMode,
-  setQuality,
-  getAvailableQualities,
   subscribeEngine,
   getEngineSnapshot,
-  QUALITY_LABELS,
   SEEK_EVENT,
 } from '@/lib/yt-engine';
 
@@ -56,12 +52,8 @@ function EqBars({ className }: { className?: string }) {
   );
 }
 
-const FALLBACK_LEVELS = ['hd1080', 'hd720', 'large', 'medium', 'small', 'tiny'];
-
 export default function MiniPlayer() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [qualityMenuOpen, setQualityMenuOpen] = useState(false);
-  const [menuLevels, setMenuLevels] = useState<string[]>([]);
   const {
     currentTrack,
     isPlaying,
@@ -158,7 +150,7 @@ export default function MiniPlayer() {
                   if (playingRef.current) e.target.loadVideoById(track.videoId);
                   else e.target.cueVideoById(track.videoId);
                   // Audio-first: keep data-saver quality until the user
-                  // explicitly opens video via the gear button.
+                  // explicitly opens video via the video toggle.
                   if (getEngineSnapshot().mode !== 'video') {
                     e.target.setPlaybackQuality('tiny');
                   }
@@ -338,10 +330,9 @@ export default function MiniPlayer() {
   }, [volume]);
 
   // Collapsing always returns to audio-only. Video mode is strictly
-  // opt-in via the gear button — playback never starts as video.
+  // opt-in via the video toggle — playback never starts as video.
   useEffect(() => {
     if (!isExpanded) {
-      setQualityMenuOpen(false);
       setVideoMode('audio');
     }
   }, [isExpanded]);
@@ -395,19 +386,9 @@ export default function MiniPlayer() {
   const queueTotal = playlist.length;
   const queuePos = playlistIndex >= 0 ? playlistIndex + 1 : null;
 
-  const openQualityMenu = () => {
-    const levels = getAvailableQualities();
-    setMenuLevels(levels.length > 0 ? levels : FALLBACK_LEVELS);
-    setQualityMenuOpen((v) => !v);
-  };
-
-  // Gear: first tap switches audio → video, further taps open qualities.
-  const handleGear = () => {
-    if (engine.mode !== 'video') {
-      setVideoMode('video');
-      return;
-    }
-    openQualityMenu();
+  // Video toggle: audio ⇄ video in the same player (no restart).
+  const toggleVideo = () => {
+    setVideoMode(engine.mode === 'video' ? 'audio' : 'video');
   };
 
   return (
@@ -491,49 +472,15 @@ export default function MiniPlayer() {
                       <Music size={48} className="text-brand-light" />
                     </div>
                   ))}
-                {/* Gear: first tap opens the video, further taps pick quality */}
+                {/* Video toggle: tap to watch, tap again for audio-only */}
                 <button
-                  onClick={handleGear}
+                  onClick={toggleVideo}
                   className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur transition-colors hover:bg-black/90"
-                  aria-label={engine.mode === 'video' ? 'Playback quality' : 'Watch video'}
-                  title={engine.mode === 'video' ? 'Quality' : 'Watch video'}
+                  aria-label={engine.mode === 'video' ? 'Switch to audio only' : 'Watch video'}
+                  title={engine.mode === 'video' ? 'Audio only' : 'Watch video'}
                 >
-                  <Settings2 size={18} />
+                  {engine.mode === 'video' ? <Music size={18} /> : <Video size={18} />}
                 </button>
-                {qualityMenuOpen && engine.mode === 'video' && (
-                  <>
-                    <button
-                      aria-label="Close quality menu"
-                      className="fixed inset-0 z-10 cursor-default"
-                      onClick={() => setQualityMenuOpen(false)}
-                    />
-                    <div className="absolute bottom-12 right-2 z-20 w-44 overflow-hidden rounded-2xl glass border border-white/15 shadow-card py-1.5 animate-fade-up">
-                      <p className="px-3.5 pt-1.5 pb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-mist-dark">
-                        Quality
-                      </p>
-                      {['auto', ...menuLevels.filter((l) => l !== 'auto')].map((level) => (
-                        <button
-                          key={level}
-                          onClick={() => {
-                            setQuality(level);
-                            setQualityMenuOpen(false);
-                          }}
-                          className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors"
-                        >
-                          <span className="w-4 shrink-0">
-                            {engine.quality === level && (
-                              <Check size={15} className="text-brand-light" strokeWidth={3} />
-                            )}
-                          </span>
-                          {QUALITY_LABELS[level] || level}
-                          {level === 'auto' && (
-                            <span className="ml-auto text-[11px] text-mist-dark">data saver off</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
               </div>
             ) : (
               <div className="aspect-square max-h-full overflow-hidden rounded-[28px] shadow-card ring-1 ring-white/15">
