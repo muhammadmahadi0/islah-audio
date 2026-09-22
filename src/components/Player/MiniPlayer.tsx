@@ -74,6 +74,7 @@ export default function MiniPlayer() {
     setCurrentTime,
     setDuration,
     setIsPlaying,
+    setIsLoading,
     setVolume,
     playNext,
     playPrevious,
