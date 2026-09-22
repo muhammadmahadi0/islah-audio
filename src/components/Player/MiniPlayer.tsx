@@ -122,9 +122,11 @@ export default function MiniPlayer() {
   const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
   // Create the YT player in the persistent mount node.
-  // The node stays mounted across expand/collapse so playback never stops;
-  // if React ever recycles the node (e.g. after stop cleared the track),
-  // the track effect below detects the detached iframe and rebinds.
+  // IMPORTANT: YT.Player REPLACES the mount div with an <iframe> (copying
+  // its classes at creation). So the mount div's own className must NEVER
+  // change afterwards — visibility is toggled on the PARENT wrapper below,
+  // which stays under React control. (Toggling `hidden` on the mount div
+  // itself left the iframe permanently hidden → blank video.)
   const createPlayer = (YT: any) => {
     if (!ytMountRef.current || playerRef.current) return;
 
@@ -275,8 +277,15 @@ export default function MiniPlayer() {
     if (player && readyRef.current) {
       // React may have recycled the mount node while no track was active
       // (e.g. after stop) — a detached iframe can't play. Rebind instead.
-      const iframe = player.getIframe?.();
-      if (iframe && !iframe.isConnected && ytMountRef.current && window.YT?.Player) {
+      // Wrapped in try/catch: a fully destroyed player can throw here.
+      let detached = false;
+      try {
+        const iframe = player.getIframe?.();
+        detached = !!iframe && !iframe.isConnected;
+      } catch {
+        detached = true;
+      }
+      if (detached && ytMountRef.current && window.YT?.Player) {
         try {
           player.destroy();
         } catch {
@@ -464,7 +473,12 @@ export default function MiniPlayer() {
           <div className="flex min-h-0 flex-1 items-center justify-center py-4">
             {isYtTrack ? (
               <div className="relative w-full overflow-hidden rounded-[20px] shadow-card ring-1 ring-white/15 bg-black aspect-video">
-                <div ref={ytMountRef} className={cn('h-full w-full', !showVideo && 'hidden')} />
+                {/* Wrapper owns visibility (see createPlayer note) — the
+                    mount div keeps a constant class so the YT iframe copy
+                    never inherits `hidden`. */}
+                <div className={cn('h-full w-full', !showVideo && 'hidden')}>
+                  <div ref={ytMountRef} className="h-full w-full" />
+                </div>
                 {!showVideo &&
                   (currentTrack.thumbnail ? (
                     <img

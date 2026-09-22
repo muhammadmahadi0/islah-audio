@@ -467,7 +467,7 @@ export default function HomePage() {
                 >
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 shadow-[0_0_8px_2px_rgba(239,68,68,0.9)]" />
                   </span>
                   <span className="truncate">
                     Live now{live.title ? ` • ${live.title}` : ''}
@@ -488,14 +488,14 @@ export default function HomePage() {
                   className={cn(
                     'h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium transition-all disabled:opacity-40',
                     live?.isLive
-                      ? 'bg-red-500 text-white hover:brightness-110 active:scale-95'
+                      ? 'bg-black/60 text-white ring-1 ring-red-500/60 hover:bg-black/70 active:scale-95 shadow-[0_0_16px_rgba(239,68,68,0.35)]'
                       : 'bg-white/10 text-white hover:bg-white/15 active:scale-95'
                   )}
                 >
                   {live?.isLive ? (
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 shadow-[0_0_8px_2px_rgba(239,68,68,0.9)]" />
                     </span>
                   ) : (
                     <Radio size={15} />
