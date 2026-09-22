@@ -78,11 +78,14 @@
 - Large rounded search field with clear button; result count; rows with
   thumbnail, duration, save-to-playlist button, equalizer on current track
 
-#### Library (Queue + Playlists tabs — user playlists live here, no separate nav)
+#### Library (Queue + Playlists tabs — playlists live here, no separate nav)
 
 - **Queue**: current playback queue with track numbers
-- **Playlists**: create/rename/delete your own playlists, save tracks from
-  Home/Search, play-all, remove tracks; persisted in `localStorage`
+- **Playlists → From YouTube (BETA)**: the channel's real YouTube playlists,
+  server-rendered into the page HTML (never depends on a client fetch);
+  cards expand to InnerTube-first items with timeout + retry
+- **Playlists → Your Playlists**: create/rename/delete your own playlists, save
+  tracks from Home/Search, play-all, remove tracks; persisted in `localStorage`
 
 #### Mini Player
 
@@ -94,17 +97,21 @@
 
 ### Core Features
 
-1. **Channel Catalog** — `/api/channel/[id]` lists the newest 100 uploads with
-   durations and view counts, plus a `nextPageToken` and `total`;
-   `/api/channel/[id]/more/[token]` appends older videos in 200-chunks
-   (the API caps pages at 50 items). Home has a Show-more button; Search
-   indexes every chunk in the background. Responses are CDN-cached to save quota.
+1. **Channel Catalog (BETA: InnerTube first)** — `/api/channel/[id]` lists the
+   newest 100 uploads with durations and view counts, plus a `nextPageToken`
+   and `total`; `/api/channel/[id]/more/[token]` appends older videos in
+   200-chunks. Listing goes through keyless InnerTube (no quota) with the
+   Data API as fallback; `total` comes from a 1-unit statistics call when a
+   key exists, else the UI shows counts without a total. Home has a Show-more
+   button; Search indexes every chunk in the background. Responses are
+   CDN-cached to save quota.
 2. **Lecture Playback** — hidden YouTube embed driven by the player store
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
    volume, progress polling). Unplayable videos auto-skip.
 3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
    red LIVE button plays HLS when on air, gold Last Live replays the latest
-   recording when offline. HLS falls back to the `/api/hls` CORS proxy.
+   recording when offline. HLS falls back to the `/api/hls` CORS proxy,
+   then to the last recording, so a dead live edge still yields audio.
 4. **User Playlists** — persisted zustand store (`islah-playlists` key);
    duplicate-guarded adds, delete with confirm.
 5. **Search** — client-side filter over the fully indexed catalog.
@@ -115,6 +122,8 @@
 | ----- | ------- |
 | `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
 | `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
+| `GET /api/playlists` | Channel playlists (BETA, fixed channel) |
+| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first (BETA) |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls?url=` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (compat) |
@@ -124,7 +133,10 @@
 
 - **IDs travel in URL paths, never query strings** — the hosting layer drops
   query parameters before function invocation (`/api/channel/[id]`,
-  `/api/playlist-items/[id]`). The legacy `?id=` variants remain as fallbacks.
+  `/api/channel/[id]/more/[token]`). The legacy `?id=` variants remain as fallbacks.
+- **Every fetch has a timeout** — bare `fetch()` hangs forever on stalled mobile
+  networks, so clients use `fetchJson()` (`lib/fetch-timeout.ts`, 15–25s) and
+  server InnerTube calls race `withTimeout()` (8s) into the Data API fallback.
 - CDN caching on API routes (`s-maxage` + `stale-while-revalidate`); no-store
   for live status.
 - Queue in memory (zustand); user playlists in `localStorage`.

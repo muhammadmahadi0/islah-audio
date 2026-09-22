@@ -74,6 +74,8 @@ export default function AudioPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const proxyTriedRef = useRef(false);
+  const fallbackTriedRef = useRef(false);
+  const streamUrlRef = useRef<string | null>(null);
 
   const {
     currentTrack,
@@ -124,6 +126,8 @@ export default function AudioPlayer() {
     if (!audio) return;
     destroyHls();
     proxyTriedRef.current = false;
+    fallbackTriedRef.current = false;
+    streamUrlRef.current = url;
 
     const startPlayback = () => {
       if (autoplay) {
@@ -157,6 +161,28 @@ export default function AudioPlayer() {
             console.error('[AudioPlayer] proxy retry failed:', err);
           }
         }
+        // Live still failing → fall back to the last recording once,
+        // so the user gets audio instead of silence.
+        const track = usePlayerStore.getState().currentTrack;
+        if (track?.isLive && !fallbackTriedRef.current) {
+          fallbackTriedRef.current = true;
+          console.log('[AudioPlayer] live failed, falling back to recording');
+          fetch('/api/live')
+            .then((res) => res.json())
+            .then((live) => {
+              const recUrl: string | undefined = live?.live?.recording?.audioUrl;
+              const stillLive = usePlayerStore.getState().currentTrack?.id === 'live';
+              // Never fall back onto the URL that just failed (avoids loops).
+              if (recUrl && stillLive && recUrl !== streamUrlRef.current) {
+                proxyTriedRef.current = true; // skip proxy retry for the mp3
+                loadStream(recUrl, true);
+              } else {
+                storeRef.current.setIsLoading(false);
+              }
+            })
+            .catch(() => storeRef.current.setIsLoading(false));
+          return;
+        }
         console.error('[AudioPlayer] HLS fatal error:', data);
         storeRef.current.setIsLoading(false);
       });
@@ -182,6 +208,11 @@ export default function AudioPlayer() {
         playerRef.current = new YT.Player(containerRef.current, {
           height: '0',
           width: '0',
+          // Privacy-enhanced host: serves the embed from youtube-nocookie.com
+          // so no tracking cookies are set — this also silences the
+          // "__Secure-YEC rejected (SameSite)" console warnings. Playback,
+          // JS API control, and events work exactly the same.
+          host: 'https://www.youtube-nocookie.com',
           playerVars: {
             autoplay: 0,
             controls: 0,

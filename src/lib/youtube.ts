@@ -230,4 +230,43 @@ export function hasApiKey(): boolean {
   return !!API_KEY;
 }
 
+export interface YouTubePlaylist {
+  id: string;
+  title: string;
+  thumbnail: string;
+  itemCount: number;
+}
+
+/** List a channel's public playlists (1 quota unit, CDN-cached). */
+export async function getChannelPlaylists(channelId: string): Promise<YouTubePlaylist[]> {
+  const data = await getYouTubeAPI<any>('playlists', {
+    part: 'snippet,contentDetails',
+    channelId,
+    maxResults: '50',
+  });
+
+  if (!data?.items) return [];
+
+  return data.items.map((item: any) => ({
+    id: item.id,
+    title: item.snippet?.title || 'Untitled playlist',
+    thumbnail:
+      item.snippet?.thumbnails?.medium?.url ||
+      item.snippet?.thumbnails?.default?.url ||
+      '',
+    itemCount: item.contentDetails?.itemCount || 0,
+  }));
+}
+
+/** Total uploaded videos of a channel (1 quota unit). Null when unavailable. */
+export async function getChannelVideoCount(channelId: string): Promise<number | null> {
+  const data = await getYouTubeAPI<any>('channels', {
+    part: 'statistics',
+    id: channelId,
+  });
+
+  const count = parseInt(data?.items?.[0]?.statistics?.videoCount || '', 10);
+  return Number.isFinite(count) ? count : null;
+}
+
 export const TARGET_CHANNEL_ID = 'UC8NjCrYUV5YrpK2j6XTwGSA';

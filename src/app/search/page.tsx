@@ -6,6 +6,7 @@ import { Search as SearchIcon, Music, Loader2, X, ListPlus } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
+import { fetchJson } from '@/lib/fetch-timeout';
 
 interface ChannelVideo {
   videoId: string;
@@ -129,20 +130,19 @@ export default function SearchPage() {
       try {
         // NOTE: channel ID goes in the path — query strings are dropped
         // by our hosting before function invocation.
-        const res = await fetch(`/api/channel/${DEFAULT_CHANNEL_ID}`);
-        if (!res.ok) return;
-        const data = await res.json();
+        const data = await fetchJson(`/api/channel/${DEFAULT_CHANNEL_ID}`, 20000);
+        if (!data.success || !Array.isArray(data.videos)) return;
         if (!cancelled && data.success && Array.isArray(data.videos)) {
           setVideos(data.videos);
-          setTotalVideos(data.total || data.videos.length);
+          setTotalVideos(typeof data.total === 'number' ? data.total : 0);
           let token: string | null = data.nextPageToken || null;
           if (token) setIndexing(true);
           const seen = new Set(data.videos.map((v: ChannelVideo) => v.videoId || v.id));
           while (token && !cancelled) {
-            const more = await fetch(
-              `/api/channel/${DEFAULT_CHANNEL_ID}/more/${encodeURIComponent(token)}`
+            const mdata = await fetchJson(
+              `/api/channel/${DEFAULT_CHANNEL_ID}/more/${encodeURIComponent(token)}`,
+              25000
             );
-            const mdata = await more.json();
             if (!mdata.success || !Array.isArray(mdata.videos)) break;
             const fresh = mdata.videos.filter(
               (v: ChannelVideo) => !seen.has(v.videoId || v.id)
