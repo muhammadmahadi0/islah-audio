@@ -6,7 +6,7 @@ playlists, search, and a mobile-first design.
 
 **Live (beta):** https://beta--islahiboyan.netlify.app/
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black) ![Tailwind](https://img.shields.io/badge/Tailwind-3-38bdf8) ![Deployed](https://img.shields.io/badge/Netlify-live-00ad9f)
+![Astro](https://img.shields.io/badge/Astro-5-black) ![Tailwind](https://img.shields.io/badge/Tailwind-3-38bdf8) ![Deployed](https://img.shields.io/badge/Netlify-live-00ad9f)
 
 ## Features
 
@@ -56,7 +56,7 @@ git clone https://github.com/muhammadmahadi0/islah-audio.git
 cd islah-audio
 npm install
 cp .env.example .env.local   # then fill in YOUTUBE_API_KEY
-npm run dev                  # http://localhost:3000
+npm run dev                  # http://localhost:4321
 ```
 
 ### Environment variables
@@ -64,7 +64,6 @@ npm run dev                  # http://localhost:3000
 | Variable             | Required | Description                              |
 | -------------------- | -------- | ---------------------------------------- |
 | `YOUTUBE_API_KEY`    | No (fallback) | YouTube Data API v3 key — listing prefers keyless InnerTube on this branch |
-| `NEXT_PUBLIC_CHANNEL_HANDLE` | No | Displayed channel handle (default `@islahbd`) |
 
 > On Netlify, set `YOUTUBE_API_KEY` under **Site settings → Environment variables**.
 
@@ -82,10 +81,11 @@ npm run preview # preview built output
 | ---------------------- | ------------------------------------------------------------------ |
 | `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
 | `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
+| `GET /api/playlists/[channel]` | A channel's playlists (Data API, 6h CDN cache) |
+| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first, Data API fallback |
 | `GET /api/live` | islahbd.com live status as `{ isLive, title, speaker, listeners, streamUrl, recording }` |
-| `GET /api/hls?url=` | HLS manifest/media proxy with open CORS (fallback when the live CDN blocks cross-origin fetch) |
+| `GET /api/hls/[...url]` | HLS manifest/media proxy with open CORS (fallback when the live CDN blocks cross-origin fetch) |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (playback is client-side) |
-| `GET /api/proxy?url=`  | CORS proxy helper                                                  |
 
 ## How Listing Works (beta experiment)
 
@@ -106,29 +106,37 @@ src/
 │   ├── index.astro           # Home shell (HomeView island)
 │   ├── search.astro          # Search shell (?q= → SearchView island)
 │   ├── library.astro         # Library shell (server playlists → island)
-│   └── api/                  # channel / live / hls / stream endpoints
-├── layouts/Layout.astro      # html shell, YouTube top bar, islands
+│   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream
+├── layouts/Layout.astro      # html shell, liquid-glass top bar, islands
 ├── views/                    # React islands: Home/Search/Library
-├── components/               # player, nav, sidebar, theme toggle
+├── components/               # player, nav, sidebar, theme toggle, playlist menu
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)
 │   ├── playlist-store.ts   # user playlists, persisted to localStorage
-│   └── theme-store.ts      # light/dark theme, persisted
+│   ├── channel-store.ts    # active channel, persisted
+│   ├── theme-store.ts      # light/dark theme, persisted
+│   └── design-store.ts     # liquid-glass / material mode, persisted
 └── lib/
     ├── youtube.ts          # YouTube Data API helpers (fallback)
     ├── innertube.ts        # keyless InnerTube listing (primary)
+    ├── yt-engine.ts        # single YT.Player instance, audio/video modes
+    ├── channels.ts         # channel registry
     ├── live.ts             # live-status types
+    ├── fetch-timeout.ts    # fetchJson + withTimeout helpers
     └── utils.ts            # classnames helper
 ```
 
 ## How Playback Works
 Third-party audio-extraction APIs (Cobalt v7, public Piped/Invidious instances) are
 dead or blocked, so YouTube tracks play through the **official YouTube embed**
-(`AudioPlayer.tsx` creates a hidden `YT.Player`). The **islahbd live broadcast**
-and its recording play through a hidden `<audio>` element + hls.js instead
+(the single `YT.Player` in `lib/yt-engine.ts`, mounted by `MiniPlayer.tsx` —
+minimized/audio-only by default, video opt-in via the toggle in the expanded
+player). The **islahbd live broadcast**
+and its recording play through a hidden `<audio>` element + hls.js in
+`AudioPlayer.tsx` instead
 (tracks carrying `hlsUrl`/`audioUrl`; live tracks also set `isLive`, which disables
 seeking). The store drives play/pause/seek/volume, and UI components request seeks
-via the `islah:seek` window event.
+via the `islah:seek` window event (defined in `lib/yt-engine.ts`).
 
 ## Deployment (BETA)
 

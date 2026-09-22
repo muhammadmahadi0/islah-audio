@@ -2,7 +2,7 @@
 
 This file orients AI coding agents working in this repo. Read it before making changes.
 
-## Commands (BETA: Astro — master still uses Next.js commands)
+## Commands
 
 - `npm run dev` — dev server, port 4321 (needs `YOUTUBE_API_KEY` in `.env.local`)
 - `npm run build` — production build (must pass)
@@ -69,7 +69,7 @@ This file orients AI coding agents working in this repo. Read it before making c
    `currentTrack` for the same reason).
 8. **Live (islahbd.com).** Status via `/api/live` (proxies
    `api.islahbd.com/api/live/status/`); HLS via `/api/hls` proxy fallback.
-   Live button lives in the Home hero (`page.tsx`); live tracks use
+   Live button lives in the Home hero (`views/HomeView.tsx`); live tracks use
    `id: 'live'` / `'live-recording'` with `isLive` set for real broadcasts.
 9. **Netlify (BETA: Astro).** `netlify.toml` publishes `dist/`; SSR/API run as
    functions via `@astrojs/netlify`. Never add manual `/api/*` redirects, and
@@ -84,7 +84,7 @@ This file orients AI coding agents working in this repo. Read it before making c
   The whole site is liquid-glass iPhone style: floating top bar, sidebar pill,
   chips pill, cards, inputs, and both player sheets all use the glass helpers
   (with specular edge + gloss spans); body has a fixed ambient aura + blobs
-  behind content. The sidebar Settings toggle switches to flat Material 3
+  behind content. The sidebar Liquid Glass toggle row switches to flat Material 3
   (`design-store.ts`, persist key `islah-design`, `material` class on `<html>`):
   glass → solid tonal surfaces, blurs/sheen spans/ambient blobs off via the
   `html.material` overrides. New glass surfaces must degrade under it (use the
@@ -95,12 +95,13 @@ This file orients AI coding agents working in this repo. Read it before making c
   via CSS variables with `html.light` overrides. Never hardcode theme colors in
   components — the only exceptions are elements pinned to dark surfaces:
   the gold `إ` marks on dark bronze tiles (`text-[#E7C55A]`) and text/borders
-  on black photo overlays (`text-[#FFFFFF]`, `border-[#FFFFFF]/20`). Theme state lives in
-  `theme-store.ts` (persist key `islah-theme`); `<html>` gets `suppressHydrationWarning`
-  for the pre-paint init script.
+   on black photo overlays (`text-[#FFFFFF]`, `border-[#FFFFFF]/20`). Theme state lives in
+   `theme-store.ts` (persist key `islah-theme`); `Layout.astro` applies the saved
+   theme + design mode via a pre-paint inline script to avoid flashes.
 - Layout: desktop `Sidebar`, mobile (`md:hidden`) `BottomNav`. Page bottom padding
   must clear the floating player: `pb-44 md:pb-36`.
-- Client components that touch the stores or `window` need `'use client'`.
+- Client components that touch the stores or `window` must be React islands
+  (`client:only="react"` in the `.astro` shell).
 - Secrets: never commit `.env.local` (gitignored). Mirror new env vars in
   `.env.example` and document them in `README.md`.
 - Standing rules from the user (always follow, no need to ask):
@@ -117,5 +118,7 @@ This file orients AI coding agents working in this repo. Read it before making c
   `Get-Process -Name node | Stop-Process`.
 - Non-ASCII (Bengali) titles may render garbled in PowerShell output — that's a
   console encoding artifact, not a data bug.
-- `Player.tsx` and `FloatingPlayer.tsx` are unused legacy components; the active
-  player UI is `Player/MiniPlayer.tsx` + `AudioPlayer.tsx`.
+- Gotcha archive: `Player.tsx` / `FloatingPlayer.tsx` (Next.js era) are long gone;
+  the active player UI is `Player/MiniPlayer.tsx` + `AudioPlayer.tsx`.
+  `piped-service.ts` / `peertube.ts` are dead code (nothing imports them) —
+  do not wire them back in.

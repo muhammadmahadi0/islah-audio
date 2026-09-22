@@ -1,7 +1,7 @@
 # Islah Audio — Product Specification
 
-> Living document. Update this file (and `AGENTS.md`) with every behavior,
-> architecture, or API change.
+> Living document. Update this file (plus `AGENTS.md` and `README.md`) with
+> every behavior, architecture, or API change.
 
 ## Project Overview
 
@@ -11,16 +11,17 @@
   the YouTube channels `@islahbd` and `@IslahiGhazal`, plus user playlists and
   the islahbd.com live broadcast — all in an audio-first experience.
 - **Target Users**: Listeners of Islah BD Islamic content.
-- **Live Site**: https://islahiboyan.netlify.app/
+- **Live Site (beta)**: https://beta--islahiboyan.netlify.app/
 
 ## Technical Stack (BETA: Astro rebuild)
 
 - **Framework**: Astro 5 (SSR via `@astrojs/netlify`) + React islands
-  (`client:only`) for player, views, and nav — YouTube-style shell
+  (`client:only`) for player, views, and nav — liquid-glass shell
 - **Styling**: Tailwind CSS with custom golden theme
   (tokens in `tailwind.config.js`, helpers in `src/styles/globals.css`)
 - **Icons**: Lucide React
-- **State Management**: Zustand (`player-store`; persisted `playlist-store`)
+- **State Management**: Zustand (`player-store`; persisted `playlist-store`,
+  `channel-store`, `theme-store`, `design-store`)
 - **Listing Data**: keyless InnerTube first, YouTube Data API v3 fallback
 - **Lecture Playback**: Official YouTube IFrame embed (hidden `YT.Player`)
 - **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback)
@@ -69,8 +70,8 @@
 
 #### Sidebar (desktop) + drawer (Android)
 
-- Brand mark (gold `?` on bronze) + "Islah Audio" + tagline
-- Nav: Home, Search, Library — active item gets gold tint + gold rail
+- Brand mark (gold `إ` on bronze) + "Islah Audio" + tagline
+- Nav: Home, Search, Library — active item gets a frosted glass highlight
 - **Channels switcher**: all registered channels (`lib/channels.ts`) with live
   avatars; tapping switches Home, Search, and Library; choice persists.
   Android opens the same sidebar as a slide-over drawer via the top-bar
@@ -79,12 +80,12 @@
   **Liquid Glass** design — on = iPhone-style frosted design (default),
   off = flat Material 3 solid surfaces. Choice persists (`islah-design`) and
   applies pre-paint via `Layout.astro`, so there is no flash.
-- "Source" card (channel link + live indicator) and footer note
+- Footer note
 
 #### Home
 
-- Hero: channel art (gold ring), name, lecture count + total hours,
-  Play / Shuffle / **LIVE** buttons, "Live now" banner when on air
+- Hero: channel art (gold ring), name, video count,
+  Play-all / Shuffle / **LIVE** buttons (single-line labels), "Live now" banner when on air
 - Filters: All / Bayans (>5 min) / Shorts (≤5 min)
 - Cards: rounded-2xl, hover lift + play overlay, duration badge,
   "Playing" badge + equalizer on current track, **+** save-to-playlist button
@@ -132,8 +133,8 @@
    audio-only. Collapsing also returns to audio-only.
    Unplayable videos auto-skip.
 3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
-   red LIVE button plays HLS when on air, gold Last Live replays the latest
-   recording when offline. HLS falls back to the `/api/hls` CORS proxy,
+   glowing-red LIVE button plays HLS when on air, plain Last-live button replays
+   the latest recording when offline. HLS falls back to the `/api/hls` CORS proxy,
    then to the last recording, so a dead live edge still yields audio.
 4. **User Playlists** — persisted zustand store (`islah-playlists` key);
    duplicate-guarded adds, delete with confirm.
@@ -145,12 +146,11 @@
 | ----- | ------- |
 | `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
 | `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
-| `GET /api/playlists` | Channel playlists (BETA, fixed channel) |
-| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first (BETA) |
+| `GET /api/playlists/[channel]` | A channel's playlists (Data API, 6h CDN cache) |
+| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first, Data API fallback |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
-| `GET /api/hls?url=` | HLS manifest/media CORS proxy with URI rewrite |
+| `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (compat) |
-| `GET /api/proxy?url=` | Generic CORS proxy helper |
 
 ### Data Handling
 
@@ -171,7 +171,8 @@
 
 ### Edge Cases
 
-- Missing `YOUTUBE_API_KEY` → API routes return 400 with a clear message.
+- Missing `YOUTUBE_API_KEY` → channel listing still works via keyless InnerTube;
+  only `/api/playlists/[channel]` (Data API-only) returns 400 with a clear message.
 - Unplayable/embed-restricted video → auto-skip to next.
 - Invalid video/playlist IDs → 400.
 - Live CDN without CORS → transparent `/api/hls` proxy retry.
