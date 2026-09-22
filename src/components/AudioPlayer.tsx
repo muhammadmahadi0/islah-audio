@@ -208,6 +208,11 @@ export default function AudioPlayer() {
         playerRef.current = new YT.Player(containerRef.current, {
           height: '0',
           width: '0',
+          // Privacy-enhanced host: serves the embed from youtube-nocookie.com
+          // so no tracking cookies are set — this also silences the
+          // "__Secure-YEC rejected (SameSite)" console warnings. Playback,
+          // JS API control, and events work exactly the same.
+          host: 'https://www.youtube-nocookie.com',
           playerVars: {
             autoplay: 0,
             controls: 0,
