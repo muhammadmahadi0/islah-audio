@@ -240,11 +240,13 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
   const [tracks, setTracks] = useState<Track[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [loadErrorMsg, setLoadErrorMsg] = useState('');
   const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
 
   const load = async (): Promise<Track[]> => {
     setIsLoading(true);
     setLoadFailed(false);
+    setLoadErrorMsg('');
     try {
       // NOTE: playlist ID goes in the path — query strings are dropped
       // by our hosting before function invocation.
@@ -265,6 +267,7 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
     } catch (error) {
       console.error('Playlist items load error:', error);
       setLoadFailed(true);
+      setLoadErrorMsg(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setIsLoading(false);
     }
@@ -359,6 +362,11 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
                   ? 'Couldn’t load this playlist.'
                   : 'This playlist is empty or unavailable.'}
               </p>
+              {loadFailed && loadErrorMsg && (
+                <p className="text-[11px] text-mist-dark/80 mt-1 break-words">
+                  {loadErrorMsg}
+                </p>
+              )}
               {loadFailed && (
                 <button
                   onClick={reload}
@@ -395,6 +403,7 @@ export default function LibraryPage() {
   const [ytPlaylists, setYtPlaylists] = useState<ChannelPlaylist[] | null>(null);
   const [ytLoading, setYtLoading] = useState(false);
   const [ytError, setYtError] = useState(false);
+  const [ytErrorMsg, setYtErrorMsg] = useState('');
   const { playlist, currentTrack, isPlaying, playTrack, setIsPlaying } = usePlayerStore();
   const { playlists, createPlaylist } = usePlaylistStore();
 
@@ -406,6 +415,7 @@ export default function LibraryPage() {
     (async () => {
       setYtLoading(true);
       setYtError(false);
+      setYtErrorMsg('');
       try {
         // The list route needs no params (fixed channel).
         const data = await fetchJson('/api/playlists', 20000);
@@ -418,6 +428,7 @@ export default function LibraryPage() {
         console.error('Channel playlists load error:', error);
         if (!cancelled) {
           setYtError(true);
+          setYtErrorMsg(error instanceof Error ? error.message : 'Unknown error');
           setYtPlaylists([]);
         }
       } finally {
@@ -539,9 +550,14 @@ export default function LibraryPage() {
               </div>
             ) : ytError ? (
               <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center mb-7">
-                <p className="text-[13px] text-mist-dark mb-3">
+                <p className="text-[13px] text-mist-dark mb-1">
                   Couldn’t load channel playlists.
                 </p>
+                {ytErrorMsg && (
+                  <p className="text-[11px] text-mist-dark/80 mb-3 break-words">
+                    {ytErrorMsg}
+                  </p>
+                )}
                 <button
                   onClick={retryYtPlaylists}
                   className="px-5 py-2 rounded-full bg-white/[0.06] border border-white/15 text-sm font-bold text-white hover:border-brand/60 transition-colors"
