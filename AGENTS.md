@@ -72,7 +72,7 @@ This file orients AI coding agents working in this repo. Read it before making c
 ## Conventions
 
 - Styling: Tailwind with brand tokens (`ink-*`, `brand`, `gold`, `mist`) defined in
-  `tailwind.config.js`; shared helpers (`.glass`, `.shimmer`, `.eq-bar`, `.clamp-2`,
+  `tailwind.config.js`; shared helpers (`.glass`, `.liquid-glass`, `.shimmer`, `.eq-bar`, `.clamp-2`,
   `.safe-bottom`) in `src/styles/globals.css`. Keep the golden theme.
 - **Theming rule.** All colors must go through the token system, which resolves
   via CSS variables with `html.light` overrides. Never hardcode theme colors in

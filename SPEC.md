@@ -92,7 +92,8 @@
 
 #### Mini Player
 
-- Glass card, progress hairline, thumbnail, title, equalizer, play/pause,
+- Liquid-glass card (iPhone-style), progress hairline, thumbnail, title,
+  equalizer, play/pause,
   **× stop button** (halts audio + dismisses, keeps queue), expand chevron
 - Live tracks show a red LIVE badge; seek locked on live edge
 
