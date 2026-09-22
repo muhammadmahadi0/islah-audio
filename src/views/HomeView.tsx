@@ -78,7 +78,7 @@ function formatPublished(publishedAt?: string): string {
 
 function VideoSkeleton() {
   return (
-    <div>
+    <div className="relative liquid-glass rounded-2xl p-3">
       <div className="aspect-video rounded-xl shimmer mb-3" />
       <div className="flex gap-3">
         <div className="w-9 h-9 rounded-full shimmer shrink-0" />
@@ -122,8 +122,10 @@ function VideoCard({
       onClick={() => onPlay(video)}
       className="group relative cursor-pointer"
     >
-      {/* YouTube-style thumbnail */}
-      <div className="relative aspect-video mb-3 overflow-hidden rounded-xl bg-ink-800">
+      {/* YouTube-style thumbnail in a liquid-glass frame */}
+      <div className="relative liquid-glass rounded-2xl p-1.5 mb-3">
+        <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+        <div className="relative aspect-video overflow-hidden rounded-xl bg-ink-800">
         <img
           src={video.thumbnail}
           alt={video.title}
@@ -136,7 +138,8 @@ function VideoCard({
             isCurrentTrack ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
           )}
         >
-          <span className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg scale-90 group-hover:scale-100 transition-transform">
+          <span className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg ring-1 ring-white/30 scale-90 group-hover:scale-100 transition-transform">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-2 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
             {isCurrentTrack && isPlaying ? (
               <span className="flex items-end gap-[3px] h-4 text-ink-950">
                 {[0, 1, 2].map((i) => (
@@ -153,20 +156,21 @@ function VideoCard({
           </span>
         </div>
         {video.duration > 0 && (
-          <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-[#FFFFFF] tabular-nums">
+          <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/60 backdrop-blur-md border border-white/20 px-1.5 py-0.5 text-xs font-medium text-[#FFFFFF] tabular-nums">
             {formatDuration(video.duration)}
           </span>
         )}
         {isCurrentTrack && (
-          <span className="absolute top-1.5 left-1.5 rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-950">
+          <span className="absolute top-1.5 left-1.5 rounded-md bg-brand px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-950 ring-1 ring-white/30">
             Playing
           </span>
         )}
+        </div>
       </div>
 
       {/* YouTube-style meta row: avatar + title + channel + stats */}
-      <div className="flex gap-3">
-        <div className="w-9 h-9 shrink-0 rounded-full overflow-hidden bg-ink-700 ring-1 ring-white/10">
+      <div className="flex gap-3 px-1">
+        <div className="w-9 h-9 shrink-0 rounded-full overflow-hidden bg-white/[0.07] backdrop-blur-md ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]">
           {channelAvatar ? (
             <img src={channelAvatar} alt={channelName} className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -194,7 +198,7 @@ function VideoCard({
           }}
           aria-label="Save to playlist"
           title="Save to playlist"
-          className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white/10 transition-all"
+          className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white/[0.08] hover:ring-1 hover:ring-white/20 transition-all"
         >
           <ListPlus size={17} />
         </button>
@@ -220,10 +224,12 @@ function ErrorScreen({ onRetry }: { onRetry: () => void }) {
   return (
     <main className="flex-1 flex items-center justify-center px-6">
       <motion.div
-        className="text-center max-w-md rounded-3xl border border-white/[0.07] bg-white/[0.02] p-10"
+        className="relative text-center max-w-md liquid-glass rounded-[28px] p-10 overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
+        <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
         <div className="w-20 h-20 rounded-full bg-brand/10 border border-brand/25 flex items-center justify-center mx-auto mb-6">
           <WifiOff size={36} className="text-brand-light" />
         </div>
@@ -235,8 +241,9 @@ function ErrorScreen({ onRetry }: { onRetry: () => void }) {
         </p>
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-gradient-to-r from-brand-light to-brand-dark text-ink-950 font-bold text-sm shadow-glow hover:scale-105 active:scale-95 transition-transform"
+          className="relative inline-flex items-center gap-2 px-7 py-3 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 font-bold text-sm shadow-glow ring-1 ring-white/30 hover:scale-105 active:scale-95 transition-transform"
         >
+          <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-4 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
           <RefreshCw size={16} />
           Try Again
         </button>
@@ -424,8 +431,9 @@ export default function HomePage() {
     <main className="pb-44 md:pb-36">
       <div className="mx-auto max-w-[1600px] px-4 md:px-6 pt-2 md:pt-4">
         {isLoading ? (
-          <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-4 md:p-8 mb-4 md:mb-6">
-            <div className="flex items-center gap-4">
+          <div className="relative liquid-glass rounded-[28px] p-4 md:p-8 mb-4 md:mb-6 overflow-hidden">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+            <div className="relative flex items-center gap-4">
               <div className="flex-1">
                 <div className="h-3 w-28 rounded shimmer mb-2.5" />
                 <div className="h-7 w-48 rounded-lg shimmer mb-2.5" />
@@ -435,13 +443,17 @@ export default function HomePage() {
             </div>
           </div>
         ) : (
-          /* ---------- Channel header (YouTube style) ---------- */
+          /* ---------- Channel header (liquid-glass hero) ---------- */
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-4 md:gap-6 px-1 md:px-2 pt-2 md:pt-6 pb-4"
+            className="relative liquid-glass rounded-[28px] p-4 md:p-6 mb-4 md:mb-6 overflow-hidden"
           >
-            <div className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 ring-1 ring-white/15 bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
+            <span aria-hidden="true" className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="relative flex items-center gap-4 md:gap-6">
+            <div className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 ring-1 ring-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)] bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center">
               {channelAvatar ? (
                 <img
                   src={channelAvatar}
@@ -521,9 +533,10 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={handlePlayAll}
-                  className="h-9 px-4 rounded-full bg-[#FFFFFF] text-black text-sm font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-95 transition-all shadow"
+                  className="relative h-9 px-4 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 text-sm font-bold flex items-center gap-1.5 hover:scale-[1.03] active:scale-95 transition-all shadow-glow ring-1 ring-white/30"
                   aria-label={currentTrack && isPlaying ? 'Pause' : 'Play all'}
                 >
+                  <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-3 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
                   {isPlaying && currentTrack ? (
                     <Pause size={16} fill="currentColor" />
                   ) : (
@@ -533,7 +546,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={handleShuffle}
-                  className="h-9 w-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white transition-colors"
+                  className="h-9 w-9 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 hover:bg-white/[0.14] hover:border-white/40 flex items-center justify-center text-white transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
                   aria-label="Shuffle play"
                   title="Shuffle play"
                 >
@@ -541,22 +554,24 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
+            </div>
           </motion.section>
         )}
 
-        {/* ---------- Sticky chips bar (YouTube style) ---------- */}
+        {/* ---------- Sticky chips bar (liquid-glass pill) ---------- */}
         {!isLoading && !error && (
-          <div className="sticky top-14 z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2.5 bg-ink-950/95 backdrop-blur">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div className="sticky top-[4.75rem] z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2">
+            <div className="relative liquid-glass rounded-full px-2 py-1.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-14 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
               {FILTERS.map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setFilter(f.id)}
                   className={cn(
-                    'shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                    'relative shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all overflow-hidden',
                     filter === f.id
-                      ? 'bg-[#FFFFFF] text-black shadow'
-                      : 'bg-white/10 text-white hover:bg-white/20'
+                      ? 'bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 font-bold ring-1 ring-white/30 shadow-glow'
+                      : 'liquid-chip text-white'
                   )}
                 >
                   {f.label}
@@ -611,8 +626,9 @@ export default function HomePage() {
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  className="flex items-center gap-2 px-7 py-3 rounded-full bg-white/[0.06] border border-white/15 text-sm font-bold text-white hover:border-brand/60 hover:shadow-glow transition-all disabled:opacity-50"
+                  className="relative flex items-center gap-2 px-7 py-3 rounded-full liquid-glass text-sm font-bold text-white transition-all hover:border-white/30 disabled:opacity-50 overflow-hidden"
                 >
+                  <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                   {loadingMore ? (
                     <>
                       <Loader2 size={16} className="animate-spin text-brand-light" />
@@ -632,8 +648,9 @@ export default function HomePage() {
         )}
 
         {!isLoading && !error && filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-dashed border-white/10">
-            <span className="w-16 h-16 rounded-full bg-brand/10 border border-brand/25 flex items-center justify-center mb-4">
+          <div className="relative flex flex-col items-center justify-center py-20 text-center liquid-glass rounded-[28px] overflow-hidden">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+            <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mb-4">
               <Music size={28} className="text-brand-light" />
             </span>
             <p className="text-white font-bold">No lectures found</p>

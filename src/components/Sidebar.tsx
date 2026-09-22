@@ -70,14 +70,20 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   return (
     <aside
       className={cn(
-        'flex-col bg-ink-900/60 overflow-y-auto',
-        mobile ? 'flex h-full w-full px-3 py-4' : 'hidden md:flex w-60 lg:w-64 shrink-0 px-3 py-4'
+        'flex-col overflow-y-auto relative',
+        mobile
+          ? 'flex h-full w-full px-3 py-4 bg-transparent'
+          : 'hidden md:flex w-60 lg:w-64 shrink-0 h-full liquid-glass rounded-3xl px-3 py-4'
       )}
     >
+      {!mobile && (
+        <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+      )}
       {/* Brand (desktop only — drawer has its own header in Layout) */}
       {!mobile && (
         <a href="/" className="flex items-center gap-3 px-3 mb-5 group">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-light via-brand to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-gold/40 group-hover:scale-105 transition-transform">
+          <span className="relative w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br from-brand-light via-brand to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-white/30 group-hover:scale-105 transition-transform">
+            <span className="pointer-events-none absolute top-0 inset-x-1.5 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
             <span className="text-[#E7C55A] text-xl font-bold leading-none">إ</span>
           </span>
           <span className="min-w-0">
@@ -102,10 +108,10 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
               href={item.href}
               onClick={mobile ? closeMobileDrawer : undefined}
               className={cn(
-                'flex items-center gap-5 rounded-lg px-3 h-10 text-sm transition-colors',
+                'flex items-center gap-5 rounded-xl px-3 h-10 text-sm transition-all',
                 isActive
-                  ? 'bg-white/10 text-white font-medium'
-                  : 'text-white/90 hover:bg-white/10 font-normal'
+                  ? 'liquid-chip text-white font-medium ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
+                  : 'text-white/90 hover:bg-white/[0.07] font-normal border border-transparent'
               )}
             >
               <Icon
@@ -134,11 +140,13 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
               key={c.id}
               onClick={() => switchChannel(c.id)}
               className={cn(
-                'w-full flex items-center gap-4 rounded-lg px-3 h-11 text-sm transition-colors text-left',
-                active ? 'bg-brand/[0.12] text-white font-medium' : 'text-white/90 hover:bg-white/10'
+                'w-full flex items-center gap-4 rounded-xl px-3 h-11 text-sm transition-all text-left',
+                active
+                  ? 'liquid-chip text-white font-medium ring-1 ring-brand/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
+                  : 'text-white/90 hover:bg-white/[0.07] border border-transparent'
               )}
             >
-              <span className="w-6 h-6 rounded-full overflow-hidden bg-ink-700 ring-1 ring-white/10 shrink-0 flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full overflow-hidden bg-white/[0.07] backdrop-blur-md ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] shrink-0 flex items-center justify-center">
                 {m?.avatar ? (
                   <img src={m.avatar} alt="" className="w-full h-full object-cover" loading="lazy" />
                 ) : (

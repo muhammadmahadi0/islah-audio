@@ -44,11 +44,13 @@ function SearchRow({
     <div
       onClick={onPlay}
       className={cn(
-        'relative flex items-center gap-3.5 p-3 cursor-pointer transition-colors',
-        isActive ? 'bg-brand/[0.08]' : 'hover:bg-white/[0.04]'
+        'relative flex items-center gap-3.5 p-3 cursor-pointer transition-all rounded-2xl',
+        isActive
+          ? 'liquid-chip ring-1 ring-brand/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
+          : 'hover:bg-white/[0.05] border border-transparent'
       )}
     >
-      <div className="w-16 h-12 shrink-0 rounded-lg overflow-hidden bg-ink-700 ring-1 ring-white/10">
+      <div className="w-16 h-12 shrink-0 rounded-xl overflow-hidden bg-white/[0.06] ring-1 ring-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
         <img
           src={video.thumbnail}
           alt={video.title}
@@ -229,7 +231,7 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search lectures…"
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] py-3.5 pl-12 pr-12 text-white placeholder:text-mist-dark outline-none focus:border-brand/60 focus:bg-white/[0.06] focus:shadow-glow transition-all"
+              className="w-full rounded-2xl liquid-input py-3.5 pl-12 pr-12 text-white outline-none transition-all"
             />
             {query && (
               <button
@@ -256,7 +258,9 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-mist-dark mb-3">
                 {results.length} result{results.length === 1 ? '' : 's'}
               </p>
-              <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden divide-y divide-white/[0.05]">
+              <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                <div className="divide-y divide-white/[0.06]">
                 {results.map((video) => {
                   const videoId = video.videoId || video.id || '';
                   return (
@@ -269,12 +273,14 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
                     />
                   );
                 })}
+                </div>
               </div>
             </>
           )}
 
           {!isLoading && submittedQuery && results.length === 0 && (
-            <div className="text-center py-16 rounded-3xl border border-dashed border-white/10">
+            <div className="relative text-center py-16 liquid-glass rounded-[28px] overflow-hidden">
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
               <SearchIcon size={40} className="mx-auto mb-4 text-mist-dark" />
               <p className="text-white font-bold">No results for “{submittedQuery}”</p>
               <p className="text-mist-dark text-sm mt-1">Try different keywords</p>
@@ -282,8 +288,9 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
           )}
 
           {!isLoading && !submittedQuery && (
-            <div className="text-center py-16 rounded-3xl border border-dashed border-white/10">
-              <span className="w-16 h-16 rounded-full bg-brand/10 border border-brand/25 flex items-center justify-center mx-auto mb-4">
+            <div className="relative text-center py-16 liquid-glass rounded-[28px] overflow-hidden">
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+              <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                 <SearchIcon size={26} className="text-brand-light" />
               </span>
               <p className="text-white font-bold">Search the collection</p>

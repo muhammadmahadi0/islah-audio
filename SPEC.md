@@ -47,14 +47,18 @@
 - **Section titles**: 18–20px, weight 800
 - **Body/cards**: 13–14px, weight 400–600
 
-### Layout Structure
+### Layout Structure (liquid-glass iPhone style)
 
-- **Desktop (≥768px)**: fixed sidebar (256–288px) + scrollable content;
-  floating glass mini-player card bottom-right, clear of the sidebar.
-- **Mobile**: floating glass mini-player above a glass bottom nav
-  (Home / Search / Library).
+- **Backdrop**: fixed ambient gold/green aura + refraction blobs behind content
+- **Desktop (≥768px)**: floating liquid-glass sidebar pill + scrollable content;
+  floating liquid-glass mini-player card bottom-right, clear of the sidebar.
+- **Mobile**: floating liquid-glass mini-player above a liquid-glass bottom nav
+  pill (Home / Search / Library); floating top bar + chips bar are glass pills.
 - **Expanded player**: full-screen liquid-glass (iPhone-style), blurred-artwork backdrop, big art,
   seek slider (locked on live), prev/play/next.
+- Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
+  `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
+  inner reflections); primary actions use glossy gold `.liquid-gold`.
 
 ### Components
 

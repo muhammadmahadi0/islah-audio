@@ -77,8 +77,13 @@ This file orients AI coding agents working in this repo. Read it before making c
 ## Conventions
 
 - Styling: Tailwind with brand tokens (`ink-*`, `brand`, `gold`, `mist`) defined in
-  `tailwind.config.js`; shared helpers (`.glass`, `.liquid-glass`, `.shimmer`, `.eq-bar`, `.clamp-2`,
+  `tailwind.config.js`; shared helpers (`.glass`, `.liquid-glass`, `.liquid-chip`,
+  `.liquid-input`, `.liquid-gold`, `.shimmer`, `.eq-bar`, `.clamp-2`,
   `.safe-bottom`) in `src/styles/globals.css`. Keep the golden theme.
+  The whole site is liquid-glass iPhone style: floating top bar, sidebar pill,
+  chips pill, cards, inputs, and both player sheets all use the glass helpers
+  (with specular edge + gloss spans); body has a fixed ambient aura + blobs
+  behind content.
 - **Theming rule.** All colors must go through the token system, which resolves
   via CSS variables with `html.light` overrides. Never hardcode theme colors in
   components — the only exceptions are elements pinned to dark surfaces:

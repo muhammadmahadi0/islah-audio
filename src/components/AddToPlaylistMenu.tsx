@@ -50,9 +50,10 @@ export default function AddToPlaylistMenu({
         }}
       />
       <div
-        className="absolute right-2 top-2 z-30 w-60 rounded-2xl glass border border-white/15 shadow-card p-2 animate-fade-up"
+        className="absolute right-2 top-2 z-30 w-60 rounded-2xl liquid-glass p-2 animate-fade-up"
         onClick={(e) => e.stopPropagation()}
       >
+        <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
         <p className="flex items-center gap-1.5 px-2.5 pt-1.5 pb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-mist-dark">
           <ListPlus size={13} className="text-brand-light" />
           Save to playlist
@@ -102,14 +103,15 @@ export default function AddToPlaylistMenu({
             }}
             placeholder="New playlist…"
             maxLength={60}
-            className="flex-1 min-w-0 rounded-xl bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[13px] text-white placeholder:text-mist-dark outline-none focus:border-brand/60"
+            className="flex-1 min-w-0 rounded-xl liquid-input px-2.5 py-1.5 text-[13px] text-white outline-none"
           />
           <button
             onClick={handleCreate}
             disabled={!newName.trim()}
-            className="p-2 rounded-xl bg-brand text-ink-950 disabled:opacity-30 hover:shadow-glow transition-all"
+            className="relative p-2 rounded-xl overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 ring-1 ring-white/30 disabled:opacity-30 hover:shadow-glow transition-all"
             aria-label="Create playlist"
           >
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-1.5 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
             <Plus size={15} strokeWidth={2.5} />
           </button>
         </div>

@@ -35,8 +35,15 @@ const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
     </script>
   </head>
   <body class="antialiased bg-ink-950 text-white">
-    <!-- YouTube-style top bar -->
-    <header class="sticky top-0 z-30 h-14 flex items-center gap-2 md:gap-4 px-3 md:px-4 bg-ink-950/95 backdrop-blur">
+    {/* Ambient refraction blobs behind all content */}
+    <div aria-hidden="true" class="pointer-events-none fixed inset-0 z-0">
+      <div class="absolute -top-32 left-1/2 h-72 w-[38rem] -translate-x-1/2 rounded-full bg-brand/10 blur-[120px]"></div>
+      <div class="absolute top-[38vh] -left-32 h-80 w-80 rounded-full bg-brand/[0.06] blur-[120px]"></div>
+      <div class="absolute bottom-[-10rem] right-[-6rem] h-96 w-96 rounded-full bg-gold/[0.07] blur-[130px]"></div>
+    </div>
+    <!-- Liquid-glass floating top bar -->
+    <header class="sticky top-2 z-30 mx-2 md:mx-4 mt-2 flex h-14 items-center gap-2 md:gap-4 px-3 md:px-4 rounded-2xl liquid-glass">
+      <span aria-hidden="true" class="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent"></span>
       <button
         id="menu-btn"
         class="hidden md:flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
@@ -63,12 +70,12 @@ const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
             type="text"
             name="q"
             placeholder="Search lectures…"
-            class="w-full rounded-l-full border border-white/15 bg-white/[0.04] px-5 py-2 text-sm text-white placeholder:text-mist-dark outline-none focus:border-brand/60"
+            class="w-full rounded-l-full liquid-input px-5 py-2 text-sm text-white outline-none"
           />
           <button
             type="submit"
             aria-label="Search"
-            class="rounded-r-full border border-l-0 border-white/15 bg-white/[0.07] px-5 hover:bg-white/[0.12] transition-colors"
+            class="rounded-r-full liquid-chip border-l-0 px-5 transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
           </button>
@@ -87,22 +94,23 @@ const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
       </a>
     </header>
 
-    <div class="flex">
+    <div class="flex relative z-10">
       <!-- Desktop sidebar -->
-      <div id="sidebar-wrap" class="hidden md:block sticky top-14 h-[calc(100vh-3.5rem)] shrink-0">
+      <div id="sidebar-wrap" class="hidden md:block sticky top-[4.5rem] h-[calc(100vh-5rem)] shrink-0 px-3 py-1">
         <Sidebar client:only="react" />
       </div>
 
       <!-- Main content -->
-      <main class="flex-1 min-w-0">
+      <main class="flex-1 min-w-0 relative z-10">
         <slot />
       </main>
     </div>
 
     <!-- Mobile slide-over drawer: nav + channel switcher -->
     <div id="mobile-drawer" class="fixed inset-0 z-50 hidden md:hidden">
-      <div id="drawer-backdrop" class="absolute inset-0 bg-black/60"></div>
-      <div class="absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-ink-900 shadow-card border-r border-white/10 overflow-hidden">
+      <div id="drawer-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div class="absolute left-2 top-2 bottom-2 w-72 max-w-[85vw] liquid-glass rounded-3xl overflow-hidden">
+        <span aria-hidden="true" class="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent"></span>
         <Sidebar mobile={true} client:only="react" />
       </div>
     </div>

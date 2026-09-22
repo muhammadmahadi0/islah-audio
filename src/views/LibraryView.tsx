@@ -65,8 +65,10 @@ function TrackRow({
     <div
       onClick={onPlay}
       className={cn(
-        'flex items-center gap-3.5 p-3 cursor-pointer transition-colors',
-        isActive ? 'bg-brand/[0.08]' : 'hover:bg-white/[0.04]'
+        'flex items-center gap-3.5 p-3 cursor-pointer transition-all rounded-2xl',
+        isActive
+          ? 'liquid-chip ring-1 ring-brand/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
+          : 'hover:bg-white/[0.05] border border-transparent'
       )}
     >
       {showIndex && (
@@ -74,7 +76,7 @@ function TrackRow({
           {index + 1}
         </span>
       )}
-      <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-ink-700 ring-1 ring-white/10">
+      <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-white/[0.06] ring-1 ring-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
         {track.thumbnail ? (
           <img
             src={track.thumbnail}
@@ -135,9 +137,10 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
   };
 
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+    <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
+      <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
       <div className="flex items-center gap-3.5 p-3.5">
-        <div className="w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep to-ink-700 ring-1 ring-white/10">
+        <div className="w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep to-ink-700 ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]">
           {cover ? (
             <img src={cover} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -156,9 +159,10 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
         {playlist.tracks.length > 0 && (
           <button
             onClick={playAll}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow hover:scale-105 active:scale-95 transition-transform shrink-0"
+            className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-white/30 hover:scale-105 active:scale-95 transition-transform shrink-0"
             aria-label={`Play ${playlist.name}`}
           >
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-1.5 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
             <Play size={16} fill="#060D0A" className="text-ink-950 ml-0.5" />
           </button>
         )}
@@ -304,9 +308,10 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
   };
 
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+    <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
+      <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
       <div className="flex items-center gap-3.5 p-3.5">
-        <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-ink-700 ring-1 ring-white/10">
+        <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-white/[0.06] ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]">
           {playlist.thumbnail ? (
             <img src={playlist.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -330,9 +335,10 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
         <button
           onClick={playAll}
           disabled={isLoading}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow hover:scale-105 active:scale-95 transition-transform shrink-0 disabled:opacity-40"
+          className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-white/30 hover:scale-105 active:scale-95 transition-transform shrink-0 disabled:opacity-40"
           aria-label={`Play ${playlist.title}`}
         >
+          <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-1.5 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
           {isLoading ? (
             <Loader2 size={16} className="animate-spin text-ink-950" />
           ) : (
@@ -479,11 +485,13 @@ export default function LibraryView({
     <main className="pb-44 md:pb-36">
       <div className="mx-auto max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
         {/* Header card */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-brand-deep/50 via-ink-800 to-ink-900 p-6 md:p-8 mb-5">
-          <div className="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-brand/20 blur-[90px]" />
-          <div className="pointer-events-none absolute -bottom-24 -left-12 w-64 h-64 rounded-full bg-gold/10 blur-[90px]" />
+        <section className="relative liquid-glass rounded-[28px] p-6 md:p-8 mb-5 overflow-hidden">
+          <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
+          <span aria-hidden="true" className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <div className="relative flex items-center gap-4">
-            <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow shrink-0">
+            <span className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-white/30 shrink-0">
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-2 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
               <ListMusic size={26} className="text-ink-950" />
             </span>
             <div>
@@ -512,12 +520,13 @@ export default function LibraryView({
               key={t.id}
               onClick={() => setTab(t.id)}
               className={cn(
-                'flex-1 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all',
+                'relative flex-1 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all overflow-hidden',
                 tab === t.id
-                  ? 'bg-gradient-to-r from-brand-light to-brand-dark text-ink-950 shadow-glow'
-                  : 'bg-white/[0.05] text-mist border border-white/10 hover:text-white'
+                  ? 'bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 shadow-glow ring-1 ring-white/30'
+                  : 'liquid-chip text-mist hover:text-white'
               )}
             >
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
               {t.label}
             </button>
           ))}
@@ -525,7 +534,8 @@ export default function LibraryView({
 
         {tab === 'queue' ? (
           playlist.length > 0 ? (
-            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden divide-y divide-white/[0.05]">
+            <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
               {playlist.map((track, index) => (
                 <TrackRow
                   key={`${track.id}-${index}`}
@@ -538,8 +548,9 @@ export default function LibraryView({
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 rounded-3xl border border-dashed border-white/10">
-              <span className="w-16 h-16 rounded-full bg-brand/10 border border-brand/25 flex items-center justify-center mx-auto mb-4">
+            <div className="relative text-center py-16 liquid-glass rounded-[28px] overflow-hidden">
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+              <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                 <Music size={26} className="text-brand-light" />
               </span>
               <p className="text-white font-bold text-lg">Queue is empty</p>
@@ -555,7 +566,7 @@ export default function LibraryView({
               From YouTube
             </p>
             {ytLoading || ytPlaylists === null ? (
-              <div className="flex items-center justify-center py-8 rounded-2xl border border-white/[0.07] bg-white/[0.02]">
+              <div className="flex items-center justify-center py-8 liquid-glass rounded-3xl">
                 <Loader2 size={22} className="animate-spin text-brand-light" />
               </div>
             ) : ytPlaylists.length > 0 ? (
@@ -565,7 +576,8 @@ export default function LibraryView({
                 ))}
               </div>
             ) : ytError ? (
-              <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center mb-7">
+              <div className="relative liquid-glass rounded-3xl px-4 py-6 text-center mb-7 overflow-hidden">
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                 <p className="text-[13px] text-mist-dark mb-1">
                   Couldn’t load channel playlists.
                 </p>
@@ -576,13 +588,14 @@ export default function LibraryView({
                 )}
                 <button
                   onClick={retryYtPlaylists}
-                  className="px-5 py-2 rounded-full bg-white/[0.06] border border-white/15 text-sm font-bold text-white hover:border-brand/60 transition-colors"
+                  className="relative px-5 py-2 rounded-full liquid-glass text-sm font-bold text-white transition-all overflow-hidden"
                 >
+                  <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                   Retry
                 </button>
               </div>
             ) : (
-              <p className="text-[13px] text-mist-dark rounded-2xl border border-dashed border-white/10 px-4 py-5 text-center mb-7">
+              <p className="text-[13px] text-mist-dark liquid-glass rounded-3xl px-4 py-5 text-center mb-7">
                 No public playlists on this channel yet.
               </p>
             )}
@@ -600,13 +613,14 @@ export default function LibraryView({
                 }}
                 placeholder="New playlist name…"
                 maxLength={60}
-                className="flex-1 min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-white placeholder:text-mist-dark outline-none focus:border-brand/60 focus:shadow-glow transition-all"
+                className="flex-1 min-w-0 rounded-2xl liquid-input px-4 py-2.5 text-sm text-white outline-none transition-all"
               />
               <button
                 onClick={handleCreate}
                 disabled={!newName.trim()}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-brand-light to-brand-dark text-ink-950 text-sm font-bold disabled:opacity-30 hover:shadow-glow transition-all shrink-0"
+                className="relative flex items-center gap-1.5 px-4 py-2.5 rounded-2xl overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 text-sm font-bold ring-1 ring-white/30 disabled:opacity-30 hover:shadow-glow transition-all shrink-0"
               >
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-3 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
                 <Plus size={16} strokeWidth={2.5} />
                 Create
               </button>
@@ -619,8 +633,9 @@ export default function LibraryView({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 rounded-3xl border border-dashed border-white/10">
-                <span className="w-16 h-16 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center mx-auto mb-4">
+              <div className="relative text-center py-16 liquid-glass rounded-[28px] overflow-hidden">
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                   <Heart size={26} className="text-gold-light" />
                 </span>
                 <p className="text-white font-bold text-lg">No playlists yet</p>
@@ -635,7 +650,8 @@ export default function LibraryView({
 
         {/* Info sections */}
         <div className="grid sm:grid-cols-2 gap-3 mt-6">
-          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
+          <div className="relative liquid-glass rounded-3xl p-5 overflow-hidden">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
             <div className="flex items-center gap-2 mb-2">
               <Clock size={17} className="text-gold" />
               <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">
@@ -646,7 +662,8 @@ export default function LibraryView({
               Your listening history will appear here as you play more lectures.
             </p>
           </div>
-          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
+          <div className="relative liquid-glass rounded-3xl p-5 overflow-hidden">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
             <div className="flex items-center gap-2 mb-2">
               <Heart size={17} className="text-gold" />
               <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">

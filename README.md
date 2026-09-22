@@ -24,8 +24,8 @@ playlists, search, and a mobile-first design.
   (slide-over drawer on Android); Home, Search, and Library all follow along
 - **Search** — instant client-side search across the channel catalog
 - **Modern UI** — golden theme with light/dark mode (floating toggle,
-  persisted), desktop sidebar, mobile bottom nav,
-  floating glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters
+  persisted), floating liquid-glass sidebar + top bar, mobile bottom nav pill,
+  floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters
 
 ## Tech Stack (BETA: Astro rebuild)
 
