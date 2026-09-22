@@ -1,6 +1,6 @@
 # Islah Audio
 
-A modern, Spotify-style web app for listening to Islamic lectures (bayans, waz, nasheeds)
+A modern, YouTube-style web app for listening to Islamic lectures (bayans, waz, nasheeds)
 from the [Islah YouTube channel](https://www.youtube.com/@islahbd). Audio-only experience with
 playlists, search, and a mobile-first design.
 
