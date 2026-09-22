@@ -20,8 +20,10 @@ playlists, search, and a mobile-first design.
 - **Live broadcast** — a LIVE button in the Home hero plays the islahbd.com live
   audio stream (HLS via hls.js) when on air, and the last broadcast recording
   when offline; live status is polled from their public status API
+- **Channels** — switch between `@islahbd` and `@IslahiGhazal` from the sidebar
+  (slide-over drawer on Android); Home, Search, and Library all follow along
 - **Search** — instant client-side search across the channel catalog
-- **Modern UI** — emerald + gold theme with light/dark mode (floating toggle,
+- **Modern UI** — golden theme with light/dark mode (floating toggle,
   persisted), desktop sidebar, mobile bottom nav,
   floating glass mini-player with full-screen expanded mode, Bayans/Shorts filters
 
@@ -29,12 +31,12 @@ playlists, search, and a mobile-first design.
 
 | Layer    | Choice                                                      |
 | -------- | ----------------------------------------------------------- |
-| Framework| Next.js 14 (App Router)                                     |
+| Framework| Astro 5 SSR + React islands (`client:only`)                 |
 | Styling  | Tailwind CSS + custom design tokens (`tailwind.config.js`)  |
-| State    | Zustand (`player-store`, persisted `playlist-store`)        |
-| Data     | keyless InnerTube listing first, YouTube Data API v3 fallback |
+| State    | Zustand (`player-store`, persisted `playlist-store` + `channel-store`) |
+| Data     | Keyless InnerTube listing first, YouTube Data API v3 fallback |
 | Playback | YouTube IFrame Player API (official embed, no extraction)   |
-| Hosting  | Netlify (`@netlify/plugin-nextjs`)                          |
+| Hosting  | Netlify (SSR functions via `@astrojs/netlify`)              |
 
 ## Getting Started
 
@@ -66,9 +68,9 @@ npm run dev                  # http://localhost:3000
 ### Scripts
 
 ```bash
-npm run dev     # start dev server
+npm run dev     # astro dev server (http://localhost:4321)
 npm run build   # production build
-npm run start   # serve production build
+npm run preview # preview built output
 ```
 
 ## API Routes
@@ -95,18 +97,14 @@ automatically — check the `source` field in API responses to see which served.
 
 ```
 src/
-├── app/
-│   ├── page.tsx            # Home — hero, filters, lecture grid
-│   ├── search/page.tsx     # Search across the catalog
-│   ├── library/page.tsx    # Library — server wrapper (playlists preloaded)
-│   ├── library/library-view.tsx # Library UI — Queue + Playlists tabs
-│   └── api/                # channel / live / hls / stream / proxy routes
-├── components/
-│   ├── AudioPlayer.tsx     # hidden YouTube embed + stream playback engine
-│   ├── Sidebar.tsx         # desktop navigation
-│   ├── BottomNav.tsx       # mobile navigation
-│   ├── AddToPlaylistMenu.tsx # save-to-playlist panel
-│   └── Player/MiniPlayer.tsx # floating mini + full-screen player
+├── pages/
+│   ├── index.astro           # Home shell (HomeView island)
+│   ├── search.astro          # Search shell (?q= → SearchView island)
+│   ├── library.astro         # Library shell (server playlists → island)
+│   └── api/                  # channel / live / hls / stream endpoints
+├── layouts/Layout.astro      # html shell, YouTube top bar, islands
+├── views/                    # React islands: Home/Search/Library
+├── components/               # player, nav, sidebar, theme toggle
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)
 │   ├── playlist-store.ts   # user playlists, persisted to localStorage
@@ -129,10 +127,11 @@ via the `islah:seek` window event.
 
 ## Deployment
 
-Pushes to `master` auto-deploy on Netlify. The `netlify.toml` uses the official
-Next.js plugin — do not add manual `/api/*` or `/_next/*` redirects; they break routing.
+Pushes to `master` auto-deploy on Netlify. `netlify.toml`
+publishes `dist/`; SSR/API routes run as functions via `@astrojs/netlify`.
+Do not add manual `/api/*` redirects; they break routing.
 
 ## Contributing
 
-PRs welcome. Keep the emerald + gold theme, mobile-first layouts, and update this
+PRs welcome. Keep the golden theme, mobile-first layouts, and update this
 README + `AGENTS.md` when adding features.

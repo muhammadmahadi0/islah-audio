@@ -7,34 +7,33 @@
 
 - **Project Name**: Islah Audio
 - **Type**: Web Application (Audio Streaming)
-- **Core Functionality**: Listen to Islamic lectures (bayans, waz, nasheeds) from the
-  YouTube channel `@islahbd`, its real YouTube playlists, user-created playlists, and
+- **Core Functionality**: Listen to Islamic lectures (bayans, waz, nasheeds) from
+  the YouTube channels `@islahbd` and `@IslahiGhazal`, plus user playlists and
   the islahbd.com live broadcast — all in an audio-first experience.
 - **Target Users**: Listeners of Islah BD Islamic content.
 - **Live Site**: https://islahiboyan.netlify.app/
 
 ## Technical Stack
 
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS with custom emerald + gold dark theme
-  (tokens in `tailwind.config.js`, helpers in `src/app/globals.css`)
+- **Framework**: Astro 5 (SSR via `@astrojs/netlify`) + React islands
+  (`client:only`) for player, views, and nav — YouTube-style shell
+- **Styling**: Tailwind CSS with custom golden theme
+  (tokens in `tailwind.config.js`, helpers in `src/styles/globals.css`)
 - **Icons**: Lucide React
 - **State Management**: Zustand (`player-store`; persisted `playlist-store`)
-- **Listing Data**: YouTube Data API v3 (requires `YOUTUBE_API_KEY`)
+- **Listing Data**: keyless InnerTube first, YouTube Data API v3 fallback
 - **Lecture Playback**: Official YouTube IFrame embed (hidden `YT.Player`)
 - **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback)
-- **Hosting**: Netlify with `@netlify/plugin-nextjs` (auto-deploy from `master`)
+- **Hosting**: Netlify (`dist` publish, SSR functions via adapter)
 
 ## UI/UX Specification
 
-### Color Palette (Emerald + Gold — dark default, light available)
+### Color Palette (Golden — dark default, light available)
 
 - **Background**: ink `#060D0A` / `#0A1511` / `#0E1F18`
   (light: warm paper `#F4F6F3` → white surfaces)
-- **Accent Primary**: emerald `#10B981`, hover `#34D399`
-  (light: deeper `#059669` for contrast)
-- **Accent Secondary**: gold `#C9A227`, highlight `#E7C55A`
-  (light: deeper `#96700F` for text)
+- **Accent Primary**: gold `#C9A227`, highlight `#E7C55A`, deep `#9A7B1A`
+  (light: deeper golds `#96700F`/`#B58D1A` for contrast)
 - **Live**: red `#EF4444` with pulsing dot
 - **Text**: `#F2F5F3` / secondary `#9DB3A8` / muted `#647C71`
   (light: ink text + slate secondary)
@@ -59,10 +58,14 @@
 
 ### Components
 
-#### Sidebar (desktop)
+#### Sidebar (desktop) + drawer (Android)
 
-- Brand mark (gold `إ` on emerald) + "Islah Audio" + tagline
-- Nav: Home, Search, Library — active item gets emerald tint + gold rail
+- Brand mark (gold `?` on bronze) + "Islah Audio" + tagline
+- Nav: Home, Search, Library — active item gets gold tint + gold rail
+- **Channels switcher**: all registered channels (`lib/channels.ts`) with live
+  avatars; tapping switches Home, Search, and Library; choice persists.
+  Android opens the same sidebar as a slide-over drawer via the top-bar
+  hamburger button.
 - "Source" card (channel link + live indicator) and footer note
 
 #### Home
@@ -81,9 +84,9 @@
 #### Library (Queue + Playlists tabs — playlists live here, no separate nav)
 
 - **Queue**: current playback queue with track numbers
-- **Playlists → From YouTube**: the channel's real YouTube playlists,
-  server-rendered into the page HTML (never depends on a client fetch);
-  cards expand to InnerTube-first items with timeout + retry
+- **Playlists → From YouTube**: every channel's real YouTube playlists,
+  server-rendered into the page HTML for all channels at once (never depends
+  on a client fetch); cards expand to InnerTube-first items with timeout + retry
 - **Playlists → Your Playlists**: create/rename/delete your own playlists, save
   tracks from Home/Search, play-all, remove tracks; persisted in `localStorage`
 
@@ -122,7 +125,7 @@
 | ----- | ------- |
 | `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
 | `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
-| `GET /api/playlists` | Channel playlists (fixed channel) |
+| `GET /api/playlists/[channel]` | A channel's playlists |
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube first |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls?url=` | HLS manifest/media CORS proxy with URI rewrite |
@@ -161,5 +164,5 @@
 7. ✅ Entire catalog reachable (100 first + Show-more chunks, search indexes all)
 8. ✅ User playlists creatable, persisted, playable
 9. ✅ Search filters the catalog
-10. ✅ Emerald + gold theme, sidebar on desktop, bottom nav on mobile
+10. ✅ Golden theme, sidebar on desktop, bottom nav on mobile
 11. ✅ Responsive from mobile to desktop

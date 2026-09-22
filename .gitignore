@@ -6,10 +6,12 @@ node_modules/
 # testing
 coverage/
 
-# next.js
+# astro
+dist/
+.astro/
+
+# next.js (legacy, removed)
 .next/
-out/
-build/
 
 # misc
 .DS_Store
@@ -36,3 +38,5 @@ next-env.d.ts
 
 # idea
 .idea/
+# Local Netlify folder
+.netlify

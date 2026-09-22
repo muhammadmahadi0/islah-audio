@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { Check, ListPlus, Plus } from 'lucide-react';
 import { usePlaylistStore } from '@/store/playlist-store';

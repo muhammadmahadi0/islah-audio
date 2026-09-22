@@ -10,9 +10,7 @@ const v = (name) => `rgb(var(${name}) / <alpha-value>)`;
 module.exports = {
   darkMode: 'class',
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{astro,js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -65,8 +63,8 @@ module.exports = {
         ],
       },
       boxShadow: {
-        glow: '0 0 24px rgba(16, 185, 129, 0.35)',
-        'glow-lg': '0 8px 48px rgba(16, 185, 129, 0.35)',
+        glow: '0 0 24px rgba(201, 162, 39, 0.35)',
+        'glow-lg': '0 8px 48px rgba(201, 162, 39, 0.35)',
         card: '0 8px 32px rgba(0, 0, 0, 0.45)',
         gold: '0 0 20px rgba(201, 162, 39, 0.30)',
       },

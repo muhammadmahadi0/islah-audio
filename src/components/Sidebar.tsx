@@ -1,9 +1,8 @@
-'use client';
-
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { Home, Search, Library, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CHANNELS } from '@/lib/channels';
+import { useChannelStore } from '@/store/channel-store';
 
 const navItems = [
   { icon: Home, label: 'Home', href: '/' },
@@ -11,81 +10,154 @@ const navItems = [
   { icon: Library, label: 'Library', href: '/library' },
 ];
 
-export default function Sidebar() {
-  const pathname = usePathname();
+function usePath() {
+  const [path, setPath] = useState('/');
+  useEffect(() => {
+    setPath(window.location.pathname);
+  }, []);
+  return path;
+}
+
+interface ChannelMeta {
+  name: string;
+  avatar: string;
+}
+
+function closeMobileDrawer() {
+  document.getElementById('mobile-drawer')?.classList.add('hidden');
+  document.body.classList.remove('overflow-hidden');
+}
+
+/**
+ * YouTube-style sidebar with a Channels switcher section.
+ * `mobile` renders a full-height variant for the slide-over drawer.
+ */
+export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
+  const pathname = usePath();
+  const { channelId, setChannelId } = useChannelStore();
+  const [meta, setMeta] = useState<Record<string, ChannelMeta>>({});
+
+  // Channel avatars (lightweight meta fetch, CDN-cached server-side)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        CHANNELS.map(async (c) => {
+          try {
+            const res = await fetch(`/api/channel/${c.id}`);
+            const data = await res.json();
+            if (data.success && data.channel) {
+              return [c.id, { name: data.channel.name, avatar: data.channel.avatar }] as const;
+            }
+          } catch {
+            // ignore — monogram fallback below
+          }
+          return [c.id, { name: c.name, avatar: '' }] as const;
+        })
+      );
+      if (!cancelled) setMeta(Object.fromEntries(entries));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const switchChannel = (id: string) => {
+    setChannelId(id);
+    if (mobile) closeMobileDrawer();
+  };
 
   return (
-    <aside className="hidden md:flex w-64 lg:w-72 shrink-0 flex-col border-r border-white/[0.06] bg-ink-900/60 px-4 py-6">
-      {/* Brand */}
-      <Link href="/" className="flex items-center gap-3 px-2 mb-8 group">
-        <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand via-brand-dark to-emerald-950 flex items-center justify-center shadow-glow ring-1 ring-gold/40 group-hover:scale-105 transition-transform">
-          <span className="text-[#E7C55A] text-2xl font-bold leading-none">إ</span>
-        </span>
-        <span className="min-w-0">
-          <span className="block text-white font-extrabold tracking-tight leading-tight">
-            Islah Audio
+    <aside
+      className={cn(
+        'flex-col bg-ink-900/60 overflow-y-auto',
+        mobile ? 'flex h-full w-full px-3 py-4' : 'hidden md:flex w-60 lg:w-64 shrink-0 px-3 py-4'
+      )}
+    >
+      {/* Brand (desktop only — drawer has its own header in Layout) */}
+      {!mobile && (
+        <a href="/" className="flex items-center gap-3 px-3 mb-5 group">
+          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-light via-brand to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-gold/40 group-hover:scale-105 transition-transform">
+            <span className="text-[#E7C55A] text-xl font-bold leading-none">إ</span>
           </span>
-          <span className="block text-[11px] uppercase tracking-[0.2em] text-gold/90">
-            Bayan • Waz • Nasheed
+          <span className="min-w-0">
+            <span className="block text-white font-extrabold tracking-tight leading-tight">
+              Islah Audio
+            </span>
+            <span className="block text-[10px] uppercase tracking-[0.2em] text-gold/90">
+              Bayan • Waz • Nasheed
+            </span>
           </span>
-        </span>
-      </Link>
+        </a>
+      )}
 
       {/* Nav */}
-      <nav className="space-y-1">
+      <nav className="space-y-0.5">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           return (
-            <Link
+            <a
               key={item.href}
               href={item.href}
+              onClick={mobile ? closeMobileDrawer : undefined}
               className={cn(
-                'relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all',
+                'flex items-center gap-5 rounded-lg px-3 h-10 text-sm transition-colors',
                 isActive
-                  ? 'bg-brand/[0.12] text-white'
-                  : 'text-mist hover:text-white hover:bg-white/[0.05]'
+                  ? 'bg-white/10 text-white font-medium'
+                  : 'text-white/90 hover:bg-white/10 font-normal'
               )}
             >
-              {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-full bg-gradient-to-b from-gold-light to-gold" />
-              )}
               <Icon
-                size={19}
-                className={isActive ? 'text-brand-light' : 'text-mist-dark'}
+                size={20}
+                strokeWidth={isActive ? 2.2 : 1.8}
+                fill={isActive ? 'currentColor' : 'none'}
+                fillOpacity={isActive ? 0.2 : 0}
+                className="shrink-0"
               />
               {item.label}
-            </Link>
+            </a>
           );
         })}
       </nav>
 
-      {/* Live channel card */}
-      <div className="mt-8 rounded-2xl border border-white/[0.07] bg-gradient-to-b from-white/[0.05] to-transparent p-4">
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-60" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand" />
-          </span>
-          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-mist">
-            Source
-          </span>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <span className="w-9 h-9 rounded-full bg-brand/15 border border-brand/30 flex items-center justify-center">
-            <Radio size={16} className="text-brand-light" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-white truncate">Islah Channel</p>
-            <p className="text-xs text-mist-dark truncate">youtube.com/@islahbd</p>
-          </div>
-        </div>
+      <hr className="border-white/10 my-3" />
+
+      {/* Channels switcher (YouTube "Subscriptions" style) */}
+      <p className="px-3 pb-1 text-sm font-medium text-white">Channels</p>
+      <div className="space-y-0.5">
+        {CHANNELS.map((c) => {
+          const m = meta[c.id];
+          const active = channelId === c.id;
+          return (
+            <button
+              key={c.id}
+              onClick={() => switchChannel(c.id)}
+              className={cn(
+                'w-full flex items-center gap-4 rounded-lg px-3 h-11 text-sm transition-colors text-left',
+                active ? 'bg-brand/[0.12] text-white font-medium' : 'text-white/90 hover:bg-white/10'
+              )}
+            >
+              <span className="w-6 h-6 rounded-full overflow-hidden bg-ink-700 ring-1 ring-white/10 shrink-0 flex items-center justify-center">
+                {m?.avatar ? (
+                  <img src={m.avatar} alt="" className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <Radio size={12} className="text-brand-light" />
+                )}
+              </span>
+              <span className="flex-1 min-w-0 truncate">{m?.name || c.name}</span>
+              {active && <span className="w-1.5 h-1.5 rounded-full bg-brand-light shrink-0" />}
+            </button>
+          );
+        })}
       </div>
+
+      <hr className="border-white/10 my-3" />
 
       <div className="flex-1" />
 
       {/* Footer */}
-      <p className="px-2 text-[11px] leading-relaxed text-mist-dark">
+      <p className="px-3 text-[11px] leading-relaxed text-mist-dark">
         Audio streaming from public YouTube lectures. For listening &amp; learning.
       </p>
     </aside>

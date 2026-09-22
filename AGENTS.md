@@ -4,12 +4,18 @@ This file orients AI coding agents working in this repo. Read it before making c
 
 ## Commands
 
-- `npm run dev` — dev server (needs `YOUTUBE_API_KEY` in `.env.local`)
-- `npm run build` — production build (includes type checking; must pass)
-- `npm run start -- --port <n>` — serve a production build for smoke tests
-- No linter is configured (`next lint` prompts for setup — do not run it interactively)
+- `npm run dev` — dev server, port 4321 (needs `YOUTUBE_API_KEY` in `.env.local`)
+- `npm run build` — production build (must pass)
+- `npm run preview` — preview the built output locally
+- No linter is configured
 
 ## Architecture (do not break these contracts)
+
+0. **Astro, not Next.** Pages live in `src/pages/*.astro`, API in
+   `src/pages/api/**` as `APIRoute` handlers, shell in `src/layouts/`.
+   Interactive UI stays React islands (`client:only="react"`). No `next/*`
+   imports anywhere. Env keys read as
+   `process.env.X || import.meta.env.X` (dev only populates the latter).
 
 1. **Playback = hidden YouTube embed + hidden `<audio>` for streams.**
    `src/components/AudioPlayer.tsx` owns both engines. Tracks with `hlsUrl` /
@@ -38,33 +44,37 @@ This file orients AI coding agents working in this repo. Read it before making c
 4. **Playlists.** User playlists live in `playlist-store.ts` (persist key
    `islah-playlists`), merged into the Library tabs — no separate Playlists nav
    item. The channel-YouTube-playlists section is served by
-   `/api/playlists` (fixed channel, Data API) + `/api/playlist-items/[id]`
+   `/api/playlists/[channel]` (Data API) + `/api/playlist-items/[id]`
    (InnerTube first, Data API fallback). The list is server-rendered
-   (`library/page.tsx` passes initial data to `library-view.tsx`) so it can
+   (`library.astro` passes initial data to the island) so it can
    never hang on a client fetch; the client effect only runs as fallback.
-5. **Catalog pagination.** YouTube caps pages at 50 items: initial load fetches
+5. **Channels.** Registry in `lib/channels.ts`, active channel in
+   `channel-store.ts` (persist key `islah-channel`). Home/Search/Library all
+   follow the active channel. Sidebar shows the switcher; Android opens the
+   sidebar as a drawer (`#mobile-drawer` in the layout).
+6. **Catalog pagination.** YouTube caps pages at 50 items: initial load fetches
    `INITIAL_PAGES` (100 videos), "more" chunks fetch `MORE_PAGES` (200) via
    `/api/channel/[id]/more/[token]` (`getPlaylistVideosPaged` in `lib/youtube.ts`).
-6. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
+7. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
    `currentTrack` for the same reason).
-7. **Live (islahbd.com).** Status via `/api/live` (proxies
+8. **Live (islahbd.com).** Status via `/api/live` (proxies
    `api.islahbd.com/api/live/status/`); HLS via `/api/hls` proxy fallback.
    Live button lives in the Home hero (`page.tsx`); live tracks use
    `id: 'live'` / `'live-recording'` with `isLive` set for real broadcasts.
-8. **Netlify.** `netlify.toml` uses `@netlify/plugin-nextjs`. Never add manual
-   `/api/*` or `/_next/*` redirects, and never add invalid `[functions.*]` keys.
+9. **Netlify.** `netlify.toml` publishes `dist/`; SSR/API run as
+   functions via `@astrojs/netlify`. Never add manual `/api/*` redirects.
 
 ## Conventions
 
 - Styling: Tailwind with brand tokens (`ink-*`, `brand`, `gold`, `mist`) defined in
   `tailwind.config.js`; shared helpers (`.glass`, `.shimmer`, `.eq-bar`, `.clamp-2`,
-  `.safe-bottom`) in `src/app/globals.css`. Keep the emerald + gold theme.
+  `.safe-bottom`) in `src/styles/globals.css`. Keep the golden theme.
 - **Theming rule.** All colors must go through the token system, which resolves
   via CSS variables with `html.light` overrides. Never hardcode theme colors in
   components — the only exceptions are elements pinned to dark surfaces:
-  the gold `إ` marks on dark emerald tiles (`text-[#E7C55A]`) and text/borders
+  the gold `إ` marks on dark bronze tiles (`text-[#E7C55A]`) and text/borders
   on black photo overlays (`text-[#FFFFFF]`, `border-[#FFFFFF]/20`). Theme state lives in
   `theme-store.ts` (persist key `islah-theme`); `<html>` gets `suppressHydrationWarning`
   for the pre-paint init script.
