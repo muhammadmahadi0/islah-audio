@@ -32,6 +32,9 @@ This file orients AI coding agents working in this repo. Read it before making c
    (youtubei.js uploads playlist + stateless browse continuations) before the
    Data API fallback. Long tokens (>50 chars) are InnerTube continuations,
    short ones are Data API page tokens - the more-route branches on that.
+   **Timeouts everywhere.** Client fetches must use `fetchJson()` from
+   `lib/fetch-timeout.ts` (bare fetch hangs forever on stalled networks);
+   server InnerTube calls race `withTimeout()` (8s) into fallbacks.
 4. **Playlists.** User playlists live in `playlist-store.ts` (persist key
    `islah-playlists`), merged into the Library tabs — no separate Playlists nav
    item. **BETA:** the channel-YouTube-playlists section is back, served by

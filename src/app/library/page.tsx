@@ -18,6 +18,7 @@ import {
   Youtube,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { fetchJson } from '@/lib/fetch-timeout';
 
 function formatDuration(seconds: number): string {
   if (!seconds || seconds <= 0) return '0:00';
@@ -238,16 +239,16 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
   const [expanded, setExpanded] = useState(false);
   const [tracks, setTracks] = useState<Track[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
 
-  const ensureTracks = async (): Promise<Track[]> => {
-    if (tracks) return tracks;
+  const load = async (): Promise<Track[]> => {
     setIsLoading(true);
+    setLoadFailed(false);
     try {
       // NOTE: playlist ID goes in the path — query strings are dropped
       // by our hosting before function invocation.
-      const res = await fetch(`/api/playlist-items/${playlist.id}`);
-      const data = await res.json();
+      const data = await fetchJson(`/api/playlist-items/${playlist.id}`, 20000);
       if (data.success && Array.isArray(data.videos)) {
         const mapped: Track[] = data.videos.map((v: any) => ({
           id: v.videoId || v.id,
@@ -260,14 +261,26 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
         setTracks(mapped);
         return mapped;
       }
+      throw new Error(data.error || 'Bad playlist response');
     } catch (error) {
       console.error('Playlist items load error:', error);
+      setLoadFailed(true);
     } finally {
       setIsLoading(false);
     }
     // Never leave tracks null — that would spin the loader forever.
     setTracks([]);
     return [];
+  };
+
+  const ensureTracks = async (): Promise<Track[]> => {
+    if (tracks) return tracks;
+    return load();
+  };
+
+  const reload = () => {
+    setTracks(null);
+    load();
   };
 
   const toggle = () => {
@@ -340,9 +353,21 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
               <Loader2 size={22} className="animate-spin text-brand-light" />
             </div>
           ) : tracks.length === 0 ? (
-            <p className="px-4 py-5 text-[13px] text-mist-dark text-center">
-              This playlist is empty or unavailable.
-            </p>
+            <div className="px-4 py-5 text-center">
+              <p className="text-[13px] text-mist-dark">
+                {loadFailed
+                  ? 'Couldn’t load this playlist.'
+                  : 'This playlist is empty or unavailable.'}
+              </p>
+              {loadFailed && (
+                <button
+                  onClick={reload}
+                  className="mt-2.5 px-5 py-1.5 rounded-full bg-white/[0.06] border border-white/15 text-xs font-bold text-white hover:border-brand/60 transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
           ) : (
             <div className="divide-y divide-white/[0.05]">
               {tracks.map((t, i) => (
@@ -382,13 +407,12 @@ export default function LibraryPage() {
       setYtLoading(true);
       setYtError(false);
       try {
-        const res = await fetch('/api/playlists');
-        const data = await res.json();
+        // The list route needs no params (fixed channel).
+        const data = await fetchJson('/api/playlists', 20000);
         if (!cancelled && data.success && Array.isArray(data.playlists)) {
           setYtPlaylists(data.playlists);
         } else if (!cancelled) {
-          setYtError(true);
-          setYtPlaylists([]);
+          throw new Error(data.error || 'Bad playlists response');
         }
       } catch (error) {
         console.error('Channel playlists load error:', error);

@@ -15,8 +15,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getChannelVideos, hasApiKey, getChannelVideoCount } from '@/lib/youtube';
 import {
   getInnertubeChannelVideos,
+  INNERTUBE_TIMEOUT_MS,
   type InnertubeVideo,
 } from '@/lib/innertube';
+import { withTimeout } from '@/lib/fetch-timeout';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,9 +50,14 @@ export async function GET(
 
   console.log(`[Channel API] Fetching: ${channelId}`);
 
-  // 1. InnerTube (keyless, quota-free)
+  // 1. InnerTube (keyless, quota-free) with a hard budget —
+  // a stalled upstream must fall back fast, not hang the function.
   try {
-    const inner = await getInnertubeChannelVideos(channelId);
+    const inner = await withTimeout(
+      getInnertubeChannelVideos(channelId),
+      INNERTUBE_TIMEOUT_MS,
+      'innertube-channel'
+    );
 
     if (inner.videos.length > 0) {
       console.log(`[Channel API] InnerTube success: ${inner.videos.length} videos`);

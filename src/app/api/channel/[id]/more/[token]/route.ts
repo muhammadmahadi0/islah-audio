@@ -18,8 +18,10 @@ import {
 import {
   getInnertubeMore,
   isInnertubeToken,
+  INNERTUBE_TIMEOUT_MS,
   type InnertubeVideo,
 } from '@/lib/innertube';
+import { withTimeout } from '@/lib/fetch-timeout';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,10 +53,14 @@ export async function GET(
   const { id, token } = await params;
   const decodedToken = decodeURIComponent(token);
 
-  // 1. InnerTube continuation (keyless)
+  // 1. InnerTube continuation (keyless) with a hard budget.
   if (isInnertubeToken(decodedToken)) {
     try {
-      const { videos, nextToken } = await getInnertubeMore(decodedToken, 2);
+      const { videos, nextToken } = await withTimeout(
+        getInnertubeMore(decodedToken, 2),
+        INNERTUBE_TIMEOUT_MS,
+        'innertube-more'
+      );
 
       console.log(`[Channel More API] InnerTube success: ${videos.length} videos`);
 

@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { DEFAULT_CHANNEL_ID } from '@/lib/invidious';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
+import { fetchJson } from '@/lib/fetch-timeout';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CHANNEL_ID = DEFAULT_CHANNEL_ID;
@@ -243,13 +244,7 @@ export default function HomePage() {
 
       // NOTE: channel ID goes in the path — query strings are dropped
       // by our hosting before function invocation.
-      const res = await fetch(`/api/channel/${CHANNEL_ID}`);
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Server error: ${res.status}`);
-      }
-
-      const data = await res.json();
+      const data = await fetchJson(`/api/channel/${CHANNEL_ID}`, 20000);
       if (!data.success || !data.videos) {
         throw new Error(data.error || 'No videos found');
       }
@@ -344,10 +339,10 @@ export default function HomePage() {
     if (!nextToken || loadingMore) return;
     setLoadingMore(true);
     try {
-      const res = await fetch(
-        `/api/channel/${CHANNEL_ID}/more/${encodeURIComponent(nextToken)}`
+      const data = await fetchJson(
+        `/api/channel/${CHANNEL_ID}/more/${encodeURIComponent(nextToken)}`,
+        25000
       );
-      const data = await res.json();
       if (data.success && Array.isArray(data.videos)) {
         setVideos((prev) => {
           const seen = new Set(prev.map((v) => v.videoId || v.id));

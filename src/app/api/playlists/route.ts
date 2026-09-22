@@ -13,6 +13,7 @@ import {
   hasApiKey,
   TARGET_CHANNEL_ID,
 } from '@/lib/youtube';
+import { withTimeout } from '@/lib/fetch-timeout';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +26,11 @@ export async function GET() {
   }
 
   try {
-    const playlists = await getChannelPlaylists(TARGET_CHANNEL_ID);
+    const playlists = await withTimeout(
+      getChannelPlaylists(TARGET_CHANNEL_ID),
+      8000,
+      'playlists-list'
+    );
 
     const response = NextResponse.json({ success: true, playlists });
     // Playlists change rarely — cache longer to save quota

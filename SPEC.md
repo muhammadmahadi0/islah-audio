@@ -132,7 +132,10 @@
 
 - **IDs travel in URL paths, never query strings** — the hosting layer drops
   query parameters before function invocation (`/api/channel/[id]`,
-  `/api/playlist-items/[id]`). The legacy `?id=` variants remain as fallbacks.
+  `/api/channel/[id]/more/[token]`). The legacy `?id=` variants remain as fallbacks.
+- **Every fetch has a timeout** — bare `fetch()` hangs forever on stalled mobile
+  networks, so clients use `fetchJson()` (`lib/fetch-timeout.ts`, 15–25s) and
+  server InnerTube calls race `withTimeout()` (8s) into the Data API fallback.
 - CDN caching on API routes (`s-maxage` + `stale-while-revalidate`); no-store
   for live status.
 - Queue in memory (zustand); user playlists in `localStorage`.

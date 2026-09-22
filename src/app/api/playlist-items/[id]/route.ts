@@ -14,8 +14,10 @@ import {
 } from '@/lib/youtube';
 import {
   getInnertubePlaylistItems,
+  INNERTUBE_TIMEOUT_MS,
   type InnertubeVideo,
 } from '@/lib/innertube';
+import { withTimeout } from '@/lib/fetch-timeout';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,9 +55,14 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid playlist ID' }, { status: 400 });
   }
 
-  // 1. InnerTube (keyless, first ~200 items)
+  // 1. InnerTube (keyless, first ~200 items) with a hard budget —
+  // a stalled upstream must fall back fast, not hang the function.
   try {
-    const { videos } = await getInnertubePlaylistItems(playlistId, 2);
+    const { videos } = await withTimeout(
+      getInnertubePlaylistItems(playlistId, 2),
+      INNERTUBE_TIMEOUT_MS,
+      'innertube-items'
+    );
 
     if (videos.length > 0) {
       console.log(`[Playlist Items API] InnerTube success: ${videos.length} videos`);

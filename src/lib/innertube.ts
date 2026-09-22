@@ -219,3 +219,6 @@ export async function getInnertubePlaylistItems(
 export function isInnertubeToken(token: string): boolean {
   return token.length > 50;
 }
+
+/** Budget for one InnerTube operation inside a serverless invocation. */
+export const INNERTUBE_TIMEOUT_MS = 8000;
