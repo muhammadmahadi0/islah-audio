@@ -409,6 +409,34 @@ export default function MiniPlayer() {
     else playTrack(track, playlist, index);
   };
 
+  // Queue panel: scroll container + active row refs for auto-scroll.
+  const queueScrollRef = useRef<HTMLDivElement>(null);
+  const queueActiveRef = useRef<HTMLButtonElement>(null);
+
+  // Auto-scroll the open queue so the now-playing row is visible:
+  // top of the list on open, smooth follow when the track changes.
+  const scrollQueueToActive = (smooth: boolean) => {
+    const row = queueActiveRef.current;
+    const box = queueScrollRef.current;
+    if (!row || !box) return;
+    const top = row.offsetTop - box.clientHeight / 2 + row.clientHeight / 2;
+    box.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' });
+  };
+
+  useEffect(() => {
+    if (queueOpen) {
+      // Wait a frame for the panel to mount before measuring.
+      const id = requestAnimationFrame(() => scrollQueueToActive(false));
+      return () => cancelAnimationFrame(id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queueOpen]);
+
+  useEffect(() => {
+    if (queueOpen) scrollQueueToActive(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playlistIndex, currentTrack?.videoId]);
+
   return (
     <>
       {/* ---------------- Full-screen player (liquid glass) ---------------- */}
@@ -658,7 +686,24 @@ export default function MiniPlayer() {
                 />
                 <div className="absolute bottom-full mb-2 inset-x-0 z-20 overflow-hidden rounded-2xl liquid-glass">
                   <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-                  <div className="relative max-h-64 overflow-y-auto p-1.5">
+                  {/* Now-playing header pinned on top of the scroll list */}
+                  {playlist.length > 0 && playlistIndex >= 0 && playlist[playlistIndex] && (
+                    <div className="relative border-b border-white/10 bg-black/20 px-3 py-2">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold">
+                        Now playing
+                      </p>
+                      <p className="mt-0.5 truncate text-[13px] font-semibold text-white">
+                        {playlist[playlistIndex].title}
+                      </p>
+                      <p className="truncate text-[11px] text-mist-dark">
+                        {playlist[playlistIndex].channelName}
+                        {queueTotal > 1 && queuePos !== null
+                          ? ` • ${queuePos} of ${queueTotal}`
+                          : ''}
+                      </p>
+                    </div>
+                  )}
+                  <div ref={queueScrollRef} className="relative max-h-64 overflow-y-auto p-1.5">
                     {playlist.length === 0 ? (
                       <p className="px-3 py-5 text-center text-[13px] text-mist-dark">
                         Queue is empty — play some lectures and they’ll show up here.
@@ -669,6 +714,7 @@ export default function MiniPlayer() {
                         return (
                           <button
                             key={`${t.id}-${i}`}
+                            ref={active ? queueActiveRef : undefined}
                             onClick={() => playQueueTrack(t, i)}
                             className={cn(
                               'flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors',

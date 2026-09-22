@@ -98,7 +98,8 @@
 - **Playlists → Your Playlists**: create/rename/delete your own playlists, save
   tracks from Home/Search, play-all, remove tracks; persisted in `localStorage`
 - The playback queue lives in the expanded player's **Up next** dropdown
-  (bottom of the sheet, opens upward as an overlay; tap a row to jump to it)
+  (bottom of the sheet, opens upward as an overlay; pinned Now-playing header
+  on top, list auto-scrolls to the current track, tap a row to jump to it)
 
 #### Mini Player
 
