@@ -14,10 +14,10 @@
   --ink-800: 14 31 24;
   --ink-700: 20 41 31;
   --ink-600: 28 56 42;
-  --brand: 16 185 129;
-  --brand-light: 52 211 153;
-  --brand-dark: 5 150 105;
-  --brand-deep: 6 78 59;
+  --brand: 201 162 39;
+  --brand-light: 231 197 90;
+  --brand-dark: 154 123 26;
+  --brand-deep: 74 58 12;
   --gold: 201 162 39;
   --gold-light: 231 197 90;
   --mist: 157 179 168;
@@ -34,10 +34,10 @@ html.light {
   --ink-800: 236 239 233;
   --ink-700: 226 232 226;
   --ink-600: 211 220 210;
-  --brand: 5 150 105;
-  --brand-light: 5 150 105;
-  --brand-dark: 4 120 87;
-  --brand-deep: 6 78 59;
+  --brand: 150 113 15;
+  --brand-light: 181 141 26;
+  --brand-dark: 122 92 12;
+  --brand-deep: 74 58 12;
   --gold: 150 113 15;
   --gold-light: 133 100 13;
   --mist: 74 90 80;
@@ -156,7 +156,7 @@ input[type='range']::-webkit-slider-thumb {
   border-radius: 50%;
   background: #fff;
   border: 3px solid rgb(var(--brand));
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.55);
   transition: transform 0.15s;
 }
 input[type='range']::-webkit-slider-thumb:hover {
@@ -178,7 +178,7 @@ input[type='range']::-moz-range-thumb {
   border-radius: 50%;
   background: #fff;
   border: 3px solid rgb(var(--brand));
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.55);
 }
 
 /* Two-line clamp helper (no plugin needed) */

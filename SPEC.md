@@ -17,7 +17,7 @@
 
 - **Framework**: Astro 5 (SSR via `@astrojs/netlify`) + React islands
   (`client:only`) for player, views, and nav — YouTube-style shell
-- **Styling**: Tailwind CSS with custom emerald + gold dark theme
+- **Styling**: Tailwind CSS with custom golden theme
   (tokens in `tailwind.config.js`, helpers in `src/styles/globals.css`)
 - **Icons**: Lucide React
 - **State Management**: Zustand (`player-store`; persisted `playlist-store`)
@@ -28,14 +28,12 @@
 
 ## UI/UX Specification
 
-### Color Palette (Emerald + Gold — dark default, light available)
+### Color Palette (Golden — dark default, light available)
 
 - **Background**: ink `#060D0A` / `#0A1511` / `#0E1F18`
   (light: warm paper `#F4F6F3` → white surfaces)
-- **Accent Primary**: emerald `#10B981`, hover `#34D399`
-  (light: deeper `#059669` for contrast)
-- **Accent Secondary**: gold `#C9A227`, highlight `#E7C55A`
-  (light: deeper `#96700F` for text)
+- **Accent Primary**: gold `#C9A227`, highlight `#E7C55A`, deep `#9A7B1A`
+  (light: deeper golds `#96700F`/`#B58D1A` for contrast)
 - **Live**: red `#EF4444` with pulsing dot
 - **Text**: `#F2F5F3` / secondary `#9DB3A8` / muted `#647C71`
   (light: ink text + slate secondary)
@@ -62,8 +60,8 @@
 
 #### Sidebar (desktop) + drawer (Android)
 
-- Brand mark (gold `إ` on emerald) + "Islah Audio" + tagline
-- Nav: Home, Search, Library — active item gets emerald tint + gold rail
+- Brand mark (gold `?` on bronze) + "Islah Audio" + tagline
+- Nav: Home, Search, Library — active item gets gold tint + gold rail
 - **Channels switcher**: all registered channels (`lib/channels.ts`) with live
   avatars; tapping switches Home, Search, and Library; choice persists.
   Android opens the same sidebar as a slide-over drawer via the top-bar
@@ -166,5 +164,5 @@
 7. ✅ Entire catalog reachable (100 first + Show-more chunks, search indexes all)
 8. ✅ User playlists creatable, persisted, playable
 9. ✅ Search filters the catalog
-10. ✅ Emerald + gold theme, sidebar on desktop, bottom nav on mobile
+10. ✅ Golden theme, sidebar on desktop, bottom nav on mobile
 11. ✅ Responsive from mobile to desktop

@@ -63,8 +63,8 @@ module.exports = {
         ],
       },
       boxShadow: {
-        glow: '0 0 24px rgba(16, 185, 129, 0.35)',
-        'glow-lg': '0 8px 48px rgba(16, 185, 129, 0.35)',
+        glow: '0 0 24px rgba(201, 162, 39, 0.35)',
+        'glow-lg': '0 8px 48px rgba(201, 162, 39, 0.35)',
         card: '0 8px 32px rgba(0, 0, 0, 0.45)',
         gold: '0 0 20px rgba(201, 162, 39, 0.30)',
       },

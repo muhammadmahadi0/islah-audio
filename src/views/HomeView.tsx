@@ -441,7 +441,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-4 md:gap-6 px-1 md:px-2 pt-2 md:pt-6 pb-4"
           >
-            <div className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 ring-1 ring-white/15 bg-gradient-to-br from-brand to-emerald-950 flex items-center justify-center">
+            <div className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 ring-1 ring-white/15 bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center">
               {channelAvatar ? (
                 <img
                   src={channelAvatar}
@@ -510,7 +510,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={handlePlayAll}
-                  className="h-9 px-4 rounded-full bg-white text-black text-sm font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-95 transition-all"
+                  className="h-9 px-4 rounded-full bg-[#FFFFFF] text-black text-sm font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-95 transition-all shadow"
                   aria-label={currentTrack && isPlaying ? 'Pause' : 'Play all'}
                 >
                   {isPlaying && currentTrack ? (
@@ -544,7 +544,7 @@ export default function HomePage() {
                   className={cn(
                     'shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                     filter === f.id
-                      ? 'bg-white text-black'
+                      ? 'bg-[#FFFFFF] text-black shadow'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   )}
                 >

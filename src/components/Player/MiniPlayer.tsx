@@ -271,7 +271,7 @@ export default function MiniPlayer() {
         {/* Progress hairline */}
         <span className="absolute top-0 left-3 right-3 h-[2px] rounded-full bg-white/10 overflow-hidden">
           <span
-            className="block h-full rounded-full bg-gradient-to-r from-brand to-gold transition-[width]"
+            className="block h-full rounded-full bg-gradient-to-r from-gold-light to-gold transition-[width]"
             style={{ width: `${progress}%` }}
           />
         </span>

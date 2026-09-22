@@ -77,7 +77,7 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
       {/* Brand (desktop only — drawer has its own header in Layout) */}
       {!mobile && (
         <a href="/" className="flex items-center gap-3 px-3 mb-5 group">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand via-brand-dark to-emerald-950 flex items-center justify-center shadow-glow ring-1 ring-gold/40 group-hover:scale-105 transition-transform">
+          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-light via-brand to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-gold/40 group-hover:scale-105 transition-transform">
             <span className="text-[#E7C55A] text-xl font-bold leading-none">إ</span>
           </span>
           <span className="min-w-0">

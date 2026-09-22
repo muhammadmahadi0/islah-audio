@@ -23,7 +23,7 @@ playlists, search, and a mobile-first design.
 - **Channels** — switch between `@islahbd` and `@IslahiGhazal` from the sidebar
   (slide-over drawer on Android); Home, Search, and Library all follow along
 - **Search** — instant client-side search across the channel catalog
-- **Modern UI** — emerald + gold theme with light/dark mode (floating toggle,
+- **Modern UI** — golden theme with light/dark mode (floating toggle,
   persisted), desktop sidebar, mobile bottom nav,
   floating glass mini-player with full-screen expanded mode, Bayans/Shorts filters
 
@@ -133,5 +133,5 @@ Do not add manual `/api/*` redirects; they break routing.
 
 ## Contributing
 
-PRs welcome. Keep the emerald + gold theme, mobile-first layouts, and update this
+PRs welcome. Keep the golden theme, mobile-first layouts, and update this
 README + `AGENTS.md` when adding features.

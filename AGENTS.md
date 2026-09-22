@@ -71,11 +71,11 @@ This file orients AI coding agents working in this repo. Read it before making c
 
 - Styling: Tailwind with brand tokens (`ink-*`, `brand`, `gold`, `mist`) defined in
   `tailwind.config.js`; shared helpers (`.glass`, `.shimmer`, `.eq-bar`, `.clamp-2`,
-  `.safe-bottom`) in `src/styles/globals.css`. Keep the emerald + gold theme.
+  `.safe-bottom`) in `src/styles/globals.css`. Keep the golden theme.
 - **Theming rule.** All colors must go through the token system, which resolves
   via CSS variables with `html.light` overrides. Never hardcode theme colors in
   components — the only exceptions are elements pinned to dark surfaces:
-  the gold `إ` marks on dark emerald tiles (`text-[#E7C55A]`) and text/borders
+  the gold `إ` marks on dark bronze tiles (`text-[#E7C55A]`) and text/borders
   on black photo overlays (`text-[#FFFFFF]`, `border-[#FFFFFF]/20`). Theme state lives in
   `theme-store.ts` (persist key `islah-theme`); `<html>` gets `suppressHydrationWarning`
   for the pre-paint init script.
