@@ -39,7 +39,9 @@ This file orients AI coding agents working in this repo. Read it before making c
    `islah-playlists`), merged into the Library tabs — no separate Playlists nav
    item. **BETA:** the channel-YouTube-playlists section is back, served by
    `/api/playlists` (fixed channel, Data API) + `/api/playlist-items/[id]`
-   (InnerTube first, Data API fallback).
+   (InnerTube first, Data API fallback). The list is server-rendered
+   (`library/page.tsx` passes initial data to `library-view.tsx`) so it can
+   never hang on a client fetch; the client effect only runs as fallback.
 5. **Catalog pagination.** YouTube caps pages at 50 items: initial load fetches
    `INITIAL_PAGES` (100 videos), "more" chunks fetch `MORE_PAGES` (200) via
    `/api/channel/[id]/more/[token]` (`getPlaylistVideosPaged` in `lib/youtube.ts`).

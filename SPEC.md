@@ -81,8 +81,9 @@
 #### Library (Queue + Playlists tabs — playlists live here, no separate nav)
 
 - **Queue**: current playback queue with track numbers
-- **Playlists → From YouTube (BETA)**: the channel's real YouTube playlists
-  (cover, counts, expandable, play-all; items via InnerTube first)
+- **Playlists → From YouTube (BETA)**: the channel's real YouTube playlists,
+  server-rendered into the page HTML (never depends on a client fetch);
+  cards expand to InnerTube-first items with timeout + retry
 - **Playlists → Your Playlists**: create/rename/delete your own playlists, save
   tracks from Home/Search, play-all, remove tracks; persisted in `localStorage`
 
