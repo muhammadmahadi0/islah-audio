@@ -495,13 +495,13 @@ export default function HomePage() {
                 </p>
               )}
 
-              {/* Actions row */}
-              <div className="mt-3 flex items-center gap-2">
+              {/* Actions row — wraps on small screens, labels never wrap */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleLive}
                   disabled={!live || (!live.isLive && !live.recording)}
                   className={cn(
-                    'h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium transition-all disabled:opacity-40',
+                    'h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-all disabled:opacity-40',
                     live?.isLive
                       ? 'bg-black/60 text-white ring-1 ring-red-500 hover:bg-black/70 active:scale-95'
                       : 'bg-white/10 text-white hover:bg-white/15 active:scale-95'
@@ -533,7 +533,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={handlePlayAll}
-                  className="relative h-9 px-4 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 text-sm font-bold flex items-center gap-1.5 hover:scale-[1.03] active:scale-95 transition-all shadow-glow ring-1 ring-white/30"
+                  className="relative h-9 px-4 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 text-sm font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:scale-[1.03] active:scale-95 transition-all shadow-glow ring-1 ring-white/30"
                   aria-label={currentTrack && isPlaying ? 'Pause' : 'Play all'}
                 >
                   <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-3 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
