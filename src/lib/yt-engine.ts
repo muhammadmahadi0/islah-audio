@@ -110,9 +110,14 @@ export function setEnginePlayer(player: any | null) {
 export function setVideoMode(mode: VideoMode) {
   engine.mode = mode;
   const player = engine.player;
-  if (player) {
+  // Guard: never talk to a player that isn't ready or whose iframe React
+  // has detached (e.g. stop unmounted the UI). Those calls log
+  // "player is not attached to the DOM" + postMessage origin warnings.
+  if (player && engine.ready) {
     try {
-      if (mode === 'audio') {
+      const iframe = player.getIframe?.();
+      const attached = !iframe || iframe.isConnected;
+      if (attached && mode === 'audio') {
         player.setPlaybackQuality('tiny');
       }
     } catch {

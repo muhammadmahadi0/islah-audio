@@ -228,8 +228,11 @@ export default function MiniPlayer() {
       const p = playerRef.current;
       if (p && readyRef.current) {
         try {
-          // Pause (not stopVideo — that can fire ENDED and auto-advance).
-          p.pauseVideo();
+          const iframe = p.getIframe?.();
+          if (!iframe || iframe.isConnected) {
+            // Pause (not stopVideo — that can fire ENDED and auto-advance).
+            p.pauseVideo();
+          }
         } catch {
           // ignore — player may be tearing down
         }
@@ -311,6 +314,8 @@ export default function MiniPlayer() {
     const player = playerRef.current;
     if (!player || !readyRef.current) return;
     try {
+      const iframe = player.getIframe?.();
+      if (iframe && !iframe.isConnected) return;
       if (isPlaying) player.playVideo();
       else player.pauseVideo();
     } catch (err) {
@@ -323,6 +328,8 @@ export default function MiniPlayer() {
     const player = playerRef.current;
     if (!player || !readyRef.current) return;
     try {
+      const iframe = player.getIframe?.();
+      if (iframe && !iframe.isConnected) return;
       player.setVolume(Math.round(volume * 100));
     } catch {
       // ignore
