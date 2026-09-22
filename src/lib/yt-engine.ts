@@ -69,8 +69,21 @@ export function subscribeEngine(fn: Listener): () => void {
   };
 }
 
+let cachedSnapshot: { mode: VideoMode; quality: string; ready: boolean } | null = null;
+
 export function getEngineSnapshot(): { mode: VideoMode; quality: string; ready: boolean } {
-  return { mode: engine.mode, quality: engine.quality, ready: engine.ready };
+  // useSyncExternalStore compares by reference — a fresh object every call
+  // looks like changed state and infinite-loops the subscriber. Cache it.
+  const next = { mode: engine.mode, quality: engine.quality, ready: engine.ready };
+  if (
+    !cachedSnapshot ||
+    cachedSnapshot.mode !== next.mode ||
+    cachedSnapshot.quality !== next.quality ||
+    cachedSnapshot.ready !== next.ready
+  ) {
+    cachedSnapshot = next;
+  }
+  return cachedSnapshot;
 }
 
 let apiPromise: Promise<any> | null = null;
