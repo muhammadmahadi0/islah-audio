@@ -18,14 +18,12 @@ This file orients AI coding agents working in this repo. Read it before making c
    `process.env.X || import.meta.env.X` (dev only populates the latter).
 
 1. **Playback = hidden YouTube embed + hidden `<audio>` for streams.**
-   The YT engine lives in `lib/yt-engine.ts` (single player, video/audio
-   modes, persisted quality) and is mounted by MiniPlayer in a node that must
-   NEVER unmount mid-track — the expanded sheet + mini pill toggle via CSS
-   visibility, not conditional returns. If the iframe detaches (e.g. after
-   stop), the track effect rebinds a fresh player. `AudioPlayer.tsx` owns only
-   the `<audio>`/hls.js stream engine. Seeking from any UI goes through the
+   `src/components/AudioPlayer.tsx` owns both engines. Tracks with `hlsUrl` /
+   `audioUrl` (live broadcast, recordings) use `<audio>` + hls.js; everything
+   else uses the `YT.Player` embed. Seeking from any UI goes through the
    `islah:seek` window `CustomEvent` (`detail` = seconds), ignored for live
-   (`track.isLive`).
+   (`track.isLive`). Never query `document.querySelector('audio')` as the
+   primary mechanism (legacy fallback only).
 2. **No audio-extraction services.** Cobalt v7 (`api.cobalt.tools`) is shut down;
    public Piped/Invidious instances return 403/525. Do NOT reintroduce `cobalt.ts`,
    `ytdl-core`, or third-party extractors. `/api/stream/[id]` intentionally returns

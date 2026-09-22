@@ -110,9 +110,7 @@
    CDN-cached to save quota.
 2. **Lecture Playback** — hidden YouTube embed driven by the player store
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
-   volume, progress polling). Minimized = audio-only at lowest quality.
-   Expanded (BETA) = real video in the same player with a gear menu
-   (Auto/1080p/720p/480p/360p/240p/144p, persisted). Unplayable videos auto-skip.
+   volume, progress polling). Unplayable videos auto-skip.
 3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
    red LIVE button plays HLS when on air, gold Last Live replays the latest
    recording when offline. HLS falls back to the `/api/hls` CORS proxy,
