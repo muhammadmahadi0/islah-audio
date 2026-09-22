@@ -145,14 +145,23 @@ export default function MiniPlayer() {
               readyRef.current = true;
               setEnginePlayer(playerRef.current);
               e.target.setVolume(Math.round(usePlayerStore.getState().volume * 100));
-              // A track selected before ready loads now
+              // A track selected before ready loads now. Always load — the
+              // track effect may have already recorded this videoId while the
+              // player was still being created.
               const track = usePlayerStore.getState().currentTrack;
               if (track?.videoId && !track.hlsUrl && !track.audioUrl) {
-                if (trackIdRef.current !== track.videoId) {
-                  trackIdRef.current = track.videoId;
-                  storeRef.current.setIsLoading(true);
+                trackIdRef.current = track.videoId;
+                storeRef.current.setIsLoading(true);
+                try {
                   if (playingRef.current) e.target.loadVideoById(track.videoId);
                   else e.target.cueVideoById(track.videoId);
+                  // Audio-first: keep data-saver quality until the user
+                  // explicitly opens video via the gear button.
+                  if (getEngineSnapshot().mode !== 'video') {
+                    e.target.setPlaybackQuality('tiny');
+                  }
+                } catch {
+                  storeRef.current.setIsLoading(false);
                 }
               }
             },
@@ -216,15 +225,17 @@ export default function MiniPlayer() {
 
   // Load / cue YT tracks; pause the embed for anything else
   useEffect(() => {
-    const player = playerRef.current;
     const track = currentTrack;
 
     if (!track || track.hlsUrl || track.audioUrl || !track.videoId) {
       trackIdRef.current = null;
-      if (player && readyRef.current) {
+      // Back to audio-only for streams / cleared tracks
+      setVideoMode('audio');
+      const p = playerRef.current;
+      if (p && readyRef.current) {
         try {
           // Pause (not stopVideo — that can fire ENDED and auto-advance).
-          player.pauseVideo();
+          p.pauseVideo();
         } catch {
           // ignore — player may be tearing down
         }
@@ -239,6 +250,28 @@ export default function MiniPlayer() {
     setCurrentTime(0);
     setDuration(track.duration || 0);
 
+    // No player yet (e.g. no track at island mount) — create it now and
+    // let onReady load the current track. The mount node renders with the
+    // track, so it exists by the time this effect runs.
+    if (!playerRef.current) {
+      if (apiFailedRef.current) {
+        // Embed API itself failed — don't leave the spinner on.
+        setIsLoading(false);
+      } else if (ytMountRef.current && window.YT?.Player) {
+        createPlayer(window.YT);
+      } else if (ytMountRef.current) {
+        loadYouTubeAPI()
+          .then((YT) => createPlayer(YT))
+          .catch((err) => {
+            console.error('[MiniPlayer] YT lazy init:', err);
+            apiFailedRef.current = true;
+            storeRef.current.setIsLoading(false);
+          });
+      }
+      return; // onReady loads the current track
+    }
+
+    const player = playerRef.current;
     if (player && readyRef.current) {
       // React may have recycled the mount node while no track was active
       // (e.g. after stop) — a detached iframe can't play. Rebind instead.
@@ -295,10 +328,14 @@ export default function MiniPlayer() {
     }
   }, [volume]);
 
-  // Video mode follows the sheet: expanded = visible video, else audio-only
+  // Collapsing always returns to audio-only. Video mode is strictly
+  // opt-in via the gear button — playback never starts as video.
   useEffect(() => {
-    setVideoMode(isExpanded && isYtTrack ? 'video' : 'audio');
-  }, [isExpanded, isYtTrack]);
+    if (!isExpanded) {
+      setQualityMenuOpen(false);
+      setVideoMode('audio');
+    }
+  }, [isExpanded]);
 
   // Seek + progress polling for YT tracks
   useEffect(() => {
@@ -353,6 +390,15 @@ export default function MiniPlayer() {
     const levels = getAvailableQualities();
     setMenuLevels(levels.length > 0 ? levels : FALLBACK_LEVELS);
     setQualityMenuOpen((v) => !v);
+  };
+
+  // Gear: first tap switches audio → video, further taps open qualities.
+  const handleGear = () => {
+    if (engine.mode !== 'video') {
+      setVideoMode('video');
+      return;
+    }
+    openQualityMenu();
   };
 
   return (
@@ -412,22 +458,35 @@ export default function MiniPlayer() {
             </button>
           </div>
 
-          {/* Video frame (YouTube tracks) or artwork */}
+          {/* Video frame (YouTube tracks) or artwork.
+              The YT mount stays rendered while a YT track is active so the
+              player is never destroyed mid-track; hidden = audio-only. */}
           <div className="flex min-h-0 flex-1 items-center justify-center py-4">
-            {showVideo ? (
+            {isYtTrack ? (
               <div className="relative w-full overflow-hidden rounded-[20px] shadow-card ring-1 ring-white/15 bg-black aspect-video">
-                {/* Persistent YT mount — never unmounts while a track exists */}
-                <div ref={ytMountRef} className="h-full w-full" />
-                {/* Gear: quality menu, YouTube-style corner button */}
+                <div ref={ytMountRef} className={cn('h-full w-full', !showVideo && 'hidden')} />
+                {!showVideo &&
+                  (currentTrack.thumbnail ? (
+                    <img
+                      src={currentTrack.thumbnail}
+                      alt={currentTrack.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-deep to-ink-800">
+                      <Music size={48} className="text-brand-light" />
+                    </div>
+                  ))}
+                {/* Gear: first tap opens the video, further taps pick quality */}
                 <button
-                  onClick={openQualityMenu}
+                  onClick={handleGear}
                   className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur transition-colors hover:bg-black/90"
-                  aria-label="Playback quality"
-                  title="Quality"
+                  aria-label={engine.mode === 'video' ? 'Playback quality' : 'Watch video'}
+                  title={engine.mode === 'video' ? 'Quality' : 'Watch video'}
                 >
                   <Settings2 size={18} />
                 </button>
-                {qualityMenuOpen && (
+                {qualityMenuOpen && engine.mode === 'video' && (
                   <>
                     <button
                       aria-label="Close quality menu"
