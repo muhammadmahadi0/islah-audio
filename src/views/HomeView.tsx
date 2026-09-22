@@ -16,7 +16,7 @@ import { useChannelStore } from '@/store/channel-store';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 import { fetchJson } from '@/lib/fetch-timeout';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 
 
@@ -120,7 +120,7 @@ function VideoCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index, 11) * 0.04, duration: 0.4 }}
       onClick={() => onPlay(video)}
-      className="group relative cursor-pointer"
+      className="group relative cursor-pointer cv-card"
     >
       {/* YouTube-style thumbnail in a liquid-glass frame */}
       <div className="relative liquid-glass rounded-2xl p-1.5 mb-3">
@@ -560,7 +560,7 @@ export default function HomePage() {
 
         {/* ---------- Sticky chips bar (liquid-glass pill) ---------- */}
         {!isLoading && !error && (
-          <div className="sticky top-[4.75rem] z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2">
+          <div className="sticky top-[4.75rem] z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2 transform-gpu">
             <div className="relative liquid-glass rounded-full px-2 py-1.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
               <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-14 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
               {FILTERS.map((f) => (
@@ -596,8 +596,10 @@ export default function HomePage() {
         {!isLoading && !error && filtered.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
-              <AnimatePresence mode="popLayout">
-                {filtered.map((video, index) => (
+              {/* No AnimatePresence here: popLayout forces absolute
+                  positioning + layout recalcs on every filter/show-more
+                  change, which janks scrolling on phones. */}
+              {filtered.map((video, index) => (
                   <VideoCard
                     key={video.videoId || video.id}
                     video={video}
@@ -612,7 +614,6 @@ export default function HomePage() {
                     channelAvatar={channelAvatar}
                   />
                 ))}
-              </AnimatePresence>
             </div>
 
             {/* Show more — the uploads catalog is paged (100 + 200 chunks) */}

@@ -49,8 +49,9 @@ This file orients AI coding agents working in this repo. Read it before making c
    `lib/fetch-timeout.ts` (bare fetch hangs forever on stalled networks);
    server InnerTube calls race `withTimeout()` (8s) into fallbacks.
 4. **Playlists.** User playlists live in `playlist-store.ts` (persist key
-   `islah-playlists`), merged into the Library tabs — no separate Playlists nav
-   item. The channel-YouTube-playlists section is served by
+   `islah-playlists`), merged into Library — no separate Playlists nav
+   item, and NO Queue tab (the playback queue lives in the expanded
+   player's Up-next dropdown). The channel-YouTube-playlists section is served by
    `/api/playlists/[channel]` (Data API) + `/api/playlist-items/[id]`
    (InnerTube first, Data API fallback). The list is server-rendered
    (`library.astro` passes initial data to the island) so it can
@@ -83,7 +84,9 @@ This file orients AI coding agents working in this repo. Read it before making c
   The whole site is liquid-glass iPhone style: floating top bar, sidebar pill,
   chips pill, cards, inputs, and both player sheets all use the glass helpers
   (with specular edge + gloss spans); body has a fixed ambient aura + blobs
-  behind content.
+  behind content. Keep blur radii small and scrolling smooth: no
+  `background-attachment: fixed`, no `AnimatePresence popLayout` on lists,
+  `.cv-card`/`.cv-row` on cards/rows, ambient blobs `contain: strict`.
 - **Theming rule.** All colors must go through the token system, which resolves
   via CSS variables with `html.light` overrides. Never hardcode theme colors in
   components — the only exceptions are elements pinned to dark surfaces:

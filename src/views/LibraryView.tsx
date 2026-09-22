@@ -44,8 +44,7 @@ function EqBars() {
   );
 }
 
-function TrackRow({
-  track,
+function TrackRow({  track,
   index,
   showIndex = true,
   onPlay,
@@ -65,7 +64,7 @@ function TrackRow({
     <div
       onClick={onPlay}
       className={cn(
-        'flex items-center gap-3.5 p-3 cursor-pointer transition-all rounded-2xl',
+        'flex items-center gap-3.5 p-3 cursor-pointer transition-all rounded-2xl cv-row',
         isActive
           ? 'liquid-chip ring-1 ring-brand/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
           : 'hover:bg-white/[0.05] border border-transparent'
@@ -227,8 +226,6 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
     </div>
   );
 }
-
-type Tab = 'queue' | 'playlists';
 
 export interface ChannelPlaylist {
   id: string;
@@ -409,14 +406,12 @@ export default function LibraryView({
   // client fetch needed). Null entry = server fetch failed for it.
   initialYtPlaylists: Record<string, ChannelPlaylist[] | null>;
 }) {
-  const [tab, setTab] = useState<Tab>('queue');
   const [newName, setNewName] = useState('');
   const [ytPlaylists, setYtPlaylists] = useState<ChannelPlaylist[] | null>(null);
   const [ytForChannel, setYtForChannel] = useState('');
   const [ytLoading, setYtLoading] = useState(false);
   const [ytError, setYtError] = useState(false);
   const [ytErrorMsg, setYtErrorMsg] = useState('');
-  const { playlist, currentTrack, isPlaying, playTrack, setIsPlaying } = usePlayerStore();
   const { playlists, createPlaylist } = usePlaylistStore();
   const { channelId } = useChannelStore();
 
@@ -424,7 +419,7 @@ export default function LibraryView({
   // server-rendered map. Client fetch is only a fallback when the server
   // had none for that channel.
   useEffect(() => {
-    if (tab !== 'playlists' || ytLoading) return;
+    if (ytLoading) return;
     if (ytForChannel === channelId && ytPlaylists !== null) return;
     if (ytForChannel !== channelId) {
       const server = initialYtPlaylists[channelId] ?? null;
@@ -460,19 +455,11 @@ export default function LibraryView({
     return () => {
       cancelled = true;
     };
-  }, [tab, ytPlaylists, ytLoading, ytForChannel, channelId, initialYtPlaylists]);
+  }, [ytPlaylists, ytLoading, ytForChannel, channelId, initialYtPlaylists]);
 
   const retryYtPlaylists = () => {
     setYtError(false);
     setYtPlaylists(null);
-  };
-
-  const handlePlayTrack = (track: Track, index: number) => {
-    if (currentTrack?.id === track.id) {
-      setIsPlaying(!isPlaying);
-    } else {
-      playTrack(track, playlist, index);
-    }
   };
 
   const handleCreate = () => {
@@ -502,65 +489,15 @@ export default function LibraryView({
                 Your Library
               </h1>
               <p className="text-[13px] text-mist mt-0.5">
-                {playlist.length} in queue • {playlists.length} playlist{playlists.length === 1 ? '' : 's'}
+                {playlists.length} playlist{playlists.length === 1 ? '' : 's'}
               </p>
             </div>
           </div>
         </section>
 
-        {/* Tabs — queue + playlists merged here */}
-        <div className="flex gap-2 mb-4">
-          {(
-            [
-              { id: 'queue', label: `Queue${playlist.length ? ` (${playlist.length})` : ''}` },
-              { id: 'playlists', label: `Playlists${playlists.length ? ` (${playlists.length})` : ''}` },
-            ] as { id: Tab; label: string }[]
-          ).map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                'relative flex-1 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all overflow-hidden',
-                tab === t.id
-                  ? 'bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 shadow-glow ring-1 ring-white/30'
-                  : 'liquid-chip text-mist hover:text-white'
-              )}
-            >
-              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {tab === 'queue' ? (
-          playlist.length > 0 ? (
-            <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
-              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-              {playlist.map((track, index) => (
-                <TrackRow
-                  key={`${track.id}-${index}`}
-                  track={track}
-                  index={index}
-                  onPlay={() => handlePlayTrack(track, index)}
-                  isActive={currentTrack?.id === track.id}
-                  isPlaying={isPlaying}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="relative text-center py-16 liquid-glass rounded-[28px] overflow-hidden">
-              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-              <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
-                <Music size={26} className="text-brand-light" />
-              </span>
-              <p className="text-white font-bold text-lg">Queue is empty</p>
-              <p className="text-mist-dark text-sm mt-1">
-                Play some lectures and they’ll show up here
-              </p>
-            </div>
-          )
-        ) : (
-          <div>
+        {/* Playlists live here — the playback queue moved to the
+            expanded player's Up-next dropdown */}
+        <div>
             {/* Channel's YouTube playlists */}
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold mb-2.5">
               From YouTube
@@ -646,7 +583,6 @@ export default function LibraryView({
               </div>
             )}
           </div>
-        )}
 
         {/* Info sections */}
         <div className="grid sm:grid-cols-2 gap-3 mt-6">

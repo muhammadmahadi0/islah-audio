@@ -44,7 +44,7 @@ function SearchRow({
     <div
       onClick={onPlay}
       className={cn(
-        'relative flex items-center gap-3.5 p-3 cursor-pointer transition-all rounded-2xl',
+        'relative flex items-center gap-3.5 p-3 cursor-pointer transition-all rounded-2xl cv-row',
         isActive
           ? 'liquid-chip ring-1 ring-brand/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
           : 'hover:bg-white/[0.05] border border-transparent'

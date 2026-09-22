@@ -13,6 +13,7 @@ import {
   Volume2,
   VolumeX,
   Video,
+  ListMusic,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -54,6 +55,7 @@ function EqBars({ className }: { className?: string }) {
 
 export default function MiniPlayer() {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
   const {
     currentTrack,
     isPlaying,
@@ -68,6 +70,7 @@ export default function MiniPlayer() {
     setIsPlaying,
     setIsLoading,
     setVolume,
+    playTrack,
     playNext,
     playPrevious,
     stop,
@@ -336,11 +339,13 @@ export default function MiniPlayer() {
     }
   }, [volume]);
 
-  // Collapsing always returns to audio-only. Video mode is strictly
-  // opt-in via the video toggle — playback never starts as video.
+  // Collapsing always returns to audio-only and closes the queue.
+  // Video mode is strictly opt-in via the video toggle — playback never
+  // starts as video.
   useEffect(() => {
     if (!isExpanded) {
       setVideoMode('audio');
+      setQueueOpen(false);
     }
   }, [isExpanded]);
 
@@ -398,31 +403,38 @@ export default function MiniPlayer() {
     setVideoMode(engine.mode === 'video' ? 'audio' : 'video');
   };
 
+  // Up-next queue row tap: toggle if current, else jump to it.
+  const playQueueTrack = (track: (typeof playlist)[number], index: number) => {
+    if (index === playlistIndex) setIsPlaying(!isPlaying);
+    else playTrack(track, playlist, index);
+  };
+
   return (
     <>
       {/* ---------------- Full-screen player (liquid glass) ---------------- */}
       {/* Kept mounted (visibility-gated) so the video node never unmounts */}
       <div
         className={cn(
-          'fixed inset-0 z-[60] flex flex-col overflow-hidden bg-ink-950/60 backdrop-blur-3xl transition-opacity duration-200',
+          'fixed inset-0 z-[60] flex flex-col overflow-hidden bg-ink-950/60 backdrop-blur-2xl transform-gpu transition-opacity duration-200',
           !isExpanded && 'invisible pointer-events-none opacity-0'
         )}
         aria-hidden={!isExpanded}
       >
-        {/* Blurred artwork backdrop + tonal scrim + refraction blobs */}
+        {/* Blurred artwork backdrop + tonal scrim + refraction blobs.
+            Blur radii kept modest — huge blurs repaint on every frame. */}
         {currentTrack.thumbnail && (
           <>
             <img
               src={currentTrack.thumbnail}
               alt=""
               aria-hidden
-              className="absolute inset-0 h-full w-full object-cover opacity-35 blur-[100px] scale-125 saturate-150"
+              className="absolute inset-0 h-full w-full object-cover opacity-35 blur-[60px] scale-125"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-ink-950/70 via-ink-950/60 to-ink-950/85" />
           </>
         )}
-        <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-brand/20 blur-[110px]" />
-        <div className="pointer-events-none absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-gold/10 blur-[110px]" />
+        <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-brand/20 blur-[80px] transform-gpu" />
+        <div className="pointer-events-none absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-gold/10 blur-[80px] transform-gpu" />
         {/* Global diagonal gloss sheen */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.09] via-transparent to-transparent" />
 
@@ -616,6 +628,85 @@ export default function MiniPlayer() {
               aria-label="Volume"
             />
           </div>
+          </div>
+
+          {/* Up-next queue dropdown — the playback queue lives here now,
+              not in Library. Panel opens upward as an overlay so layout
+              never shifts. */}
+          <div className="relative pt-3">
+            <button
+              onClick={() => setQueueOpen((v) => !v)}
+              aria-expanded={queueOpen}
+              aria-label="Show playback queue"
+              className="relative flex w-full items-center gap-2 overflow-hidden rounded-2xl liquid-chip px-4 py-2.5 text-sm font-bold text-white transition-all"
+            >
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+              <ListMusic size={17} className="text-brand-light shrink-0" />
+              <span>Up next</span>
+              {queueTotal > 0 && (
+                <span className="text-mist-dark font-semibold tabular-nums">({queueTotal})</span>
+              )}
+              <span className="flex-1" />
+              <ChevronDown size={17} className={cn('text-mist-dark transition-transform', queueOpen && 'rotate-180')} />
+            </button>
+            {queueOpen && (
+              <>
+                <button
+                  aria-label="Close queue"
+                  className="fixed inset-0 z-10 cursor-default"
+                  onClick={() => setQueueOpen(false)}
+                />
+                <div className="absolute bottom-full mb-2 inset-x-0 z-20 overflow-hidden rounded-2xl liquid-glass">
+                  <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+                  <div className="relative max-h-64 overflow-y-auto p-1.5">
+                    {playlist.length === 0 ? (
+                      <p className="px-3 py-5 text-center text-[13px] text-mist-dark">
+                        Queue is empty — play some lectures and they’ll show up here.
+                      </p>
+                    ) : (
+                      playlist.map((t, i) => {
+                        const active = i === playlistIndex;
+                        return (
+                          <button
+                            key={`${t.id}-${i}`}
+                            onClick={() => playQueueTrack(t, i)}
+                            className={cn(
+                              'flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors',
+                              active ? 'bg-brand/[0.12]' : 'hover:bg-white/[0.06]'
+                            )}
+                          >
+                            <span className="w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-white/[0.06] ring-1 ring-white/20">
+                              {t.thumbnail ? (
+                                <img src={t.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
+                              ) : (
+                                <span className="flex h-full w-full items-center justify-center">
+                                  <Music size={15} className="text-brand-light" />
+                                </span>
+                              )}
+                            </span>
+                            <span className="flex-1 min-w-0">
+                              <span className={cn('block truncate text-[13px] font-semibold', active ? 'text-brand-light' : 'text-white')}>
+                                {t.title}
+                              </span>
+                              <span className="block truncate text-[11px] text-mist-dark">
+                                {t.channelName}
+                              </span>
+                            </span>
+                            {active && isPlaying ? (
+                              <EqBars />
+                            ) : (
+                              <span className="shrink-0 text-[11px] font-medium text-mist-dark tabular-nums">
+                                {formatTime(t.duration)}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

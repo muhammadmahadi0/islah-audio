@@ -59,6 +59,11 @@
 - Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
   `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
   inner reflections); primary actions use glossy gold `.liquid-gold`.
+- Glass blur radii are capped (~20px panels, ~60–90px ambient blobs) and
+  off-screen cards/rows skip rendering via `.cv-card` / `.cv-row`
+  (`content-visibility: auto`) — no `background-attachment: fixed`, no
+  `AnimatePresence popLayout` on the grid, ambient blobs are `contain: strict`
+  + GPU-composited so scrolling stays smooth on phones.
 
 ### Components
 
@@ -85,14 +90,15 @@
 - Large rounded search field with clear button; result count; rows with
   thumbnail, duration, save-to-playlist button, equalizer on current track
 
-#### Library (Queue + Playlists tabs — playlists live here, no separate nav)
+#### Library (playlists only — no Queue tab)
 
-- **Queue**: current playback queue with track numbers
 - **Playlists → From YouTube**: every channel's real YouTube playlists,
   server-rendered into the page HTML for all channels at once (never depends
   on a client fetch); cards expand to InnerTube-first items with timeout + retry
 - **Playlists → Your Playlists**: create/rename/delete your own playlists, save
   tracks from Home/Search, play-all, remove tracks; persisted in `localStorage`
+- The playback queue lives in the expanded player's **Up next** dropdown
+  (bottom of the sheet, opens upward as an overlay; tap a row to jump to it)
 
 #### Mini Player
 
@@ -171,7 +177,7 @@
 1. ✅ App loads channel data (videos with durations/views)
 2. ✅ Grid shows thumbnails, titles, durations, view counts
 3. ✅ Clicking a lecture starts audio playback
-4. ✅ Mini player shows track info, progress, play/pause/next/prev/stop
+4. ✅ Mini player shows track info, progress, play/pause/stop; expanded player has Up next queue
 5. ✅ Seek + volume work (seek locked on live edge)
 6. ✅ LIVE button plays live HLS when on air, recording when offline
 7. ✅ Entire catalog reachable (100 first + Show-more chunks, search indexes all)
