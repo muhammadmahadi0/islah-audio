@@ -90,7 +90,9 @@ Like the Flow Android app, this branch lists channel videos through YouTube's
 **private InnerTube API** (`lib/innertube.ts`, via youtubei.js) instead of the
 quota-limited Data API: uploads playlist → `LockupView` parsing → stateless
 browse continuations. No key, no quota (≈1 unit per fresh load for the totals
-lookup when a key exists). If InnerTube fails, routes fall back to the Data API
+lookup when a key exists). Continuation tokens are base64url-wrapped (`it1_…`)
+because raw tokens 404 Astro-on-Netlify once percent-encoded into the path.
+If InnerTube fails, routes fall back to the Data API
 automatically — check the `source` field in API responses to see which served.
 
 ## Project Structure

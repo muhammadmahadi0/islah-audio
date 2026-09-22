@@ -220,5 +220,35 @@ export function isInnertubeToken(token: string): boolean {
   return token.length > 50;
 }
 
+/**
+ * Client-safe token wrapping.
+ *
+ * Raw InnerTube tokens contain `%` sequences — once the client percent-encodes
+ * them for the URL path (`%` → `%25`), Astro-on-Netlify matches NO route and
+ * answers 404 (proven in prod: the "Show more" wall at 100 videos). So the
+ * server hands the client `it1_`-prefixed base64url instead (path-safe
+ * `[A-Za-z0-9_-]` only) and the more-route unwraps it. Short Data API page
+ * tokens pass through untouched.
+ */
+const CLIENT_TOKEN_PREFIX = 'it1_';
+
+export function toClientToken(token: string | null): string | null {
+  if (!token) return null;
+  if (!isInnertubeToken(token)) return token;
+  return CLIENT_TOKEN_PREFIX + Buffer.from(token, 'utf8').toString('base64url');
+}
+
+export function fromClientToken(token: string): string {
+  if (token.startsWith(CLIENT_TOKEN_PREFIX)) {
+    try {
+      const raw = Buffer.from(token.slice(CLIENT_TOKEN_PREFIX.length), 'base64url').toString('utf8');
+      if (isInnertubeToken(raw)) return raw;
+    } catch {
+      // Corrupt wrapping — fall through and use the token as-is.
+    }
+  }
+  return token;
+}
+
 /** Budget for one InnerTube operation inside a serverless invocation. */
 export const INNERTUBE_TIMEOUT_MS = 8000;

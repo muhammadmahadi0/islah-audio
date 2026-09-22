@@ -40,6 +40,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    (youtubei.js uploads playlist + stateless browse continuations) before the
    Data API fallback. Long tokens (>50 chars) are InnerTube continuations,
    short ones are Data API page tokens - the more-route branches on that.
+   **Continuation tokens are client-wrapped.** Raw InnerTube tokens contain
+   `%`, which 404s Astro-on-Netlify once the client percent-encodes them into
+   the path — so routes emit `toClientToken()` (`it1_` + base64url) and the
+   more-route unwraps with `fromClientToken()` (`lib/innertube.ts`). Short
+   Data API tokens pass through untouched.
    **Timeouts everywhere.** Client fetches must use `fetchJson()` from
    `lib/fetch-timeout.ts` (bare fetch hangs forever on stalled networks);
    server InnerTube calls race `withTimeout()` (8s) into fallbacks.

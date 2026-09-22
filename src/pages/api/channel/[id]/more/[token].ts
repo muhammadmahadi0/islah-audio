@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getChannelDetails, getPlaylistVideosPaged, hasApiKey, MORE_PAGES } from '@/lib/youtube';
-import { getInnertubeMore, isInnertubeToken, INNERTUBE_TIMEOUT_MS, type InnertubeVideo } from '@/lib/innertube';
+import { getInnertubeMore, isInnertubeToken, fromClientToken, toClientToken, INNERTUBE_TIMEOUT_MS, type InnertubeVideo } from '@/lib/innertube';
 import { withTimeout } from '@/lib/fetch-timeout';
 
 function toApiVideo(v: InnertubeVideo) {
@@ -27,7 +27,9 @@ function json(data: unknown, status = 200) {
 
 export const GET: APIRoute = async ({ params }) => {
   const id = decodeURIComponent(params.id as string);
-  const decodedToken = decodeURIComponent(params.token as string);
+  // Unwrap the client-safe encoding (it1_… → raw InnerTube token).
+  // Short Data API tokens pass through unchanged.
+  const decodedToken = fromClientToken(decodeURIComponent(params.token as string));
 
   // 1. InnerTube continuation (keyless) with a hard budget.
   if (isInnertubeToken(decodedToken)) {
@@ -41,7 +43,7 @@ export const GET: APIRoute = async ({ params }) => {
       return json({
         success: true,
         videos: videos.map(toApiVideo),
-        nextPageToken: nextToken,
+        nextPageToken: toClientToken(nextToken),
         source: 'innertube',
       });
     } catch (error) {

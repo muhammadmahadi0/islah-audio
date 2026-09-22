@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getChannelVideos, hasApiKey, getChannelVideoCount } from '@/lib/youtube';
-import { getInnertubeChannelVideos, INNERTUBE_TIMEOUT_MS, type InnertubeVideo } from '@/lib/innertube';
+import { getInnertubeChannelVideos, toClientToken, INNERTUBE_TIMEOUT_MS, type InnertubeVideo } from '@/lib/innertube';
 import { withTimeout } from '@/lib/fetch-timeout';
 
 function toApiVideo(v: InnertubeVideo) {
@@ -48,7 +48,9 @@ export const GET: APIRoute = async ({ params }) => {
         success: true,
         channel: { name: inner.name, avatar: inner.avatar },
         videos: inner.videos.map(toApiVideo),
-        nextPageToken: inner.nextToken,
+        // Wrapped: raw InnerTube tokens carry `%` and 404 Astro-on-Netlify
+        // once the client percent-encodes them into the path.
+        nextPageToken: toClientToken(inner.nextToken),
         total,
         source: 'innertube',
       });
@@ -82,7 +84,7 @@ export const GET: APIRoute = async ({ params }) => {
       success: true,
       channel: { name: channel.name, avatar: channel.avatar },
       videos: channel.videos,
-      nextPageToken: channel.nextPageToken,
+      nextPageToken: toClientToken(channel.nextPageToken),
       total: channel.total,
       source: 'data-api',
     });

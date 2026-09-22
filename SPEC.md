@@ -142,6 +142,10 @@
 - **IDs travel in URL paths, never query strings** — the hosting layer drops
   query parameters before function invocation (`/api/channel/[id]`,
   `/api/channel/[id]/more/[token]`). The legacy `?id=` variants remain as fallbacks.
+- **Continuation tokens travel client-wrapped** — raw InnerTube tokens contain
+  `%`, which 404s Astro-on-Netlify once percent-encoded into the path, so the
+  APIs emit `it1_`-prefixed base64url (`toClientToken`) and the more-route
+  unwraps it (`fromClientToken`).
 - **Every fetch has a timeout** — bare `fetch()` hangs forever on stalled mobile
   networks, so clients use `fetchJson()` (`lib/fetch-timeout.ts`, 15–25s) and
   server InnerTube calls race `withTimeout()` (8s) into the Data API fallback.
