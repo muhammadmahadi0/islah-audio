@@ -400,34 +400,39 @@ export default function MiniPlayer() {
 
   return (
     <>
-      {/* ---------------- Full-screen player (Material 3) ---------------- */}
+      {/* ---------------- Full-screen player (liquid glass) ---------------- */}
       {/* Kept mounted (visibility-gated) so the video node never unmounts */}
       <div
         className={cn(
-          'fixed inset-0 z-[60] flex flex-col overflow-hidden bg-ink-950 transition-opacity duration-200',
+          'fixed inset-0 z-[60] flex flex-col overflow-hidden bg-ink-950/60 backdrop-blur-3xl transition-opacity duration-200',
           !isExpanded && 'invisible pointer-events-none opacity-0'
         )}
         aria-hidden={!isExpanded}
       >
-        {/* Blurred artwork backdrop + tonal scrim */}
+        {/* Blurred artwork backdrop + tonal scrim + refraction blobs */}
         {currentTrack.thumbnail && (
           <>
             <img
               src={currentTrack.thumbnail}
               alt=""
               aria-hidden
-              className="absolute inset-0 h-full w-full object-cover opacity-25 blur-[80px] scale-125"
+              className="absolute inset-0 h-full w-full object-cover opacity-35 blur-[100px] scale-125 saturate-150"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-ink-950/60 via-ink-950/80 to-ink-950" />
+            <div className="absolute inset-0 bg-gradient-to-b from-ink-950/70 via-ink-950/60 to-ink-950/85" />
           </>
         )}
+        <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-brand/20 blur-[110px]" />
+        <div className="pointer-events-none absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-gold/10 blur-[110px]" />
+        {/* Global diagonal gloss sheen */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.09] via-transparent to-transparent" />
 
         <div className="relative mx-auto flex h-full w-full max-w-md flex-col px-5 pb-8 pt-3 safe-bottom">
-          {/* M3 top app bar: collapse • title • stop */}
-          <div className="flex items-center gap-2">
+          {/* Liquid-glass top app bar: collapse • title • stop */}
+          <div className="liquid-glass relative flex items-center gap-2 rounded-full px-2 py-2">
+            <span className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <button
               onClick={() => setIsExpanded(false)}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/15 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
               aria-label="Collapse player"
             >
               <ChevronDown size={22} />
@@ -447,7 +452,7 @@ export default function MiniPlayer() {
                 setIsExpanded(false);
                 stop();
               }}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20 backdrop-blur-md border border-red-400/30 text-red-400 transition-all hover:bg-red-500/30 hover:border-red-400/50 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_16px_rgba(239,68,68,0.25)]"
               aria-label="Stop and close player"
               title="Stop"
             >
@@ -460,7 +465,10 @@ export default function MiniPlayer() {
               player is never destroyed mid-track; hidden = audio-only. */}
           <div className="flex min-h-0 flex-1 items-center justify-center py-4">
             {isYtTrack ? (
-              <div className="relative w-full overflow-hidden rounded-[20px] shadow-card ring-1 ring-white/15 bg-black aspect-video">
+              <div className="liquid-glass relative w-full rounded-[28px] p-2">
+                <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
+                <div className="relative w-full overflow-hidden rounded-[20px] ring-1 ring-white/15 bg-black aspect-video">
                 {/* Wrapper owns visibility (see createPlayer note) — the
                     mount div keeps a constant class so the YT iframe copy
                     never inherits `hidden`. */}
@@ -482,15 +490,19 @@ export default function MiniPlayer() {
                 {/* Video toggle: tap to watch, tap again for audio-only */}
                 <button
                   onClick={toggleVideo}
-                  className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur transition-colors hover:bg-black/90"
+                  className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white transition-colors hover:bg-black/80 hover:border-white/40"
                   aria-label={engine.mode === 'video' ? 'Switch to audio only' : 'Watch video'}
                   title={engine.mode === 'video' ? 'Audio only' : 'Watch video'}
                 >
                   {engine.mode === 'video' ? <Music size={18} /> : <Video size={18} />}
                 </button>
+                </div>
               </div>
             ) : (
-              <div className="aspect-square max-h-full overflow-hidden rounded-[28px] shadow-card ring-1 ring-white/15">
+              <div className="liquid-glass relative rounded-[32px] p-2 max-h-full">
+                <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                <span className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
+                <div className="relative aspect-square max-h-full overflow-hidden rounded-[24px] ring-1 ring-white/15">
                 {currentTrack.thumbnail ? (
                   <img
                     src={currentTrack.thumbnail}
@@ -502,12 +514,18 @@ export default function MiniPlayer() {
                     <Music size={64} className="text-brand-light" />
                   </div>
                 )}
+                </div>
               </div>
             )}
           </div>
 
+          {/* Liquid-glass control cluster */}
+          <div className="liquid-glass relative rounded-[28px] px-5 pt-4 pb-5">
+            <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+            <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
+            <span className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           {/* Title block */}
-          <div className="flex items-center gap-2">
+          <div className="relative flex items-center gap-2">
             {isLive && (
               <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
                 <span className="relative flex h-1.5 w-1.5">
@@ -517,16 +535,16 @@ export default function MiniPlayer() {
                 Live
               </span>
             )}
-            <h2 className="clamp-2 text-[22px] font-bold leading-snug tracking-tight text-white">
+            <h2 className="clamp-2 text-[22px] font-bold leading-snug tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
               {currentTrack.title}
             </h2>
           </div>
-          <p className="mt-1 truncate text-sm font-medium text-gold/90">
+          <p className="relative mt-1 truncate text-sm font-medium text-gold/90">
             {currentTrack.channelName}
           </p>
 
-          {/* M3 slider */}
-          <div className="pt-3">
+          {/* Slider */}
+          <div className="relative pt-3">
             <input
               type="range"
               min="0"
@@ -545,20 +563,21 @@ export default function MiniPlayer() {
             </div>
           </div>
 
-          {/* Controls: tonal side buttons + FAB */}
-          <div className="flex items-center justify-between px-1 pt-2">
+          {/* Controls: glass side buttons + glossy gold FAB */}
+          <div className="relative flex items-center justify-between px-1 pt-2">
             <button
               onClick={playPrevious}
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/15 active:scale-95"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
               aria-label="Previous"
             >
               <SkipBack size={24} fill="currentColor" />
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 shadow-glow-lg transition-transform hover:scale-105 active:scale-95"
+              className="relative flex h-[76px] w-[76px] items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 shadow-glow-lg ring-1 ring-white/30 transition-transform hover:scale-105 active:scale-95"
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
+              <span className="pointer-events-none absolute top-0 inset-x-3 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
               {isLoading ? (
                 <Loader2 size={32} className="animate-spin" />
               ) : isPlaying ? (
@@ -569,18 +588,18 @@ export default function MiniPlayer() {
             </button>
             <button
               onClick={playNext}
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/15 active:scale-95"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
               aria-label="Next"
             >
               <SkipForward size={24} fill="currentColor" />
             </button>
           </div>
 
-          {/* M3 volume row */}
-          <div className="flex items-center gap-3 px-1 pt-4">
+          {/* Volume row */}
+          <div className="relative flex items-center gap-3 px-1 pt-4">
             <button
               onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-mist transition-colors hover:bg-white/15 hover:text-white"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-mist transition-all hover:bg-white/[0.14] hover:text-white hover:border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
               aria-label={volume === 0 ? 'Unmute' : 'Mute'}
             >
               {volume === 0 ? <VolumeX size={19} /> : <Volume2 size={19} />}
@@ -596,6 +615,7 @@ export default function MiniPlayer() {
               style={{ '--fill': `${Math.round(volume * 100)}%` } as React.CSSProperties}
               aria-label="Volume"
             />
+          </div>
           </div>
         </div>
       </div>

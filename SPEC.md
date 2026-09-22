@@ -53,7 +53,7 @@
   floating glass mini-player card bottom-right, clear of the sidebar.
 - **Mobile**: floating glass mini-player above a glass bottom nav
   (Home / Search / Library).
-- **Expanded player**: full-screen, blurred-artwork backdrop, big art,
+- **Expanded player**: full-screen liquid-glass (iPhone-style), blurred-artwork backdrop, big art,
   seek slider (locked on live), prev/play/next.
 
 ### Components
