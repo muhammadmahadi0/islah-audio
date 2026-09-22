@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Search, Library, Radio, Settings, ChevronDown, Droplets } from 'lucide-react';
+import { Home, Search, Library, Radio, Droplets } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
 import { useChannelStore } from '@/store/channel-store';
@@ -38,7 +38,6 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const { channelId, setChannelId } = useChannelStore();
   const { mode: designMode, toggle: toggleDesign } = useDesignStore();
   const [meta, setMeta] = useState<Record<string, ChannelMeta>>({});
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Channel avatars (lightweight meta fetch, CDN-cached server-side)
   useEffect(() => {
@@ -165,68 +164,40 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
 
       <hr className="border-white/10 my-3" />
 
-      {/* Settings */}
-      <div>
-        <button
-          onClick={() => setSettingsOpen((v) => !v)}
-          aria-expanded={settingsOpen}
+      {/* Liquid Glass toggle (no Settings wrapper) */}
+      <button
+        onClick={toggleDesign}
+        role="switch"
+        aria-checked={designMode === 'liquid'}
+        aria-label="Liquid Glass design"
+        className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-white/[0.07] border border-transparent transition-all"
+      >
+        <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-light to-brand-dark ring-1 ring-white/30 flex items-center justify-center shrink-0">
+          <Droplets size={15} className="text-ink-950" />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[13px] font-semibold text-white">
+            Liquid Glass
+          </span>
+          <span className="block text-[11px] text-mist-dark">
+            {designMode === 'liquid' ? 'iPhone-style frosted look' : 'Off — Material 3 solid look'}
+          </span>
+        </span>
+        {/* Toggle pill — stays glossy so it reads on both surfaces */}
+        <span
           className={cn(
-            'w-full flex items-center gap-5 rounded-xl px-3 h-10 text-sm transition-all',
-            settingsOpen
-              ? 'liquid-chip text-white font-medium ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
-              : 'text-white/90 hover:bg-white/[0.07] font-normal border border-transparent'
+            'relative w-11 h-6 rounded-full transition-colors shrink-0 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]',
+            designMode === 'liquid' ? 'bg-gradient-to-r from-brand-light to-brand-dark' : 'bg-white/10'
           )}
         >
-          <Settings
-            size={20}
-            strokeWidth={settingsOpen ? 2.2 : 1.8}
-            className="shrink-0"
+          <span
+            className={cn(
+              'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all',
+              designMode === 'liquid' ? 'left-[22px]' : 'left-0.5'
+            )}
           />
-          <span className="flex-1 text-left">Settings</span>
-          <ChevronDown
-            size={17}
-            className={cn('text-mist-dark transition-transform', settingsOpen && 'rotate-180')}
-          />
-        </button>
-        {settingsOpen && (
-          <div className="mt-1.5 mx-1 rounded-2xl liquid-glass p-1.5">
-            {/* Liquid Glass toggle */}
-            <button
-              onClick={toggleDesign}
-              role="switch"
-              aria-checked={designMode === 'liquid'}
-              aria-label="Liquid Glass design"
-              className="w-full flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-left hover:bg-white/[0.06] transition-colors"
-            >
-              <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-light to-brand-dark ring-1 ring-white/30 flex items-center justify-center shrink-0">
-                <Droplets size={15} className="text-ink-950" />
-              </span>
-              <span className="flex-1 min-w-0">
-                <span className="block text-[13px] font-semibold text-white">
-                  Liquid Glass
-                </span>
-                <span className="block text-[11px] text-mist-dark">
-                  {designMode === 'liquid' ? 'iPhone-style frosted look' : 'Off — Material 3 solid look'}
-                </span>
-              </span>
-              {/* Toggle pill — stays glossy so it reads on both surfaces */}
-              <span
-                className={cn(
-                  'relative w-11 h-6 rounded-full transition-colors shrink-0 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]',
-                  designMode === 'liquid' ? 'bg-gradient-to-r from-brand-light to-brand-dark' : 'bg-white/10'
-                )}
-              >
-                <span
-                  className={cn(
-                    'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all',
-                    designMode === 'liquid' ? 'left-[22px]' : 'left-0.5'
-                  )}
-                />
-              </span>
-            </button>
-          </div>
-        )}
-      </div>
+        </span>
+      </button>
 
       <hr className="border-white/10 my-3" />
 
