@@ -84,7 +84,11 @@ This file orients AI coding agents working in this repo. Read it before making c
   The whole site is liquid-glass iPhone style: floating top bar, sidebar pill,
   chips pill, cards, inputs, and both player sheets all use the glass helpers
   (with specular edge + gloss spans); body has a fixed ambient aura + blobs
-  behind content. Keep blur radii small and scrolling smooth: no
+  behind content. The sidebar Settings toggle switches to flat Material 3
+  (`design-store.ts`, persist key `islah-design`, `material` class on `<html>`):
+  glass → solid tonal surfaces, blurs/sheen spans/ambient blobs off via the
+  `html.material` overrides. New glass surfaces must degrade under it (use the
+  helpers, keep sheens `pointer-events-none` direct children of `.liquid-glass`). Keep blur radii small and scrolling smooth: no
   `background-attachment: fixed`, no `AnimatePresence popLayout` on lists,
   `.cv-card`/`.cv-row` on cards/rows, ambient blobs `contain: strict`.
 - **Theming rule.** All colors must go through the token system, which resolves

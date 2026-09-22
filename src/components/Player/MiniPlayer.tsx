@@ -445,7 +445,7 @@ export default function MiniPlayer() {
       {/* Kept mounted (visibility-gated) so the video node never unmounts */}
       <div
         className={cn(
-          'fixed inset-0 z-[60] flex flex-col overflow-hidden bg-ink-950/60 backdrop-blur-2xl transform-gpu transition-opacity duration-200',
+          'fixed inset-0 z-[60] flex flex-col overflow-hidden expanded-sheet bg-ink-950/60 backdrop-blur-2xl transform-gpu transition-opacity duration-200',
           !isExpanded && 'invisible pointer-events-none opacity-0'
         )}
         aria-hidden={!isExpanded}

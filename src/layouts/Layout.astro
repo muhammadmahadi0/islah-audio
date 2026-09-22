@@ -31,13 +31,17 @@ const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
         if (s && JSON.parse(s).state.theme === 'light') {
           document.documentElement.classList.add('light');
         }
+        var d = localStorage.getItem('islah-design');
+        if (d && JSON.parse(d).state.mode === 'material') {
+          document.documentElement.classList.add('material');
+        }
       } catch (e) {}
     </script>
   </head>
   <body class="antialiased bg-ink-950 text-white">
     {/* Ambient refraction blobs behind all content.
         contain:strict isolates their huge blurs so scrolling never repaints them. */}
-    <div aria-hidden="true" class="pointer-events-none fixed inset-0 z-0" style="contain: strict;">
+    <div aria-hidden="true" class="ambient-blobs pointer-events-none fixed inset-0 z-0" style="contain: strict;">
       <div class="absolute -top-32 left-1/2 h-72 w-[38rem] -translate-x-1/2 rounded-full bg-brand/10 blur-[90px] transform-gpu"></div>
       <div class="absolute top-[38vh] -left-32 h-80 w-80 rounded-full bg-brand/[0.06] blur-[90px] transform-gpu"></div>
       <div class="absolute bottom-[-10rem] right-[-6rem] h-96 w-96 rounded-full bg-gold/[0.07] blur-[100px] transform-gpu"></div>

@@ -26,7 +26,9 @@ playlists, search, and a mobile-first design.
 - **Search** — instant client-side search across the channel catalog
 - **Modern UI** — golden theme with light/dark mode (floating toggle,
   persisted), floating liquid-glass sidebar + top bar, mobile bottom nav pill,
-  floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters
+  floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters.
+  Sidebar Settings has a **Liquid Glass** toggle (persisted) that flattens the
+  whole site to a Material 3 solid look
 
 ## Tech Stack (BETA: Astro rebuild)
 

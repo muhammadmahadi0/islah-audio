@@ -194,6 +194,75 @@ html.light .liquid-glass {
   pointer-events: none;
 }
 
+/* Material 3 mode (design toggle in sidebar Settings): every glass surface
+   becomes a solid tonal surface — no blur, no translucency, no sheens.
+   Applied via the `material` class on <html> (see design-store.ts). */
+html.material body {
+  background-image: none;
+}
+html.material .liquid-glass,
+html.material .glass {
+  background: rgb(var(--ink-900));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgb(var(--veil) / 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+html.light.material .liquid-glass,
+html.light.material .glass {
+  background: rgb(var(--ink-900));
+  border-color: rgba(6, 13, 10, 0.08);
+  box-shadow: 0 2px 8px rgba(6, 13, 10, 0.12);
+}
+html.material .liquid-chip {
+  background: rgb(var(--ink-700));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+html.material .liquid-input {
+  background: rgb(var(--ink-800));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgb(var(--veil) / 0.14);
+  box-shadow: none;
+}
+html.material .liquid-input:focus {
+  border-color: rgb(var(--brand));
+  box-shadow: none;
+}
+html.material .liquid-gold {
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+html.material .liquid-gold::after {
+  display: none;
+}
+/* Specular edges + gloss sheens only exist for glass — hide them.
+   (Sheens are always `pointer-events-none` + absolute; functional spans
+   like progress/eq-bars never are, so this is safe.) */
+html.material .liquid-glass > span.pointer-events-none {
+  display: none;
+}
+/* Expanded sheet: hide its scrim, blobs and sheen (artwork <img> stays). */
+html.material .expanded-sheet > div.pointer-events-none {
+  display: none;
+}
+/* Kill leftover backdrop blurs on tonal buttons (M3 tonal = flat). */
+html.material [class*='backdrop-blur'] {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* Expanded player sheet goes fully opaque (it isn't .liquid-glass). */
+html.material .expanded-sheet {
+  background-color: rgb(var(--ink-950));
+}
+/* Ambient aura + refraction blobs are glass dressing — off in M3. */
+html.material .ambient-blobs {
+  display: none;
+}
+
 /* Scroll performance: skip rendering off-screen items entirely.
    .cv-card for grid cards (~340px), .cv-row for list rows (~76px).
    The intrinsic size reserves layout space so the scrollbar stays stable. */

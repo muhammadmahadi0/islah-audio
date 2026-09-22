@@ -75,6 +75,10 @@
   avatars; tapping switches Home, Search, and Library; choice persists.
   Android opens the same sidebar as a slide-over drawer via the top-bar
   hamburger button.
+- **Settings**: gear button (sidebar, desktop + drawer) opening a panel with
+  the **Liquid Glass** toggle — on = iPhone-style frosted design (default),
+  off = flat Material 3 solid surfaces. Choice persists (`islah-design`) and
+  applies pre-paint via `Layout.astro`, so there is no flash.
 - "Source" card (channel link + live indicator) and footer note
 
 #### Home
