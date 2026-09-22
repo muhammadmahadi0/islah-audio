@@ -6,7 +6,6 @@ import MiniPlayer from '@/components/Player/MiniPlayer';
 import BottomNav from '@/components/BottomNav';
 import Sidebar from '@/components/Sidebar';
 import ThemeToggle from '@/components/ThemeToggle';
-import BetaBadge from '@/components/BetaBadge';
 
 export const metadata: Metadata = {
   title: 'Islah Audio — Islamic Lectures',
@@ -46,9 +45,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           {/* Floating theme toggle */}
           <ThemeToggle />
-
-          {/* BETA marker (beta branch only) */}
-          <BetaBadge />
 
           {/* Hidden playback engine */}
           <AudioPlayer />

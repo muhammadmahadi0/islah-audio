@@ -81,7 +81,7 @@
 #### Library (Queue + Playlists tabs — playlists live here, no separate nav)
 
 - **Queue**: current playback queue with track numbers
-- **Playlists → From YouTube (BETA)**: the channel's real YouTube playlists,
+- **Playlists → From YouTube**: the channel's real YouTube playlists,
   server-rendered into the page HTML (never depends on a client fetch);
   cards expand to InnerTube-first items with timeout + retry
 - **Playlists → Your Playlists**: create/rename/delete your own playlists, save
@@ -97,7 +97,7 @@
 
 ### Core Features
 
-1. **Channel Catalog (BETA: InnerTube first)** — `/api/channel/[id]` lists the
+1. **Channel Catalog (InnerTube first)** — `/api/channel/[id]` lists the
    newest 100 uploads with durations and view counts, plus a `nextPageToken`
    and `total`; `/api/channel/[id]/more/[token]` appends older videos in
    200-chunks. Listing goes through keyless InnerTube (no quota) with the
@@ -122,8 +122,8 @@
 | ----- | ------- |
 | `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
 | `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
-| `GET /api/playlists` | Channel playlists (BETA, fixed channel) |
-| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first (BETA) |
+| `GET /api/playlists` | Channel playlists (fixed channel) |
+| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls?url=` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (compat) |

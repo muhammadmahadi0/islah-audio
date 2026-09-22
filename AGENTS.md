@@ -28,7 +28,7 @@ This file orients AI coding agents working in this repo. Read it before making c
    **IDs must travel in URL paths, not query strings** — Netlify drops query
    params before function invocation (proven in prod: `?id=` and `?playlistId=`
    were silently ignored). Same rule for `/api/channel/[id]/more/[token]`.
-   **BETA branch: InnerTube first.** Listing tries keyless `lib/innertube.ts`
+   **InnerTube first.** Listing tries keyless `lib/innertube.ts`
    (youtubei.js uploads playlist + stateless browse continuations) before the
    Data API fallback. Long tokens (>50 chars) are InnerTube continuations,
    short ones are Data API page tokens - the more-route branches on that.
@@ -37,7 +37,7 @@ This file orients AI coding agents working in this repo. Read it before making c
    server InnerTube calls race `withTimeout()` (8s) into fallbacks.
 4. **Playlists.** User playlists live in `playlist-store.ts` (persist key
    `islah-playlists`), merged into the Library tabs — no separate Playlists nav
-   item. **BETA:** the channel-YouTube-playlists section is back, served by
+   item. The channel-YouTube-playlists section is served by
    `/api/playlists` (fixed channel, Data API) + `/api/playlist-items/[id]`
    (InnerTube first, Data API fallback). The list is server-rendered
    (`library/page.tsx` passes initial data to `library-view.tsx`) so it can

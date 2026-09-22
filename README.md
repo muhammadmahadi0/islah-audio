@@ -32,7 +32,7 @@ playlists, search, and a mobile-first design.
 | Framework| Next.js 14 (App Router)                                     |
 | Styling  | Tailwind CSS + custom design tokens (`tailwind.config.js`)  |
 | State    | Zustand (`player-store`, persisted `playlist-store`)        |
-| Data     | **BETA:** keyless InnerTube listing first, YouTube Data API v3 fallback |
+| Data     | keyless InnerTube listing first, YouTube Data API v3 fallback |
 | Playback | YouTube IFrame Player API (official embed, no extraction)   |
 | Hosting  | Netlify (`@netlify/plugin-nextjs`)                          |
 
@@ -82,7 +82,7 @@ npm run start   # serve production build
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (playback is client-side) |
 | `GET /api/proxy?url=`  | CORS proxy helper                                                  |
 
-## How Listing Works (beta experiment)
+## How Listing Works
 
 Like the Flow Android app, this branch lists channel videos through YouTube's
 **private InnerTube API** (`lib/innertube.ts`, via youtubei.js) instead of the
@@ -98,13 +98,13 @@ src/
 ├── app/
 │   ├── page.tsx            # Home — hero, filters, lecture grid
 │   ├── search/page.tsx     # Search across the catalog
-│   ├── library/page.tsx    # Library — Queue + Playlists tabs (merged)
+│   ├── library/page.tsx    # Library — server wrapper (playlists preloaded)
+│   ├── library/library-view.tsx # Library UI — Queue + Playlists tabs
 │   └── api/                # channel / live / hls / stream / proxy routes
 ├── components/
 │   ├── AudioPlayer.tsx     # hidden YouTube embed + stream playback engine
 │   ├── Sidebar.tsx         # desktop navigation
 │   ├── BottomNav.tsx       # mobile navigation
-│   ├── BetaBadge.tsx       # floating BETA marker (beta branch only)
 │   ├── AddToPlaylistMenu.tsx # save-to-playlist panel
 │   └── Player/MiniPlayer.tsx # floating mini + full-screen player
 ├── store/
@@ -113,7 +113,7 @@ src/
 │   └── theme-store.ts      # light/dark theme, persisted
 └── lib/
     ├── youtube.ts          # YouTube Data API helpers (fallback)
-    ├── innertube.ts        # keyless InnerTube listing (primary on beta)
+    ├── innertube.ts        # keyless InnerTube listing (primary)
     ├── live.ts             # live-status types
     └── utils.ts            # classnames helper
 ```
