@@ -81,6 +81,12 @@ This file orients AI coding agents working in this repo. Read it before making c
    `lib/share.ts` (`components/ShareButton.tsx`: native sheet on mobile,
    clipboard copy on desktop). Same rule as APIs: the video ID travels in the
    URL path, never a query string.
+11. **Open-IslahBD button (`#islahbd-btn` in `Layout.astro`).** Android fires
+   an intent (`/live/` path, VIEW/BROWSABLE, `S.browser_fallback_url`) and
+   must NEVER add a manual JS store fallback — a timer races the intent and
+   sends installed users to the Play Store too. Only non-Chromium Android
+   (which ignores intent://) gets a guarded timer. iOS uses a universal link
+   with a guarded 2.5s fallback (blur/pagehide/visibility cancel).
 
 ## Conventions
 

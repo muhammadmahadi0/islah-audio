@@ -53,11 +53,14 @@
 - **Top bar**: floating glass pill with ISLAH brand, desktop search field,
   and a gold-gradient **Open IslahBD** button (`linear-gradient(135deg,
   #cba135, #e8c96c, #a07e28)`, pinned dark text, gloss + glow in liquid
-  mode, flat in Material; tuned glow for light mode) — launches the native
-  IslahBD app when installed (Android intent / iOS universal link),
-  otherwise sends the user to the Play Store / App Store for their device
-  (desktop opens islahbd.com). No search icon on mobile — search lives in
-  the bottom nav. All primary buttons site-wide (Play all, filters, play
+  mode, flat in Material; tuned glow for light mode) — opens the installed
+  IslahBD app (`/live/` deep path, no specific content), otherwise sends the
+  user to the Play Store / App Store for their device
+  (desktop opens islahbd.com). Android uses an intent with a native store
+  fallback URL and no JS timer (a timer would race the intent and send
+  installed users to the store too); iOS uses a universal link with a
+  guarded 2.5s fallback (blur/pagehide/visibility cancel). No search icon
+  on mobile — search lives in the bottom nav. All primary buttons site-wide (Play all, filters, play
   FABs, Create, Try again, toggles) share this exact gold-gradient
   `.liquid-gold` style; secondary actions stay frosted glass.
 

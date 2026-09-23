@@ -179,22 +179,32 @@ const {
       document.getElementById('drawer-backdrop')?.addEventListener('click', function () {
         openDrawer(false);
       });
-      // Open IslahBD button: launch the native app when installed,
-      // otherwise send the user to the right store for their device.
-      // Android uses a Chrome intent (App Links open the app, the fallback
-      // URL covers not-installed); iOS uses a universal link inside the
-      // app's applinks paths (/live/ opens the app without playing a
-      // specific item) with a timed App Store fallback; desktop opens the site.
+      // Open IslahBD button: open the installed app, otherwise go to the
+      // right store for the device.
+      // Android (Chrome family): intent:// with S.browser_fallback_url — the
+      // OS opens the app if installed, else loads the Play Store natively.
+      // There is deliberately NO manual JS fallback here: a timer would race
+      // the intent and yank installed users to the store too (proven bug).
+      // Firefox Android ignores intent://, so only it gets a guarded timer.
+      // iOS: universal link inside the app's applinks paths (/live/ opens the
+      // app without playing a specific item) with a guarded App Store
+      // fallback — long timeout + blur/pagehide/visibility cancel, so the
+      // timer only fires when the app genuinely did not open. If the app
+      // isn't installed the link falls through to the islahbd.com website
+      // (universal links can't redirect to the store from our page alone).
+      // Desktop opens the site in a new tab.
       document.getElementById('islahbd-btn')?.addEventListener('click', function () {
         var ua = navigator.userAgent || '';
         var isAndroid = /Android/i.test(ua);
         var isiOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var playStore = 'https://play.google.com/store/apps/details?id=com.islahbd.app';
         var appStore = 'https://apps.apple.com/app/islahbd/id6762509692';
-        if (isAndroid) {
+        var appUrl = 'https://www.islahbd.com/live/';
+        var armGuardedFallback = function (storeUrl) {
           var cancelled = false;
           var cancel = function () { cancelled = true; };
           window.addEventListener('pagehide', cancel, { once: true });
+          window.addEventListener('blur', cancel, { once: true });
           var onVis = function () {
             if (document.hidden) {
               cancelled = true;
@@ -202,16 +212,21 @@ const {
             }
           };
           document.addEventListener('visibilitychange', onVis);
-          window.location.href = 'intent://www.islahbd.com/#Intent;scheme=https;package=com.islahbd.app;S.browser_fallback_url=' + encodeURIComponent(playStore) + ';end';
           setTimeout(function () {
-            if (!cancelled && !document.hidden) window.location.href = playStore;
-          }, 1800);
+            document.removeEventListener('visibilitychange', onVis);
+            if (!cancelled && !document.hidden) window.location.href = storeUrl;
+          }, 2500);
+        };
+        if (isAndroid) {
+          var isFirefox = /Firefox|FxiOS/i.test(ua);
+          var isChromium = /Chrome\/\d+|Chromium|SamsungBrowser|EdgA|OPR\/|Brave/i.test(ua);
+          window.location.href = 'intent://www.islahbd.com/live/#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.islahbd.app;S.browser_fallback_url=' + encodeURIComponent(playStore) + ';end';
+          if (isFirefox || !isChromium) {
+            armGuardedFallback(playStore);
+          }
         } else if (isiOS) {
-          var start = Date.now();
-          window.location.href = 'https://www.islahbd.com/live/';
-          setTimeout(function () {
-            if (document.visibilityState === 'visible' && Date.now() - start < 4000) window.location.href = appStore;
-          }, 1600);
+          window.location.href = appUrl;
+          armGuardedFallback(appStore);
         } else {
           window.open('https://www.islahbd.com/', '_blank', 'noopener');
         }
