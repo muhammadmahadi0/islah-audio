@@ -16,7 +16,7 @@ import {
   Twitter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { watchUrl, shareNative, copyLink, shareTargets } from '@/lib/share';
+import { shareNative, copyLink, shareTargets } from '@/lib/share';
 import { openIslahBDApp } from '@/lib/open-app';
 
 export interface WatchVideo {
@@ -272,9 +272,6 @@ export default function WatchView({ video }: { video: WatchVideo }) {
                 Open App
               </button>
             </div>
-            <p className="mt-3 text-[11px] text-mist-dark break-all">
-              Share link: {watchUrl(video.videoId)}
-            </p>
 
             {video.description && (
               <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-mist clamp-2">
