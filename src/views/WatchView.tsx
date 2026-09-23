@@ -183,17 +183,6 @@ export default function WatchView({ video }: { video: WatchVideo }) {
             )}
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <button
-                onClick={handlePlayPause}
-                className="liquid-gold flex h-10 items-center gap-2 rounded-full px-5 text-sm font-bold transition-all hover:scale-[1.03] active:scale-95"
-              >
-                {isCurrent && isPlaying ? (
-                  <Pause size={16} fill="currentColor" />
-                ) : (
-                  <Play size={16} fill="currentColor" />
-                )}
-                {isCurrent && isPlaying ? 'Pause' : 'Play'}
-              </button>
               <span className={cn('relative flex h-10 items-center gap-2 rounded-full liquid-chip px-4 text-sm font-bold text-white')}>
                 <button
                   onClick={handleShare}
