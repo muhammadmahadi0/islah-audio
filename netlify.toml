@@ -4,3 +4,15 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# Hashed Astro bundles never change content — cache them for a year.
+# HTML/API responses carry their own Cache-Control from the routes.
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/icon*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

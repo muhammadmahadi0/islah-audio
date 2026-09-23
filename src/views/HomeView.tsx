@@ -17,7 +17,6 @@ import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import ShareButton from '@/components/ShareButton';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 import { fetchJson } from '@/lib/fetch-timeout';
-import { motion } from 'framer-motion';
 
 
 
@@ -116,12 +115,10 @@ function VideoCard({
     .join(' • ');
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index, 11) * 0.04, duration: 0.4 }}
+    <div
       onClick={() => onPlay(video)}
-      className="group relative cursor-pointer cv-card"
+      className="group relative cursor-pointer cv-card animate-fade-up"
+      style={{ animationDelay: `${Math.min(index, 11) * 40}ms` }}
     >
       {/* YouTube-style thumbnail in a liquid-glass frame */}
       <div className="relative liquid-glass rounded-2xl p-1.5 mb-3">
@@ -131,7 +128,9 @@ function VideoCard({
           src={video.thumbnail}
           alt={video.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-          loading="lazy"
+          loading={index < 6 ? 'eager' : 'lazy'}
+          fetchPriority={index < 6 ? 'high' : 'auto'}
+          decoding="async"
         />
         <div
           className={cn(
@@ -228,17 +227,15 @@ function VideoCard({
           onClose={() => setMenuOpen(false)}
         />
       )}
-    </motion.div>
+    </div>
   );
 }
 
 function ErrorScreen({ onRetry }: { onRetry: () => void }) {
   return (
     <main className="flex-1 flex items-center justify-center px-6">
-      <motion.div
-        className="relative text-center max-w-md liquid-glass rounded-[28px] p-10 overflow-hidden"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
+        className="relative text-center max-w-md liquid-glass rounded-[28px] p-10 overflow-hidden animate-fade-up"
       >
         <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
         <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
@@ -258,7 +255,7 @@ function ErrorScreen({ onRetry }: { onRetry: () => void }) {
           <RefreshCw size={16} />
           Try Again
         </button>
-      </motion.div>
+      </div>
     </main>
   );
 }
@@ -455,10 +452,8 @@ export default function HomePage() {
           </div>
         ) : (
           /* ---------- Channel header (liquid-glass hero) ---------- */
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative liquid-glass rounded-[28px] p-4 overflow-hidden"
+          <section
+            className="relative liquid-glass rounded-[28px] p-4 overflow-hidden animate-fade-up"
           >
             <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
@@ -470,6 +465,9 @@ export default function HomePage() {
                   src={channelAvatar}
                   alt={channelName}
                   className="w-full h-full object-cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                 />
               ) : (
                 <span className="text-[#E7C55A] text-4xl md:text-6xl font-bold">إ</span>
@@ -563,9 +561,9 @@ export default function HomePage() {
                   <Shuffle size={18} />
                 </button>
               </div>
+              </div>
             </div>
-            </div>
-          </motion.section>
+          </section>
         )}
 
         {/* ---------- Sticky chips bar (liquid-glass pill) ---------- */}

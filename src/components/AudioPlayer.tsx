@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import Hls from 'hls.js';
+import type Hls from 'hls.js';
 import { usePlayerStore } from '@/store/player-store';
 import { SEEK_EVENT } from '@/lib/yt-engine';
 
@@ -64,7 +64,22 @@ export default function AudioPlayer() {
     }
   };
 
-  const loadStream = (url: string, autoplay: boolean) => {
+  // hls.js is ~500KB — never bundle it. Load it on demand the first time
+  // an HLS stream actually plays, then reuse the cached module.
+  const hlsModuleRef = useRef<typeof Hls | null>(null);
+  const loadHlsModule = async (): Promise<typeof Hls | null> => {
+    if (hlsModuleRef.current) return hlsModuleRef.current;
+    try {
+      const mod = await import('hls.js');
+      hlsModuleRef.current = mod.default;
+      return mod.default;
+    } catch (err) {
+      console.error('[AudioPlayer] hls.js load failed:', err);
+      return null;
+    }
+  };
+
+  const loadStream = async (url: string, autoplay: boolean) => {
     const audio = audioRef.current;
     if (!audio) return;
     destroyHls();
@@ -84,14 +99,45 @@ export default function AudioPlayer() {
       }
     };
 
-    if (looksLikeHls(url) && Hls.isSupported()) {
-      const hls = new Hls({ enableWorker: true });
+    if (!looksLikeHls(url)) {
+      // Progressive file (mp3) — no hls.js needed
+      audio.src = url;
+      audio.load();
+      startPlayback();
+      return;
+    }
+
+    // HLS: Safari plays natively (canPlayType check — no download);
+    // everywhere else lazy-loads hls.js on first use.
+    // Stale-track guard: if the user switched tracks while importing,
+    // abandon this load instead of hijacking the new stream.
+    const wantedUrl = url;
+    const nativeHls =
+      typeof audio.canPlayType === 'function' &&
+      audio.canPlayType('application/vnd.apple.mpegurl') !== '';
+    if (nativeHls) {
+      audio.src = url;
+      audio.load();
+      startPlayback();
+      return;
+    }
+    const HlsCtor = await loadHlsModule();
+    if (!HlsCtor || streamUrlRef.current !== wantedUrl) return;
+    if (!HlsCtor.isSupported()) {
+      // No MSE at all — last resort: try native anyway.
+      audio.src = url;
+      audio.load();
+      startPlayback();
+      return;
+    }
+    {
+      const hls = new HlsCtor({ enableWorker: true });
       hlsRef.current = hls;
-      hls.on(Hls.Events.ERROR, (_event, data) => {
+      hls.on(HlsCtor.Events.ERROR, (_event, data) => {
         if (!data.fatal) return;
         // Direct CDN fetch failed (e.g. missing CORS) → retry via proxy
         if (
-          data.type === Hls.ErrorTypes.NETWORK_ERROR &&
+          data.type === HlsCtor.ErrorTypes.NETWORK_ERROR &&
           !proxyTriedRef.current &&
           !url.startsWith('/api/hls')
         ) {
@@ -118,7 +164,7 @@ export default function AudioPlayer() {
               // Never fall back onto the URL that just failed (avoids loops).
               if (recUrl && stillLive && recUrl !== streamUrlRef.current) {
                 proxyTriedRef.current = true; // skip proxy retry for the mp3
-                loadStream(recUrl, true);
+                void loadStream(recUrl, true);
               } else {
                 storeRef.current.setIsLoading(false);
               }
@@ -131,11 +177,6 @@ export default function AudioPlayer() {
       });
       hls.loadSource(url);
       hls.attachMedia(audio);
-      startPlayback();
-    } else {
-      // Native HLS (Safari) or progressive file (mp3)
-      audio.src = url;
-      audio.load();
       startPlayback();
     }
   };
@@ -156,7 +197,7 @@ export default function AudioPlayer() {
     setIsLoading(true);
     setCurrentTime(0);
     setDuration(track?.duration || 0);
-    loadStream(streamUrl, playingRef.current);
+    void loadStream(streamUrl, playingRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack?.hlsUrl, currentTrack?.audioUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 

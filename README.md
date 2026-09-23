@@ -91,6 +91,7 @@ npm run preview # preview built output
 | Route                  | Description                                                        |
 | ---------------------- | ------------------------------------------------------------------ |
 | `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
+| `GET /api/channel/[id]/meta` | Name + avatar only (Sidebar switcher; 1-day cache) |
 | `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
 | `GET /api/playlists/[channel]` | A channel's playlists (Data API, 6h CDN cache) |
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube first, Data API fallback |
@@ -147,10 +148,12 @@ dead or blocked, so YouTube tracks play through the **official YouTube embed**
 (the single `YT.Player` in `lib/yt-engine.ts`, mounted by `MiniPlayer.tsx` —
 minimized/audio-only by default, video opt-in via the toggle in the expanded
 player). The **islahbd live broadcast**
-and its recording play through a hidden `<audio>` element + hls.js in
+and its recording play through a hidden `<audio>` element in
 `AudioPlayer.tsx` instead
 (tracks carrying `hlsUrl`/`audioUrl`; live tracks also set `isLive`, which disables
-seeking). The store drives play/pause/seek/volume, and UI components request seeks
+seeking). hls.js is lazy-loaded on first HLS play only — Safari plays HLS
+natively with zero download. The YouTube iframe API prewarms on browser idle
+but the player itself is created on demand at first play. The store drives play/pause/seek/volume, and UI components request seeks
 via the `islah:seek` window event (defined in `lib/yt-engine.ts`).
 
 ## Deployment (BETA)

@@ -201,22 +201,32 @@ export default function MiniPlayer() {
         });
   };
 
-  // Mount the player once
+  // Prewarm the YT iframe API once the browser is idle — never on the
+  // critical path. The track effect below lazy-loads on demand as the
+  // guaranteed fallback, so first-tap latency is unchanged either way.
   useEffect(() => {
-    let cancelled = false;
+    let idleId: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
-    loadYouTubeAPI()
-      .then((YT) => {
-        if (!cancelled) createPlayer(YT);
-      })
-      .catch((err) => {
-        console.error('[MiniPlayer] YT init:', err);
-        apiFailedRef.current = true;
-        storeRef.current.setIsLoading(false);
+    const prewarm = () => {
+      // Skip if a track already created the player via the on-demand path.
+      if (playerRef.current) return;
+      loadYouTubeAPI().catch(() => {
+        // ignore — on-demand path retries with error handling
       });
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(prewarm, { timeout: 8000 });
+    } else {
+      timer = setTimeout(prewarm, 4000);
+    }
 
     return () => {
-      cancelled = true;
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as Window & { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+      }
+      if (timer) clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -57,6 +57,8 @@ This file orients AI coding agents working in this repo. Read it before making c
    (InnerTube first, Data API fallback). The list is server-rendered
    (`library.astro` passes initial data to the island) so it can
    never hang on a client fetch; the client effect only runs as fallback.
+   The Sidebar switcher reads `/api/channel/[id]/meta` (name + avatar only),
+   never the full listing.
 5. **Channels.** Registry in `lib/channels.ts`, active channel in
    `channel-store.ts` (persist key `islah-channel`). Home/Search/Library all
    follow the active channel. Sidebar shows the switcher; Android opens the
@@ -107,7 +109,11 @@ This file orients AI coding agents working in this repo. Read it before making c
   glass → solid tonal surfaces, blurs/sheen spans/ambient blobs off via the
   `html.material` overrides. Default is device-aware (`defaultDesignMode()`:
   liquid on iOS + desktop, material on other mobile) — the pre-paint script in
-  `Layout.astro` mirrors it, keep both in sync. New glass surfaces must degrade under it (use the
+  `Layout.astro` mirrors it, keep both in sync. Animations are CSS-only
+  (`animate-fade-up`/`.shimmer`/`.eq-bar` in `globals.css` + tailwind config) —
+  do NOT reintroduce framer-motion. hls.js must stay dynamically imported in
+  `AudioPlayer.tsx` (never a static import — it would re-bloat the initial
+  bundle by ~500KB). New glass surfaces must degrade under it (use the
   helpers, keep sheens `pointer-events-none` direct children of `.liquid-glass`). Keep blur radii small and scrolling smooth: no
   `background-attachment: fixed`, no `AnimatePresence popLayout` on lists,
   `.cv-card`/`.cv-row` on cards/rows, ambient blobs `contain: strict`.

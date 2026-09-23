@@ -210,7 +210,7 @@ export async function getChannelVideos(channelId: string): Promise<YouTubeChanne
   };
 }
 
-async function getChannelDetailsByHandle(handle: string) {
+export async function getChannelDetailsByHandle(handle: string) {
   const data = await getYouTubeAPI<any>('channels', {
     part: 'contentDetails,snippet',
     forHandle: handle.replace('@', ''),

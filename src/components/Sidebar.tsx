@@ -39,14 +39,15 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const { mode: designMode, toggle: toggleDesign } = useDesignStore();
   const [meta, setMeta] = useState<Record<string, ChannelMeta>>({});
 
-  // Channel avatars (lightweight meta fetch, CDN-cached server-side)
+  // Channel avatars via the featherweight meta endpoint (name + avatar
+  // only — never the 100-video listing). CDN-cached server-side.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const entries = await Promise.all(
         CHANNELS.map(async (c) => {
           try {
-            const res = await fetch(`/api/channel/${c.id}`);
+            const res = await fetch(`/api/channel/${c.id}/meta`);
             const data = await res.json();
             if (data.success && data.channel) {
               return [c.id, { name: data.channel.name, avatar: data.channel.avatar }] as const;

@@ -24,8 +24,12 @@
   `channel-store`, `theme-store`, `design-store`)
 - **Listing Data**: keyless InnerTube first, YouTube Data API v3 fallback
 - **Lecture Playback**: Official YouTube IFrame embed (hidden `YT.Player`)
-- **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback)
-- **Hosting**: Netlify (`dist` publish, SSR functions via adapter)
+- **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback).
+  hls.js is lazy-loaded on first HLS play only — never in the initial bundle.
+- **Animation**: pure CSS (`animate-fade-up`, `.shimmer`, `.eq-bar`) — no
+  animation library in the bundle. No `background-attachment: fixed`.
+- **Hosting**: Netlify (`dist` publish, SSR functions via adapter).
+  Hashed `/_astro/*` bundles cache immutable for a year.
 
 ## UI/UX Specification
 
@@ -190,6 +194,7 @@
 | Route | Purpose |
 | ----- | ------- |
 | `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
+| `GET /api/channel/[id]/meta` | Name + avatar only (featherweight, for the Sidebar switcher; 1-day cache) |
 | `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
 | `GET /api/playlists/[channel]` | A channel's playlists (Data API, 6h CDN cache) |
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube first, Data API fallback |
@@ -198,6 +203,13 @@
 | `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
 
 ### Data Handling
+
+- **Load budget.** Initial JS is React + islands only: hls.js (~500KB)
+  lazy-loads on first HLS play, the YouTube iframe API prewarms on browser
+  idle (player still creates on demand), card animations are CSS-only, and
+  above-fold thumbnails load eager/high-priority with `preconnect` to
+  `i.ytimg.com`. The Sidebar reads avatars from `/api/channel/[id]/meta`,
+  never the 100-video listing.
 
 - **IDs travel in URL paths, never query strings** — the hosting layer drops
   query parameters before function invocation (`/api/channel/[id]`,

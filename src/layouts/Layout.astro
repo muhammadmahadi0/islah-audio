@@ -45,6 +45,10 @@ const {
     <link rel="icon" href="/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
+    {/* Thumbnails all come from i.ytimg.com — connect early so the first
+        image doesn't pay DNS+TLS setup on the critical path. */}
+    <link rel="preconnect" href="https://i.ytimg.com" crossorigin />
+    <link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
     <title>{title}</title>
     <script is:inline>
       try {
