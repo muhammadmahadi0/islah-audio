@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { fetchJson } from '@/lib/fetch-timeout';
+import ShareButton from '@/components/ShareButton';
 
 function formatDuration(seconds: number): string {
   if (!seconds || seconds <= 0) return '0:00';
@@ -44,8 +45,7 @@ function EqBars() {
   );
 }
 
-function TrackRow({
-  track,
+function TrackRow({  track,
   index,
   showIndex = true,
   onPlay,
@@ -65,8 +65,10 @@ function TrackRow({
     <div
       onClick={onPlay}
       className={cn(
-        'flex items-center gap-3.5 p-3 cursor-pointer transition-colors',
-        isActive ? 'bg-brand/[0.08]' : 'hover:bg-white/[0.04]'
+        'flex items-center gap-3.5 p-3 cursor-pointer transition-all rounded-2xl cv-row',
+        isActive
+          ? 'liquid-chip ring-1 ring-brand/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
+          : 'hover:bg-white/[0.05] border border-transparent'
       )}
     >
       {showIndex && (
@@ -74,7 +76,7 @@ function TrackRow({
           {index + 1}
         </span>
       )}
-      <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-ink-700 ring-1 ring-white/10">
+      <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-white/[0.06] ring-1 ring-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
         {track.thumbnail ? (
           <img
             src={track.thumbnail}
@@ -90,7 +92,17 @@ function TrackRow({
       </div>
       <div className="flex-1 min-w-0">
         <p className={cn('text-sm font-semibold truncate', isActive ? 'text-brand-light' : 'text-white')}>
-          {track.title}
+          {track.videoId ? (
+            <a
+              href={`/watch/${track.videoId}`}
+              onClick={(e) => e.stopPropagation()}
+              className="hover:underline"
+            >
+              {track.title}
+            </a>
+          ) : (
+            track.title
+          )}
         </p>
         <p className="text-mist-dark text-xs truncate">{track.channelName}</p>
       </div>
@@ -98,6 +110,14 @@ function TrackRow({
         {formatDuration(track.duration)}
       </span>
       {isActive && isPlaying && <EqBars />}
+      {track.videoId && (
+        <ShareButton
+          videoId={track.videoId}
+          title={track.title}
+          iconSize={15}
+          className="p-1.5 text-mist-dark hover:text-gold-light hover:bg-white/10"
+        />
+      )}
       {onRemove && (
         <button
           onClick={(e) => {
@@ -135,9 +155,10 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
   };
 
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+    <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
+      <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
       <div className="flex items-center gap-3.5 p-3.5">
-        <div className="w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep to-ink-700 ring-1 ring-white/10">
+        <div className="w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep to-ink-700 ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]">
           {cover ? (
             <img src={cover} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -156,10 +177,10 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
         {playlist.tracks.length > 0 && (
           <button
             onClick={playAll}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow hover:scale-105 active:scale-95 transition-transform shrink-0"
+            className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shrink-0"
             aria-label={`Play ${playlist.name}`}
           >
-            <Play size={16} fill="#060D0A" className="text-ink-950 ml-0.5" />
+            <Play size={16} fill="currentColor" className="ml-0.5" />
           </button>
         )}
         {confirmDelete ? (
@@ -223,8 +244,6 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
     </div>
   );
 }
-
-type Tab = 'queue' | 'playlists';
 
 export interface ChannelPlaylist {
   id: string;
@@ -304,9 +323,10 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
   };
 
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+    <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
+      <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
       <div className="flex items-center gap-3.5 p-3.5">
-        <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-ink-700 ring-1 ring-white/10">
+        <div className="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-white/[0.06] ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]">
           {playlist.thumbnail ? (
             <img src={playlist.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -330,13 +350,13 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
         <button
           onClick={playAll}
           disabled={isLoading}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow hover:scale-105 active:scale-95 transition-transform shrink-0 disabled:opacity-40"
+          className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shrink-0 disabled:opacity-40"
           aria-label={`Play ${playlist.title}`}
         >
           {isLoading ? (
-            <Loader2 size={16} className="animate-spin text-ink-950" />
+            <Loader2 size={16} className="animate-spin" />
           ) : (
-            <Play size={16} fill="#060D0A" className="text-ink-950 ml-0.5" />
+            <Play size={16} fill="currentColor" className="ml-0.5" />
           )}
         </button>
         <button
@@ -403,14 +423,12 @@ export default function LibraryView({
   // client fetch needed). Null entry = server fetch failed for it.
   initialYtPlaylists: Record<string, ChannelPlaylist[] | null>;
 }) {
-  const [tab, setTab] = useState<Tab>('queue');
   const [newName, setNewName] = useState('');
   const [ytPlaylists, setYtPlaylists] = useState<ChannelPlaylist[] | null>(null);
   const [ytForChannel, setYtForChannel] = useState('');
   const [ytLoading, setYtLoading] = useState(false);
   const [ytError, setYtError] = useState(false);
   const [ytErrorMsg, setYtErrorMsg] = useState('');
-  const { playlist, currentTrack, isPlaying, playTrack, setIsPlaying } = usePlayerStore();
   const { playlists, createPlaylist } = usePlaylistStore();
   const { channelId } = useChannelStore();
 
@@ -418,7 +436,7 @@ export default function LibraryView({
   // server-rendered map. Client fetch is only a fallback when the server
   // had none for that channel.
   useEffect(() => {
-    if (tab !== 'playlists' || ytLoading) return;
+    if (ytLoading) return;
     if (ytForChannel === channelId && ytPlaylists !== null) return;
     if (ytForChannel !== channelId) {
       const server = initialYtPlaylists[channelId] ?? null;
@@ -454,19 +472,11 @@ export default function LibraryView({
     return () => {
       cancelled = true;
     };
-  }, [tab, ytPlaylists, ytLoading, ytForChannel, channelId, initialYtPlaylists]);
+  }, [ytPlaylists, ytLoading, ytForChannel, channelId, initialYtPlaylists]);
 
   const retryYtPlaylists = () => {
     setYtError(false);
     setYtPlaylists(null);
-  };
-
-  const handlePlayTrack = (track: Track, index: number) => {
-    if (currentTrack?.id === track.id) {
-      setIsPlaying(!isPlaying);
-    } else {
-      playTrack(track, playlist, index);
-    }
   };
 
   const handleCreate = () => {
@@ -479,12 +489,13 @@ export default function LibraryView({
     <main className="pb-44 md:pb-36">
       <div className="mx-auto max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
         {/* Header card */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-brand-deep/50 via-ink-800 to-ink-900 p-6 md:p-8 mb-5">
-          <div className="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-brand/20 blur-[90px]" />
-          <div className="pointer-events-none absolute -bottom-24 -left-12 w-64 h-64 rounded-full bg-gold/10 blur-[90px]" />
+        <section className="relative liquid-glass rounded-[28px] p-6 md:p-8 mb-5 overflow-hidden">
+          <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
+          <span aria-hidden="true" className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <div className="relative flex items-center gap-4">
-            <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow shrink-0">
-              <ListMusic size={26} className="text-ink-950" />
+            <span className="liquid-gold w-14 h-14 rounded-2xl flex items-center justify-center shrink-0">
+              <ListMusic size={26} />
             </span>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold">
@@ -494,68 +505,21 @@ export default function LibraryView({
                 Your Library
               </h1>
               <p className="text-[13px] text-mist mt-0.5">
-                {playlist.length} in queue • {playlists.length} playlist{playlists.length === 1 ? '' : 's'}
+                {playlists.length} playlist{playlists.length === 1 ? '' : 's'}
               </p>
             </div>
           </div>
         </section>
 
-        {/* Tabs — queue + playlists merged here */}
-        <div className="flex gap-2 mb-4">
-          {(
-            [
-              { id: 'queue', label: `Queue${playlist.length ? ` (${playlist.length})` : ''}` },
-              { id: 'playlists', label: `Playlists${playlists.length ? ` (${playlists.length})` : ''}` },
-            ] as { id: Tab; label: string }[]
-          ).map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                'flex-1 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all',
-                tab === t.id
-                  ? 'bg-gradient-to-r from-brand-light to-brand-dark text-ink-950 shadow-glow'
-                  : 'bg-white/[0.05] text-mist border border-white/10 hover:text-white'
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {tab === 'queue' ? (
-          playlist.length > 0 ? (
-            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden divide-y divide-white/[0.05]">
-              {playlist.map((track, index) => (
-                <TrackRow
-                  key={`${track.id}-${index}`}
-                  track={track}
-                  index={index}
-                  onPlay={() => handlePlayTrack(track, index)}
-                  isActive={currentTrack?.id === track.id}
-                  isPlaying={isPlaying}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 rounded-3xl border border-dashed border-white/10">
-              <span className="w-16 h-16 rounded-full bg-brand/10 border border-brand/25 flex items-center justify-center mx-auto mb-4">
-                <Music size={26} className="text-brand-light" />
-              </span>
-              <p className="text-white font-bold text-lg">Queue is empty</p>
-              <p className="text-mist-dark text-sm mt-1">
-                Play some lectures and they’ll show up here
-              </p>
-            </div>
-          )
-        ) : (
-          <div>
+        {/* Playlists live here — the playback queue moved to the
+            expanded player's Up-next dropdown */}
+        <div>
             {/* Channel's YouTube playlists */}
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold mb-2.5">
               From YouTube
             </p>
             {ytLoading || ytPlaylists === null ? (
-              <div className="flex items-center justify-center py-8 rounded-2xl border border-white/[0.07] bg-white/[0.02]">
+              <div className="flex items-center justify-center py-8 liquid-glass rounded-3xl">
                 <Loader2 size={22} className="animate-spin text-brand-light" />
               </div>
             ) : ytPlaylists.length > 0 ? (
@@ -565,7 +529,8 @@ export default function LibraryView({
                 ))}
               </div>
             ) : ytError ? (
-              <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center mb-7">
+              <div className="relative liquid-glass rounded-3xl px-4 py-6 text-center mb-7 overflow-hidden">
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                 <p className="text-[13px] text-mist-dark mb-1">
                   Couldn’t load channel playlists.
                 </p>
@@ -576,13 +541,14 @@ export default function LibraryView({
                 )}
                 <button
                   onClick={retryYtPlaylists}
-                  className="px-5 py-2 rounded-full bg-white/[0.06] border border-white/15 text-sm font-bold text-white hover:border-brand/60 transition-colors"
+                  className="relative px-5 py-2 rounded-full liquid-glass text-sm font-bold text-white transition-all overflow-hidden"
                 >
+                  <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                   Retry
                 </button>
               </div>
             ) : (
-              <p className="text-[13px] text-mist-dark rounded-2xl border border-dashed border-white/10 px-4 py-5 text-center mb-7">
+              <p className="text-[13px] text-mist-dark liquid-glass rounded-3xl px-4 py-5 text-center mb-7">
                 No public playlists on this channel yet.
               </p>
             )}
@@ -600,12 +566,12 @@ export default function LibraryView({
                 }}
                 placeholder="New playlist name…"
                 maxLength={60}
-                className="flex-1 min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-white placeholder:text-mist-dark outline-none focus:border-brand/60 focus:shadow-glow transition-all"
+                className="flex-1 min-w-0 rounded-2xl liquid-input px-4 py-2.5 text-sm text-white outline-none transition-all"
               />
               <button
                 onClick={handleCreate}
                 disabled={!newName.trim()}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-brand-light to-brand-dark text-ink-950 text-sm font-bold disabled:opacity-30 hover:shadow-glow transition-all shrink-0"
+                className="liquid-gold flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm font-bold disabled:opacity-30 transition-all shrink-0"
               >
                 <Plus size={16} strokeWidth={2.5} />
                 Create
@@ -619,8 +585,9 @@ export default function LibraryView({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 rounded-3xl border border-dashed border-white/10">
-                <span className="w-16 h-16 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center mx-auto mb-4">
+              <div className="relative text-center py-16 liquid-glass rounded-[28px] overflow-hidden">
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                   <Heart size={26} className="text-gold-light" />
                 </span>
                 <p className="text-white font-bold text-lg">No playlists yet</p>
@@ -631,11 +598,11 @@ export default function LibraryView({
               </div>
             )}
           </div>
-        )}
 
         {/* Info sections */}
         <div className="grid sm:grid-cols-2 gap-3 mt-6">
-          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
+          <div className="relative liquid-glass rounded-3xl p-5 overflow-hidden">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
             <div className="flex items-center gap-2 mb-2">
               <Clock size={17} className="text-gold" />
               <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">
@@ -646,7 +613,8 @@ export default function LibraryView({
               Your listening history will appear here as you play more lectures.
             </p>
           </div>
-          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
+          <div className="relative liquid-glass rounded-3xl p-5 overflow-hidden">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
             <div className="flex items-center gap-2 mb-2">
               <Heart size={17} className="text-gold" />
               <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">

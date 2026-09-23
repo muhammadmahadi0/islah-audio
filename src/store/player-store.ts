@@ -11,6 +11,8 @@ export interface Track {
   hlsUrl?: string;
   /** True for the live broadcast — duration is unknown, seeking disabled. */
   isLive?: boolean;
+  /** Venue/place name for live + recording tracks (from islahbd.com). */
+  location?: string;
   publishedAt?: string;
   description?: string;
 }

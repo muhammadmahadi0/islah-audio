@@ -1,13 +1,13 @@
 /**
- * BETA ONLY — InnerTube listing (no API key, no quota).
+ * Fully keyless InnerTube listing (no API key, no quota) — the only listing
+ * path since the Data API fallback was removed (full-keyless migration).
  *
  * Uses youtubei.js against YouTube's private InnerTube API (the same one
  * youtube.com uses), like the Flow Android app does. Keyless, unlimited —
- * but unofficial, so it can break when YouTube changes things. The YouTube
- * Data API remains as fallback in the routes.
+ * but unofficial, so it can break when YouTube changes things.
  *
- * Only LISTING goes through InnerTube (uploads, continuations). Playback
- * still uses the official embed and needs no extraction.
+ * Only LISTING goes through InnerTube (uploads, playlists, continuations).
+ * Playback still uses the official embed and needs no extraction.
  */
 
 import { Innertube, YTNodes, YT } from 'youtubei.js';
@@ -30,6 +30,13 @@ export interface InnertubeChannel {
   videos: InnertubeVideo[];
   /** Opaque token for the next chunk (null when exhausted). */
   nextToken: string | null;
+}
+
+export interface InnertubePlaylist {
+  id: string;
+  title: string;
+  thumbnail: string;
+  itemCount: number;
 }
 
 let sessionPromise: Promise<any> | null = null;
@@ -132,7 +139,7 @@ async function fetchContinuationPage(
 
 /**
  * Latest uploads of a channel (first page ≈ 100 videos).
- * Throws when InnerTube is unreachable — routes fall back to Data API.
+ * Throws when InnerTube is unreachable — routes return an error.
  */
 export async function getInnertubeChannelVideos(
   channelId: string
@@ -218,6 +225,212 @@ export async function getInnertubePlaylistItems(
 /** InnerTube continuation tokens are long; Data API page tokens are short. */
 export function isInnertubeToken(token: string): boolean {
   return token.length > 50;
+}
+
+/**
+ * A channel's public playlists via its Playlists tab (params are stable —
+ * channel-scoped, not per-video, so this needs no key at all).
+ * Returns [] when the tab is unreachable — routes surface "none yet".
+ */
+export async function getInnertubeChannelPlaylists(
+  channelId: string
+): Promise<InnertubePlaylist[]> {
+  const yt = await getSession();
+
+  // Discover the channel's Playlists tab (params differ per channel).
+  const channel = await yt.getChannel(channelId);
+  const tabs = channel.memo.getType(YTNodes.Tab);
+  const playlistsTab = tabs.find(
+    (t: any) => (t.title?.toString?.() || t.title || '') === 'Playlists'
+  );
+  const params: string | undefined = playlistsTab?.endpoint?.payload?.params;
+  if (!params) return [];
+
+  const raw = await yt.actions.execute('/browse', { browseId: channelId, params });
+  const { Parser } = await import('youtubei.js');
+  const memo = Parser.parseResponse(raw.data).contents_memo;
+  const lockups = memo
+    .getType(YTNodes.LockupView)
+    .filter((p: any) => p.content_type === 'PLAYLIST');
+
+  return lockups
+    .map((p: any): InnertubePlaylist | null => {
+      try {
+        const id: string = p.content_id;
+        if (!id) return null;
+        const title: string = p.metadata?.title?.text || 'Untitled playlist';
+        const thumbnail: string = p.content_image?.primary_thumbnail?.image?.[0]?.url || '';
+        // "54 videos" badge on the thumbnail overlay.
+        const badges: any[] =
+          p.content_image?.primary_thumbnail?.overlays?.flatMap?.(
+            (o: any) => o.badges || []
+          ) || [];
+        const countText: string = badges.map((b: any) => b.text || '').join(' ');
+        const count = parseInt(countText.replace(/[^0-9]/g, ''), 10);
+        return {
+          id,
+          title,
+          thumbnail,
+          itemCount: Number.isFinite(count) ? count : 0,
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter((p: InnertubePlaylist | null): p is InnertubePlaylist => p !== null);
+}
+
+/**
+ * Channel name + avatar only (no video listing) for the Sidebar switcher.
+ * Best-effort — empty strings when the lookup fails, UI falls back to the
+ * channel registry + monogram.
+ */
+export async function getInnertubeChannelMeta(
+  channelId: string
+): Promise<{ name: string; avatar: string }> {
+  const yt = await getSession();
+  const channel = await yt.getChannel(channelId).catch(() => null);
+  if (!channel) return { name: '', avatar: '' };
+
+  let name: string = channel?.metadata?.title || '';
+  let avatar = '';
+  try {
+    const thumbs =
+      channel?.header?.author?.thumbnails ||
+      channel?.header?.thumbnails ||
+      channel?.metadata?.thumbnail ||
+      [];
+    const list = Array.isArray(thumbs) ? thumbs : thumbs?.thumbnails || [];
+    avatar = list[list.length - 1]?.url || list[0]?.url || '';
+    if (!name) name = channel?.header?.author?.title?.toString() || '';
+  } catch {
+    // avatar stays empty — UI falls back to the إ monogram
+  }
+  return { name, avatar };
+}
+
+/** Single-video metadata for `/watch/[id]` + `/api/stream/[id]` — keyless.
+ * Tries `getBasicInfo` first (full metadata), falls back to oEmbed
+ * (title/author/thumbnail — enough for the watch page + OG tags).
+ * oEmbed matters because Netlify IPs intermittently get blank player
+ * responses for BasicInfo while browse endpoints keep working
+ * (proven in prod: valid videos returned empty title). */
+export async function getInnertubeVideoMetadata(videoId: string): Promise<{
+  found: boolean;
+  videoId: string;
+  title: string;
+  thumbnail: string;
+  duration: number;
+  channelName: string;
+  description: string;
+  publishedAt: string;
+  views: number;
+}> {
+  const empty = {
+    found: false,
+    // videoId must ALWAYS travel through — the watch page's autoplay guard
+    // compares currentTrack.videoId === video.videoId, and undefined ===
+    // undefined early-returns as if already playing (proven prod bug: no
+    // pill, dead taps, clean console).
+    videoId,
+    title: '',
+    thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    duration: 0,
+    channelName: '',
+    description: '',
+    publishedAt: '',
+    views: 0,
+  };
+  // 1. Full metadata via BasicInfo.
+  try {
+    const yt = await getSession();
+    // getBasicInfo throws on unknown/removed videos (caller 404s).
+    // NOTE: never pass `{ client }` — youtubei.js errors on several client
+    // names with "Invalid video ID" even for valid videos.
+    const info = await yt.getBasicInfo(videoId);
+    const basic: any = info.basic_info;
+    if (basic?.id || basic?.title) {
+      const thumbs: any[] = basic.thumbnail || [];
+      const best = thumbs[thumbs.length - 1];
+      const title: string = basic.title || '';
+      // A response with neither id nor title is a blank/blocked payload,
+      // not a real video — fall through to oEmbed instead of claiming found.
+      if (basic?.id || title) {
+        return {
+          found: true,
+          videoId,
+          title,
+          thumbnail: best?.url || empty.thumbnail,
+          duration: Number(basic.duration) || 0,
+          channelName: basic.channel?.name || basic.author || '',
+          description: basic.short_description || '',
+          publishedAt: basic.publish_date || info.primary_info?.published?.text || '',
+          views: Number(basic.view_count) || 0,
+        };
+      }
+    }
+  } catch {
+    // Unknown/removed video or blocked player response — try oEmbed next.
+  }
+  // 2. oEmbed fallback: lightweight, rarely blocked, no key.
+  // Returns 404 for genuinely unknown IDs, so `found` stays a real signal.
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(
+        `https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}&format=json`,
+        { headers: { Accept: 'application/json' }, signal: controller.signal }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.title) {
+          return {
+            ...empty,
+            found: true,
+            title: data.title || '',
+            channelName: data.author_name || '',
+            thumbnail: data.thumbnail_url || empty.thumbnail,
+          };
+        }
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+  } catch {
+    // oEmbed unreachable — caller 404s.
+  }
+  return empty;
+}
+
+/**
+ * Client-safe token wrapping.
+ *
+ * Raw InnerTube tokens contain `%` sequences — once the client percent-encodes
+ * them for the URL path (`%` → `%25`), Astro-on-Netlify matches NO route and
+ * answers 404 (proven in prod: the "Show more" wall at 100 videos). So the
+ * server hands the client `it1_`-prefixed base64url instead (path-safe
+ * `[A-Za-z0-9_-]` only) and the more-route unwraps it. Short Data API page
+ * tokens pass through untouched.
+ */
+const CLIENT_TOKEN_PREFIX = 'it1_';
+
+export function toClientToken(token: string | null): string | null {
+  if (!token) return null;
+  if (!isInnertubeToken(token)) return token;
+  return CLIENT_TOKEN_PREFIX + Buffer.from(token, 'utf8').toString('base64url');
+}
+
+export function fromClientToken(token: string): string {
+  if (token.startsWith(CLIENT_TOKEN_PREFIX)) {
+    try {
+      const raw = Buffer.from(token.slice(CLIENT_TOKEN_PREFIX.length), 'base64url').toString('utf8');
+      if (isInnertubeToken(raw)) return raw;
+    } catch {
+      // Corrupt wrapping — fall through and use the token as-is.
+    }
+  }
+  return token;
 }
 
 /** Budget for one InnerTube operation inside a serverless invocation. */

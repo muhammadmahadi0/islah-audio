@@ -17,8 +17,8 @@ export default function ThemeToggle() {
       title={isLight ? 'Dark mode' : 'Light mode'}
       className={cn(
         'fixed z-40 flex h-11 w-11 items-center justify-center rounded-full',
-        'glass border border-white/15 shadow-card transition-all',
-        'hover:scale-105 hover:border-gold/50 active:scale-95',
+        'liquid-glass transition-all',
+        'hover:scale-105 active:scale-95',
         'bottom-[148px] right-4 md:bottom-24 md:right-6'
       )}
     >

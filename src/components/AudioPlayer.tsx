@@ -1,74 +1,21 @@
 import { useEffect, useRef } from 'react';
-import Hls from 'hls.js';
+import type Hls from 'hls.js';
 import { usePlayerStore } from '@/store/player-store';
-
-/**
- * Name of the window CustomEvent used to request a seek.
- * UI components (MiniPlayer, etc.) dispatch:
- *   window.dispatchEvent(new CustomEvent('islah:seek', { detail: seconds }))
- */
-export const SEEK_EVENT = 'islah:seek';
-
-declare global {
-  interface Window {
-    YT?: any;
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
-
-let apiPromise: Promise<any> | null = null;
-
-function loadYouTubeAPI(): Promise<any> {
-  if (typeof window === 'undefined') return Promise.reject(new Error('No window'));
-  if (window.YT?.Player) return Promise.resolve(window.YT);
-  if (apiPromise) return apiPromise;
-
-  apiPromise = new Promise((resolve, reject) => {
-    const prev = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      prev?.();
-      resolve(window.YT);
-    };
-
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    tag.async = true;
-    tag.onerror = () => {
-      apiPromise = null;
-      reject(new Error('Failed to load YouTube player'));
-    };
-    document.head.appendChild(tag);
-
-    // Safety timeout — don't hang the player forever
-    setTimeout(() => {
-      if (!window.YT?.Player) {
-        apiPromise = null;
-        reject(new Error('YouTube player timed out'));
-      }
-    }, 15000);
-  });
-
-  return apiPromise;
-}
+import { SEEK_EVENT } from '@/lib/yt-engine';
 
 function looksLikeHls(url: string): boolean {
   return /\.m3u8(\?|$)/i.test(url) || /\/live(\?|$)/i.test(url);
 }
 
 /**
- * Hidden playback engine wired to the global player store.
+ * Stream playback engine: `<audio>` + hls.js for live HLS + recordings
+ * (tracks carrying `hlsUrl`/`audioUrl`).
  *
- * Two engines, chosen per track:
- * - YouTube tracks → official embed (no extraction service needed).
- * - Stream tracks (`hlsUrl`/`audioUrl`, e.g. the islahbd live broadcast or
- *   its recording) → `<audio>` + hls.js, with same-origin proxy fallback.
+ * YouTube lecture tracks are owned by the YT engine in
+ * `src/lib/yt-engine.ts` (mounted inside MiniPlayer) — this component only
+ * makes sure the stream engine is stopped when such a track plays.
  */
 export default function AudioPlayer() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
-  const readyRef = useRef(false);
-  const trackIdRef = useRef<string | null>(null);
-
   const audioRef = useRef<HTMLAudioElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const proxyTriedRef = useRef(false);
@@ -91,8 +38,6 @@ export default function AudioPlayer() {
   storeRef.current = { setCurrentTime, setDuration, setIsPlaying, setIsLoading, playNext };
   const playingRef = useRef(isPlaying);
   playingRef.current = isPlaying;
-
-  const isStreamTrack = !!currentTrack?.hlsUrl || !!currentTrack?.audioUrl;
 
   const destroyHls = () => {
     if (hlsRef.current) {
@@ -119,7 +64,55 @@ export default function AudioPlayer() {
     }
   };
 
-  const loadStream = (url: string, autoplay: boolean) => {
+  // hls.js is ~500KB — never bundle it. It loads on demand at first HLS
+  // play, and is prefetched on browser idle below so that first live-tap
+  // doesn't pay the full download before audio can start.
+  const hlsModuleRef = useRef<typeof Hls | null>(null);
+  const loadHlsModule = async (): Promise<typeof Hls | null> => {
+    if (hlsModuleRef.current) return hlsModuleRef.current;
+    try {
+      const mod = await import('hls.js');
+      hlsModuleRef.current = mod.default;
+      return mod.default;
+    } catch (err) {
+      console.error('[AudioPlayer] hls.js load failed:', err);
+      return null;
+    }
+  };
+
+  // Prefetch hls.js once the browser is idle — skipped on data-saver or
+  // very slow connections so we never spend a user's mobile data unasked.
+  useEffect(() => {
+    let idleId: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    try {
+      const conn = navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      };
+      if (conn.connection?.saveData) return;
+      const slow = conn.connection?.effectiveType;
+      if (slow === 'slow-2g' || slow === '2g') return;
+    } catch {
+      return;
+    }
+    const prefetch = () => {
+      if (!hlsModuleRef.current) void loadHlsModule();
+    };
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(prefetch, { timeout: 10000 });
+    } else {
+      timer = setTimeout(prefetch, 6000);
+    }
+    return () => {
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as Window & { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+      }
+      if (timer) clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadStream = async (url: string, autoplay: boolean) => {
     const audio = audioRef.current;
     if (!audio) return;
     destroyHls();
@@ -139,14 +132,45 @@ export default function AudioPlayer() {
       }
     };
 
-    if (looksLikeHls(url) && Hls.isSupported()) {
-      const hls = new Hls({ enableWorker: true });
+    if (!looksLikeHls(url)) {
+      // Progressive file (mp3) — no hls.js needed
+      audio.src = url;
+      audio.load();
+      startPlayback();
+      return;
+    }
+
+    // HLS: Safari plays natively (canPlayType check — no download);
+    // everywhere else lazy-loads hls.js on first use.
+    // Stale-track guard: if the user switched tracks while importing,
+    // abandon this load instead of hijacking the new stream.
+    const wantedUrl = url;
+    const nativeHls =
+      typeof audio.canPlayType === 'function' &&
+      audio.canPlayType('application/vnd.apple.mpegurl') !== '';
+    if (nativeHls) {
+      audio.src = url;
+      audio.load();
+      startPlayback();
+      return;
+    }
+    const HlsCtor = await loadHlsModule();
+    if (!HlsCtor || streamUrlRef.current !== wantedUrl) return;
+    if (!HlsCtor.isSupported()) {
+      // No MSE at all — last resort: try native anyway.
+      audio.src = url;
+      audio.load();
+      startPlayback();
+      return;
+    }
+    {
+      const hls = new HlsCtor({ enableWorker: true });
       hlsRef.current = hls;
-      hls.on(Hls.Events.ERROR, (_event, data) => {
+      hls.on(HlsCtor.Events.ERROR, (_event, data) => {
         if (!data.fatal) return;
         // Direct CDN fetch failed (e.g. missing CORS) → retry via proxy
         if (
-          data.type === Hls.ErrorTypes.NETWORK_ERROR &&
+          data.type === HlsCtor.ErrorTypes.NETWORK_ERROR &&
           !proxyTriedRef.current &&
           !url.startsWith('/api/hls')
         ) {
@@ -173,7 +197,7 @@ export default function AudioPlayer() {
               // Never fall back onto the URL that just failed (avoids loops).
               if (recUrl && stillLive && recUrl !== streamUrlRef.current) {
                 proxyTriedRef.current = true; // skip proxy retry for the mp3
-                loadStream(recUrl, true);
+                void loadStream(recUrl, true);
               } else {
                 storeRef.current.setIsLoading(false);
               }
@@ -187,189 +211,101 @@ export default function AudioPlayer() {
       hls.loadSource(url);
       hls.attachMedia(audio);
       startPlayback();
-    } else {
-      // Native HLS (Safari) or progressive file (mp3)
-      audio.src = url;
-      audio.load();
-      startPlayback();
     }
   };
 
-  // Create the hidden YouTube player once
+  // Load a stream track when it changes; stop the stream engine otherwise
+  // (the YT engine in MiniPlayer owns YouTube tracks).
   useEffect(() => {
-    let cancelled = false;
-
-    loadYouTubeAPI()
-      .then((YT) => {
-        if (cancelled || !containerRef.current || playerRef.current) return;
-
-        playerRef.current = new YT.Player(containerRef.current, {
-          height: '0',
-          width: '0',
-          // Privacy-enhanced host: serves the embed from youtube-nocookie.com
-          // so no tracking cookies are set — this also silences the
-          // "__Secure-YEC rejected (SameSite)" console warnings. Playback,
-          // JS API control, and events work exactly the same.
-          host: 'https://www.youtube-nocookie.com',
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            disablekb: 1,
-            rel: 0,
-            playsinline: 1,
-          },
-          events: {
-            onReady: (e: any) => {
-              readyRef.current = true;
-              e.target.setVolume(Math.round(usePlayerStore.getState().volume * 100));
-              // If a YouTube track was selected before ready, load it now
-              const track = usePlayerStore.getState().currentTrack;
-              if (track?.videoId && !track.hlsUrl && !track.audioUrl) {
-                if (trackIdRef.current !== track.videoId) {
-                  trackIdRef.current = track.videoId;
-                  storeRef.current.setIsLoading(true);
-                  if (playingRef.current) e.target.loadVideoById(track.videoId);
-                  else e.target.cueVideoById(track.videoId);
-                }
-              }
-            },
-            onStateChange: (e: any) => {
-              const YTNS = window.YT?.PlayerState;
-              const s = storeRef.current;
-              switch (e.data) {
-                case YTNS?.PLAYING:
-                  s.setIsPlaying(true);
-                  s.setIsLoading(false);
-                  break;
-                case YTNS?.PAUSED:
-                  s.setIsPlaying(false);
-                  break;
-                case YTNS?.BUFFERING:
-                  s.setIsLoading(true);
-                  break;
-                case YTNS?.CUED:
-                  s.setIsLoading(false);
-                  if (playingRef.current) e.target.playVideo();
-                  break;
-                case YTNS?.ENDED:
-                  s.setIsPlaying(false);
-                  // Only auto-advance if a track is still active
-                  // (the stop button clears it — don't resume the queue).
-                  if (usePlayerStore.getState().currentTrack) {
-                    s.playNext();
-                  }
-                  break;
-              }
-            },
-            onError: () => {
-              // Unplayable video (removed, region-blocked, embed-restricted):
-              // stop the spinner and skip to the next track.
-              storeRef.current.setIsLoading(false);
-              storeRef.current.playNext();
-            },
-          },
-        });
-      })
-      .catch((err) => {
-        console.error('[AudioPlayer]', err);
-        storeRef.current.setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      destroyHls();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Load a new track when it changes (or stop when cleared)
-  useEffect(() => {
-    const player = playerRef.current;
     const track = currentTrack;
+    const streamUrl = track?.hlsUrl || track?.audioUrl;
 
-    // Track cleared (stop button) — halt both engines.
-    // NOTE: pause+seek is used instead of YT stopVideo() because stopVideo()
-    // can fire an ENDED event that would auto-advance the queue.
-    if (!track || (!track.videoId && !track.hlsUrl && !track.audioUrl)) {
-      trackIdRef.current = null;
-      setIsLoading(false);
-      setCurrentTime(0);
-      setDuration(0);
+    if (!streamUrl) {
+      // Reset so tapping the same stream again after stop reloads it.
+      // Without this, streamUrlRef still holds the old URL and the
+      // equality check below bails out — leaving isLoading stuck on.
+      streamUrlRef.current = null;
       stopStream();
-      if (player && readyRef.current) {
-        try {
-          player.pauseVideo();
-          player.seekTo(0, true);
-        } catch {
-          // ignore — player may be tearing down
-        }
-      }
       return;
     }
 
-    const key = track.hlsUrl || track.audioUrl || track.videoId;
-    if (trackIdRef.current === key) return;
-    trackIdRef.current = key;
+    if (streamUrlRef.current === streamUrl) return;
 
     setIsLoading(true);
     setCurrentTime(0);
-    setDuration(track.duration || 0);
-
-    // --- Stream track: pause YouTube, play via <audio> ---
-    if (track.hlsUrl || track.audioUrl) {
-      if (player && readyRef.current) {
-        try {
-          player.pauseVideo();
-        } catch {
-          // ignore
-        }
-      }
-      loadStream(track.hlsUrl || (track.audioUrl as string), playingRef.current);
-      return;
-    }
-
-    // --- YouTube track: stop stream engine, load embed ---
-    stopStream();
-    if (player && readyRef.current) {
-      try {
-        if (playingRef.current) player.loadVideoById(track.videoId);
-        else player.cueVideoById(track.videoId);
-      } catch (err) {
-        console.error('[AudioPlayer] load error:', err);
-        setIsLoading(false);
-      }
-    }
-    // If the YT player isn't ready yet, onReady picks the track up.
+    setDuration(track?.duration || 0);
+    void loadStream(streamUrl, playingRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack?.videoId, currentTrack?.hlsUrl, currentTrack?.audioUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentTrack?.hlsUrl, currentTrack?.audioUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Play / pause — routed to the active engine
+  // Play / pause for stream tracks
   useEffect(() => {
-    if (!currentTrack) return;
-    if (currentTrack.hlsUrl || currentTrack.audioUrl) {
-      const audio = audioRef.current;
-      if (!audio) return;
-      if (isPlaying) {
-        audio.play().catch((err) => {
-          console.error('[AudioPlayer] stream play error:', err);
-          setIsPlaying(false);
-        });
-      } else {
-        audio.pause();
-      }
-      return;
-    }
-    const player = playerRef.current;
-    if (!player || !readyRef.current) return;
-    try {
-      if (isPlaying) player.playVideo();
-      else player.pauseVideo();
-    } catch (err) {
-      console.error('[AudioPlayer] play/pause error:', err);
+    const streamUrl = currentTrack?.hlsUrl || currentTrack?.audioUrl;
+    if (!streamUrl) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.play().catch((err) => {
+        console.error('[AudioPlayer] stream play error:', err);
+        setIsPlaying(false);
+      });
+    } else {
+      audio.pause();
     }
   }, [isPlaying, currentTrack, setIsPlaying]);
 
-  // Volume — applied to both engines
+  // Screen Wake Lock — keep the screen on while anything is playing
+  // (both YT lectures and streams; this island is always mounted).
+  // The lock auto-releases when the tab hides, so re-request on visible.
+  useEffect(() => {
+    let lock: { release: () => Promise<void> } | null = null;
+    let cancelled = false;
+
+    const request = async () => {
+      try {
+        const nav = navigator as Navigator & {
+          wakeLock?: { request: (type: string) => Promise<{ release: () => Promise<void> }> };
+        };
+        if (!nav.wakeLock) return;
+        if (document.visibilityState !== 'visible') return;
+        if (!playingRef.current || !usePlayerStore.getState().currentTrack) return;
+        if (lock) return;
+        const l = await nav.wakeLock.request('screen');
+        if (!cancelled) lock = l;
+        else await l.release().catch(() => {});
+      } catch {
+        // Unsupported / denied / not allowed — playback works fine without it.
+      }
+    };
+
+    const release = async () => {
+      const l = lock;
+      lock = null;
+      if (l) {
+        try {
+          await l.release();
+        } catch {
+          // ignore — already released
+        }
+      }
+    };
+
+    if (isPlaying && currentTrack) void request();
+    else void release();
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') void request();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
+      void release();
+    };
+  }, [isPlaying, currentTrack]);
+
+  // Volume for the stream element
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -379,41 +315,23 @@ export default function AudioPlayer() {
         // ignore
       }
     }
-    const player = playerRef.current;
-    if (!player || !readyRef.current) return;
-    try {
-      player.setVolume(Math.round(volume * 100));
-    } catch {
-      // ignore — player may be tearing down
-    }
   }, [volume]);
 
-  // Seek requests — routed to the active engine (live edge is not seekable)
+  // Seek requests for stream tracks (live edge is not seekable)
   useEffect(() => {
     const onSeek = (e: Event) => {
       const time = (e as CustomEvent<number>).detail;
       if (typeof time !== 'number' || isNaN(time)) return;
       const track = usePlayerStore.getState().currentTrack;
-      if (!track) return;
-      if (track.isLive) return;
-      if (track.hlsUrl || track.audioUrl) {
-        const audio = audioRef.current;
-        if (!audio) return;
-        try {
-          audio.currentTime = time;
-          storeRef.current.setCurrentTime(time);
-        } catch (err) {
-          console.error('[AudioPlayer] stream seek error:', err);
-        }
-        return;
-      }
-      const player = playerRef.current;
-      if (!player || !readyRef.current) return;
+      if (!track || track.isLive) return;
+      if (!track.hlsUrl && !track.audioUrl) return;
+      const audio = audioRef.current;
+      if (!audio) return;
       try {
-        player.seekTo(time, true);
+        audio.currentTime = time;
         storeRef.current.setCurrentTime(time);
       } catch (err) {
-        console.error('[AudioPlayer] seek error:', err);
+        console.error('[AudioPlayer] stream seek error:', err);
       }
     };
 
@@ -421,31 +339,13 @@ export default function AudioPlayer() {
 
     const id = setInterval(() => {
       const track = usePlayerStore.getState().currentTrack;
-      if (!track) return;
-      // Stream engine progress
-      if (track.hlsUrl || track.audioUrl) {
-        const audio = audioRef.current;
-        if (!audio) return;
-        try {
-          storeRef.current.setCurrentTime(audio.currentTime || 0);
-          const d = audio.duration;
-          if (Number.isFinite(d) && d > 0) storeRef.current.setDuration(d);
-        } catch {
-          // ignore transient errors during track switches
-        }
-        return;
-      }
-      // YouTube engine progress
-      const player = playerRef.current;
-      if (!player || !readyRef.current) return;
+      if (!track || (!track.hlsUrl && !track.audioUrl)) return;
+      const audio = audioRef.current;
+      if (!audio) return;
       try {
-        if (typeof player.getCurrentTime === 'function') {
-          storeRef.current.setCurrentTime(player.getCurrentTime() || 0);
-        }
-        if (typeof player.getDuration === 'function') {
-          const d = player.getDuration() || 0;
-          if (d > 0) storeRef.current.setDuration(d);
-        }
+        storeRef.current.setCurrentTime(audio.currentTime || 0);
+        const d = audio.duration;
+        if (Number.isFinite(d) && d > 0) storeRef.current.setDuration(d);
       } catch {
         // ignore transient errors during track switches
       }
@@ -457,40 +357,32 @@ export default function AudioPlayer() {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      destroyHls();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <>
-      {/* Hidden container — the YT iframe gets injected here */}
-      <div
-        ref={containerRef}
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          width: 0,
-          height: 0,
-          overflow: 'hidden',
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Hidden stream element — live HLS + recordings */}
-      <audio
-        ref={audioRef}
-        className="hidden"
-        preload="none"
-        onPlaying={() => {
-          storeRef.current.setIsLoading(false);
-          storeRef.current.setIsPlaying(true);
-        }}
-        onWaiting={() => storeRef.current.setIsLoading(true)}
-        onEnded={() => {
-          if (usePlayerStore.getState().currentTrack) {
-            storeRef.current.playNext();
-          }
-        }}
-        onError={() => {
-          // Non-HLS (progressive) failures land here
-          storeRef.current.setIsLoading(false);
-        }}
-      />
-    </>
+    <audio
+      ref={audioRef}
+      className="hidden"
+      preload="none"
+      onPlaying={() => {
+        storeRef.current.setIsLoading(false);
+        storeRef.current.setIsPlaying(true);
+      }}
+      onWaiting={() => storeRef.current.setIsLoading(true)}
+      onEnded={() => {
+        if (usePlayerStore.getState().currentTrack) {
+          storeRef.current.playNext();
+        }
+      }}
+      onError={() => {
+        // Non-HLS (progressive) failures land here
+        storeRef.current.setIsLoading(false);
+      }}
+    />
   );
 }

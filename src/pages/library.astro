@@ -1,27 +1,31 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import LibraryView, { type ChannelPlaylist } from '../views/LibraryView';
-import { getChannelPlaylists, hasApiKey } from '../lib/youtube';
+import { getInnertubeChannelPlaylists, INNERTUBE_TIMEOUT_MS } from '../lib/innertube';
+import { withTimeout } from '../lib/fetch-timeout';
 import { CHANNELS } from '../lib/channels';
 
 // Server-render EVERY channel's playlists so the section paints with the
 // HTML and never depends on a client fetch (mobile networks stall them).
-// 1 quota unit per channel; the whole page is CDN-cached for an hour.
-let initialYtPlaylists: Record<string, ChannelPlaylist[] | null> = {};
-if (hasApiKey()) {
-  const results = await Promise.all(
-    CHANNELS.map(async (c) => {
-      try {
-        const lists = await getChannelPlaylists(c.id);
-        return [c.id, lists] as const;
-      } catch (error) {
-        console.error(`[Library] server playlists fetch failed for ${c.id}:`, error);
-        return [c.id, null] as const;
-      }
-    })
-  );
-  initialYtPlaylists = Object.fromEntries(results);
-}
+// Fully keyless (InnerTube Playlists tab); the whole page is CDN-cached
+// for an hour.
+const results = await Promise.all(
+  CHANNELS.map(async (c) => {
+    try {
+      const lists = await withTimeout(
+        getInnertubeChannelPlaylists(c.id),
+        INNERTUBE_TIMEOUT_MS,
+        'innertube-library'
+      );
+      return [c.id, lists] as const;
+    } catch (error) {
+      console.error(`[Library] server playlists fetch failed for ${c.id}:`, error);
+      return [c.id, null] as const;
+    }
+  })
+);
+const initialYtPlaylists: Record<string, ChannelPlaylist[] | null> =
+  Object.fromEntries(results);
 
 Astro.response.headers.set(
   'Cache-Control',

@@ -1,7 +1,7 @@
 # Islah Audio — Product Specification
 
-> Living document. Update this file (and `AGENTS.md`) with every behavior,
-> architecture, or API change.
+> Living document. Update this file (plus `AGENTS.md` and `README.md`) with
+> every behavior, architecture, or API change.
 
 ## Project Overview
 
@@ -16,15 +16,23 @@
 ## Technical Stack
 
 - **Framework**: Astro 5 (SSR via `@astrojs/netlify`) + React islands
-  (`client:only`) for player, views, and nav — YouTube-style shell
+  (`client:only`) for player, views, and nav — liquid-glass shell
 - **Styling**: Tailwind CSS with custom golden theme
   (tokens in `tailwind.config.js`, helpers in `src/styles/globals.css`)
 - **Icons**: Lucide React
-- **State Management**: Zustand (`player-store`; persisted `playlist-store`)
-- **Listing Data**: keyless InnerTube first, YouTube Data API v3 fallback
+- **State Management**: Zustand (`player-store`; persisted `playlist-store`,
+  `channel-store`, `theme-store`, `design-store`)
+- **Listing Data**: fully keyless InnerTube (no API key, no quota) —
+  uploads, channel Playlists tab, playlist items, channel headers,
+  single-video metadata — all via youtubei.js (Flow-style)
 - **Lecture Playback**: Official YouTube IFrame embed (hidden `YT.Player`)
-- **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback)
-- **Hosting**: Netlify (`dist` publish, SSR functions via adapter)
+- **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback).
+  hls.js is lazy-loaded on first HLS play only — never in the initial bundle —
+  and prefetched on browser idle (skipped on data-saver / 2g).
+- **Animation**: pure CSS (`animate-fade-up`, `.shimmer`, `.eq-bar`) — no
+  animation library in the bundle. No `background-attachment: fixed`.
+- **Hosting**: Netlify (`dist` publish, SSR functions via adapter).
+  Hashed `/_astro/*` bundles cache immutable for a year.
 
 ## UI/UX Specification
 
@@ -42,57 +50,120 @@
 
 ### Typography
 
-- **Font**: Inter + system stack (+ Noto Sans Bengali fallback)
+- **Font**: Inter + system stack (+ Noto Sans Bengali fallback); brand wordmark uses Playfair Display (same as islahbd.com)
 - **Hero title**: 30–44px, weight 800, tight tracking
 - **Section titles**: 18–20px, weight 800
 - **Body/cards**: 13–14px, weight 400–600
 
-### Layout Structure
+### Layout Structure (liquid-glass iPhone style)
 
-- **Desktop (≥768px)**: fixed sidebar (256–288px) + scrollable content;
-  floating glass mini-player card bottom-right, clear of the sidebar.
-- **Mobile**: floating glass mini-player above a glass bottom nav
-  (Home / Search / Library).
-- **Expanded player**: full-screen, blurred-artwork backdrop, big art,
-  seek slider (locked on live), prev/play/next.
+- **Top bar**: floating glass pill with `islahbd` brand (Playfair Display, like islahbd.com), desktop search field,
+  and a gold-gradient **Open IslahBD** button (`linear-gradient(135deg,
+  #cba135, #e8c96c, #a07e28)`, pinned dark text, gloss + glow in liquid
+  mode, flat in Material; tuned glow for light mode) — opens the installed
+  IslahBD app (`islahbd://open`, no content segments — mirrors the app owner's
+  own DeepLinkRedirect), otherwise sends the
+  user to the Play Store / App Store for their device
+  (desktop opens islahbd.com). Android uses a scheme intent with a native
+  store fallback URL and no JS timer (a timer would race the intent and send
+  installed users to the store too); iOS fires the scheme with a guarded 2s
+  fallback (blur/pagehide/visibility cancel). The button always reads
+  "Open IslahBD". No search icon on mobile — search lives in the bottom nav. All primary buttons site-wide (Play all, filters, play
+  FABs, Create, Try again, toggles) share this exact gold-gradient
+  `.liquid-gold` style; secondary actions stay frosted glass.
+
+- **Backdrop**: fixed ambient gold/green aura + refraction blobs behind content
+- **Desktop (≥768px)**: floating liquid-glass sidebar pill + scrollable content;
+  floating liquid-glass mini-player card bottom-right, clear of the sidebar.
+- **Mobile**: floating liquid-glass mini-player above a liquid-glass bottom nav
+  pill (Home / Search / Library); floating top bar + chips bar are glass pills.
+- **Expanded player**: full-screen liquid-glass (iPhone-style), blurred-artwork backdrop, big art,
+  seek slider (locked on live), prev/play/next. Same stacked flow on all
+  screens; on desktop (≥768px) the sheet stretches wider (3xl/4xl) with the
+  video as the largest section and controls + Up-next below it. The sheet
+  always fits one viewport (no scrolling): flex-1 video area with dvh-capped
+  frame (up to 52dvh on desktop), compact controls, volume hidden under 600px
+  height, side-by-side grid on short landscape screens. On desktop the control
+  cluster is a YouTube-style bar (title row, time top-right of the seek bar,
+  then centered prev / play / next with mute+volume right and share
+  bottom-left, its platform menu flying out rightward); mobile keeps its
+  stacked blocks untouched with share in the title row.
+- Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
+  `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
+  inner reflections); primary actions use glossy gold `.liquid-gold`.
+- Glass blur radii are capped (~20px panels, ~60–90px ambient blobs) and
+  off-screen cards/rows skip rendering via `.cv-card` / `.cv-row`
+  (`content-visibility: auto`) — no `background-attachment: fixed`, no
+  `AnimatePresence popLayout` on the grid, ambient blobs are `contain: strict`
+  + GPU-composited so scrolling stays smooth on phones.
 
 ### Components
 
 #### Sidebar (desktop) + drawer (Android)
 
-- Brand mark (gold `?` on bronze) + "Islah Audio" + tagline
-- Nav: Home, Search, Library — active item gets gold tint + gold rail
+- Brand mark (gold `إ` on bronze) + "Islah Audio" + tagline
+- Nav: Home, Search, Library — active item gets a frosted glass highlight
 - **Channels switcher**: all registered channels (`lib/channels.ts`) with live
   avatars; tapping switches Home, Search, and Library; choice persists.
   Android opens the same sidebar as a slide-over drawer via the top-bar
   hamburger button.
-- "Source" card (channel link + live indicator) and footer note
+- **Liquid Glass toggle**: direct sidebar row (desktop + drawer) switching the
+  **Liquid Glass** design — on = iPhone-style frosted design,
+  off = flat Material 3 solid surfaces (mobile bottom nav keeps a slight
+  translucent blur, without the liquid-glass gradient/sheen). Defaults ON
+  for iOS + desktop, OFF
+  for other mobile (Android etc.); first-visit default only. Choice persists
+  (`islah-design`) and applies pre-paint via `Layout.astro`, so there is no flash.
+- Footer note
 
 #### Home
 
-- Hero: channel art (gold ring), name, lecture count + total hours,
-  Play / Shuffle / **LIVE** buttons, "Live now" banner when on air
+- Hero: channel art (gold ring), name, video count,
+  Play-all / Shuffle / **LIVE** buttons (single-line labels), "Live now"
+  banner (title • location • listeners) when on air, "Last live • location"
+  line when offline with a recording
 - Filters: All / Bayans (>5 min) / Shorts (≤5 min)
 - Cards: rounded-2xl, hover lift + play overlay, duration badge,
-  "Playing" badge + equalizer on current track, **+** save-to-playlist button
+  "Playing" badge + equalizer on current track, **+** save-to-playlist button,
+  share button (copies the `/watch/[id]` link); tapping the title opens the
+  shareable watch page
 
 #### Search
 
 - Large rounded search field with clear button; result count; rows with
-  thumbnail, duration, save-to-playlist button, equalizer on current track
+  thumbnail, duration, save-to-playlist button, share button, equalizer on current track
 
-#### Library (Queue + Playlists tabs — playlists live here, no separate nav)
+#### Watch (shareable links)
 
-- **Queue**: current playback queue with track numbers
+- Every video is addressable at `/watch/[videoId]` — opening the link plays
+  that exact content (auto-play on open, single-track queue)
+- Server-rendered metadata (title, thumbnail, channel, duration, views, date)
+  plus OG/Twitter tags, so links unfurl with title + thumbnail in chats
+- Share buttons on Home cards, Search rows, Library rows, and the expanded
+  player open a dropdown menu (WhatsApp / Telegram / Facebook / X /
+  Copy Link / More apps via native sheet); on desktop the expanded-player
+  menu flies out rightward. The watch page has explicit
+  Share (native sheet suggesting WhatsApp + other apps, with a
+  WhatsApp/Telegram/Facebook/X fallback menu) + Copy Link buttons;
+  invalid IDs get a friendly not-found page
+- Watch page actions are Play, Share, and gold-gradient Open App
+  (`islahbd://open` via `lib/open-app.ts`); no YouTube outbound link
+
+#### Library (playlists only — no Queue tab)
+
 - **Playlists → From YouTube**: every channel's real YouTube playlists,
   server-rendered into the page HTML for all channels at once (never depends
   on a client fetch); cards expand to InnerTube-first items with timeout + retry
 - **Playlists → Your Playlists**: create/rename/delete your own playlists, save
   tracks from Home/Search, play-all, remove tracks; persisted in `localStorage`
+- The playback queue lives in the expanded player's **Up next** dropdown
+  (bottom of the sheet, opens upward as an overlay; pinned Now-playing header
+  on top, list auto-scrolls to the current track, tap a row to jump to it)
 
 #### Mini Player
 
-- Glass card, progress hairline, thumbnail, title, equalizer, play/pause,
+- Liquid-glass card (iPhone-style), progress hairline, thumbnail, title,
+  equalizer, play/pause,
   **× stop button** (halts audio + dismisses, keeps queue), expand chevron
 - Live tracks show a red LIVE badge; seek locked on live edge
 
@@ -100,46 +171,76 @@
 
 ### Core Features
 
-1. **Channel Catalog (InnerTube first)** — `/api/channel/[id]` lists the
-   newest 100 uploads with durations and view counts, plus a `nextPageToken`
-   and `total`; `/api/channel/[id]/more/[token]` appends older videos in
-   200-chunks. Listing goes through keyless InnerTube (no quota) with the
-   Data API as fallback; `total` comes from a 1-unit statistics call when a
-   key exists, else the UI shows counts without a total. Home has a Show-more
+1. **Channel Catalog (fully keyless InnerTube)** — `/api/channel/[id]` lists
+   the newest ~100 uploads with durations and view counts, plus a
+   `nextPageToken`; `/api/channel/[id]/more/[token]` appends older videos in
+   ~200-chunks. No API key, no quota — everything through InnerTube
+   (youtubei.js, Flow-style); `total` is always null (InnerTube exposes no
+   exact count), so the UI shows loaded counts. Home has a Show-more
    button; Search indexes every chunk in the background. Responses are
-   CDN-cached to save quota.
+   CDN-cached.
 2. **Lecture Playback** — hidden YouTube embed driven by the player store
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
-   volume, progress polling). Unplayable videos auto-skip.
-3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
-   red LIVE button plays HLS when on air, gold Last Live replays the latest
-   recording when offline. HLS falls back to the `/api/hls` CORS proxy,
-   then to the last recording, so a dead live edge still yields audio.
+   volume, progress polling). Playback always starts audio-only (hidden
+   iframe, lowest quality). Expanded = artwork + video toggle button; tapping
+   it shows the real video in the same player, tapping again returns to
+   audio-only. Collapsing also returns to audio-only.
+   Unplayable videos auto-skip. Lectures load with 144p suggested quality
+   so first audio arrives fast (no buffer-default-then-downshift rebuffer).
+   Blocked autoplay (direct /watch visits) surfaces UNSTARTED with the
+   spinner cleared, plus an 8s watchdog that reconciles to paused-cue.
+   The screen stays on while anything is playing
+   (Screen Wake Lock API, re-requested on tab-visible; silent no-op where
+   unsupported).
+3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s), including
+   the `location` venue name for the live broadcast and the last recording.
+   Glowing-red LIVE button plays HLS when on air, plain Last-live button replays
+   the latest recording when offline; the "Live now" banner shows
+   title • location • listeners, and the location surfaces in the player
+   (title block + Up-next header) with a MapPin icon. HLS falls back to the
+   `/api/hls` CORS proxy, then to the last recording, so a dead live edge
+   still yields audio.
 4. **User Playlists** — persisted zustand store (`islah-playlists` key);
    duplicate-guarded adds, delete with confirm.
 5. **Search** — client-side filter over the fully indexed catalog.
+6. **Shareable Links** — `/watch/[videoId]` opens + plays that exact video
+   (metadata via `lib/video.ts` → InnerTube `getBasicInfo`, fully keyless;
+   `lib/share.ts` builds links and drives native-share-or-copy).
 
 ### API Routes (all `force-dynamic`)
 
 | Route | Purpose |
 | ----- | ------- |
-| `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
-| `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
-| `GET /api/playlists/[channel]` | A channel's playlists |
-| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first |
-| `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
-| `GET /api/hls?url=` | HLS manifest/media CORS proxy with URI rewrite |
-| `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (compat) |
-| `GET /api/proxy?url=` | Generic CORS proxy helper |
+| `GET /api/channel/[id]` | Channel info + first ~100 videos + `nextPageToken` (`total` always null) |
+| `GET /api/channel/[id]/meta` | Name + avatar only (featherweight, for the Sidebar switcher; 1-day cache) |
+| `GET /api/channel/[id]/more/[token]` | Next ~200 videos + `nextPageToken` |
+| `GET /api/playlists/[channel]` | A channel's playlists (InnerTube Playlists tab, 6h CDN cache) |
+| `GET /api/playlist-items/[id]` | Playlist items, InnerTube (first ~200) |
+| `GET /api/live` | Live status `{ isLive, title, speaker, location, listeners, streamUrl, recording }` (`recording` also carries `location`) |
+| `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
+| `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
 
 ### Data Handling
+
+- **Load budget.** Initial JS is React + islands only: hls.js (~500KB)
+  lazy-loads on first HLS play (prefetched on idle unless data-saver/2g),
+  the YouTube iframe API prewarms on browser idle (player still creates on
+  demand), lecture loads request 144p first for fast audio start, card
+  animations are CSS-only, and above-fold thumbnails load eager/high-priority
+  with `preconnect` to `i.ytimg.com` + `youtube.com` + `youtube-nocookie.com`.
+  The Sidebar reads avatars from `/api/channel/[id]/meta`,
+  never the 100-video listing.
 
 - **IDs travel in URL paths, never query strings** — the hosting layer drops
   query parameters before function invocation (`/api/channel/[id]`,
   `/api/channel/[id]/more/[token]`). The legacy `?id=` variants remain as fallbacks.
+- **Continuation tokens travel client-wrapped** — raw InnerTube tokens contain
+  `%`, which 404s Astro-on-Netlify once percent-encoded into the path, so the
+  APIs emit `it1_`-prefixed base64url (`toClientToken`) and the more-route
+  unwraps it (`fromClientToken`).
 - **Every fetch has a timeout** — bare `fetch()` hangs forever on stalled mobile
   networks, so clients use `fetchJson()` (`lib/fetch-timeout.ts`, 15–25s) and
-  server InnerTube calls race `withTimeout()` (8s) into the Data API fallback.
+  server InnerTube calls race `withTimeout()` (8s) into error responses.
 - CDN caching on API routes (`s-maxage` + `stale-while-revalidate`); no-store
   for live status.
 - Queue in memory (zustand); user playlists in `localStorage`.
@@ -147,9 +248,9 @@
 
 ### Edge Cases
 
-- Missing `YOUTUBE_API_KEY` → API routes return 400 with a clear message.
 - Unplayable/embed-restricted video → auto-skip to next.
 - Invalid video/playlist IDs → 400.
+- Stale catalog token (`more` route) → 400 "reload the page".
 - Live CDN without CORS → transparent `/api/hls` proxy retry.
 - Stop button clears track; ENDED auto-advance is guarded on active track.
 
@@ -158,7 +259,7 @@
 1. ✅ App loads channel data (videos with durations/views)
 2. ✅ Grid shows thumbnails, titles, durations, view counts
 3. ✅ Clicking a lecture starts audio playback
-4. ✅ Mini player shows track info, progress, play/pause/next/prev/stop
+4. ✅ Mini player shows track info, progress, play/pause/stop; expanded player has Up next queue
 5. ✅ Seek + volume work (seek locked on live edge)
 6. ✅ LIVE button plays live HLS when on air, recording when offline
 7. ✅ Entire catalog reachable (100 first + Show-more chunks, search indexes all)
@@ -166,3 +267,4 @@
 9. ✅ Search filters the catalog
 10. ✅ Golden theme, sidebar on desktop, bottom nav on mobile
 11. ✅ Responsive from mobile to desktop
+12. ✅ Every video opens via `/watch/[videoId]` and auto-plays; links unfurl with title + thumbnail

@@ -1,0 +1,70 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import WatchView, { type WatchVideo } from '../../views/WatchView';
+import { getVideoMetadata, isVideoId } from '../../lib/video';
+
+const rawId = Astro.params.id as string;
+const videoId = decodeURIComponent(rawId || '');
+
+const meta = isVideoId(videoId)
+  ? await getVideoMetadata(videoId)
+  : null;
+
+// Unknown IDs (valid format, no such video) get the not-found page too —
+ // otherwise WatchView would render an empty player shell.
+const video: WatchVideo | null = meta?.found
+  ? {
+      videoId: meta.videoId,
+      title: meta.title,
+      thumbnail: meta.thumbnail,
+      duration: meta.duration,
+      channelName: meta.channelName,
+      description: meta.description,
+      publishedAt: meta.publishedAt,
+      views: meta.views,
+    }
+  : null;
+
+if (!video) {
+  Astro.response.status = 404;
+}
+
+const pageTitle = video?.title ? `${video.title} — Islah Audio` : 'Not found — Islah Audio';
+const pageUrl = Astro.url.href;
+const pageDescription = video?.title
+  ? `Listen to "${video.title}" on Islah Audio.${video.channelName ? ` From ${video.channelName}.` : ''}`
+  : 'Listen to bayans, waz and nasheeds from the Islah channel. Modern audio experience.';
+
+Astro.response.headers.set(
+  'Cache-Control',
+  'public, s-maxage=3600, stale-while-revalidate=86400'
+);
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  ogTitle={video?.title || undefined}
+  ogDescription={pageDescription}
+  ogImage={video?.thumbnail || undefined}
+  ogUrl={pageUrl}
+>
+  {video ? (
+    <WatchView client:only="react" video={video} />
+  ) : (
+    <main class="pb-44 md:pb-36">
+      <div class="mx-auto max-w-3xl px-4 md:px-8 pt-16 text-center">
+        <p class="text-white font-bold text-xl">Content not found</p>
+        <p class="text-mist-dark text-sm mt-2">
+          This link doesn't match any lecture. It may have been removed.
+        </p>
+        <a
+          href="/"
+          class="liquid-gold mt-6 inline-block rounded-full px-6 py-2.5 text-sm font-bold"
+        >
+          Back to Home
+        </a>
+      </div>
+    </main>
+  )}
+</Layout>

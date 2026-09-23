@@ -14,9 +14,9 @@ import {
 import { cn } from '@/lib/utils';
 import { useChannelStore } from '@/store/channel-store';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
+import ShareButton from '@/components/ShareButton';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 import { fetchJson } from '@/lib/fetch-timeout';
-import { motion, AnimatePresence } from 'framer-motion';
 
 
 
@@ -78,7 +78,7 @@ function formatPublished(publishedAt?: string): string {
 
 function VideoSkeleton() {
   return (
-    <div>
+    <div className="relative liquid-glass rounded-2xl p-3">
       <div className="aspect-video rounded-xl shimmer mb-3" />
       <div className="flex gap-3">
         <div className="w-9 h-9 rounded-full shimmer shrink-0" />
@@ -115,20 +115,22 @@ function VideoCard({
     .join(' • ');
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index, 11) * 0.04, duration: 0.4 }}
+    <div
       onClick={() => onPlay(video)}
-      className="group relative cursor-pointer"
+      className="group relative cursor-pointer cv-card animate-fade-up"
+      style={{ animationDelay: `${Math.min(index, 11) * 40}ms` }}
     >
-      {/* YouTube-style thumbnail */}
-      <div className="relative aspect-video mb-3 overflow-hidden rounded-xl bg-ink-800">
+      {/* YouTube-style thumbnail in a liquid-glass frame */}
+      <div className="relative liquid-glass rounded-2xl p-1.5 mb-3">
+        <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+        <div className="relative aspect-video overflow-hidden rounded-xl bg-ink-800">
         <img
           src={video.thumbnail}
           alt={video.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-          loading="lazy"
+          loading={index < 6 ? 'eager' : 'lazy'}
+          fetchPriority={index < 6 ? 'high' : 'auto'}
+          decoding="async"
         />
         <div
           className={cn(
@@ -136,9 +138,9 @@ function VideoCard({
             isCurrentTrack ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
           )}
         >
-          <span className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg scale-90 group-hover:scale-100 transition-transform">
+          <span className="liquid-gold w-12 h-12 rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
             {isCurrentTrack && isPlaying ? (
-              <span className="flex items-end gap-[3px] h-4 text-ink-950">
+              <span className="flex items-end gap-[3px] h-4">
                 {[0, 1, 2].map((i) => (
                   <span
                     key={i}
@@ -148,25 +150,26 @@ function VideoCard({
                 ))}
               </span>
             ) : (
-              <Play size={20} fill="#060D0A" className="text-ink-950 ml-0.5" />
+              <Play size={20} fill="currentColor" className="ml-0.5" />
             )}
           </span>
         </div>
         {video.duration > 0 && (
-          <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-[#FFFFFF] tabular-nums">
+          <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/60 backdrop-blur-md border border-white/20 px-1.5 py-0.5 text-xs font-medium text-[#FFFFFF] tabular-nums">
             {formatDuration(video.duration)}
           </span>
         )}
         {isCurrentTrack && (
-          <span className="absolute top-1.5 left-1.5 rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-950">
+          <span className="absolute top-1.5 left-1.5 rounded-md bg-brand px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-950 ring-1 ring-white/30">
             Playing
           </span>
         )}
+        </div>
       </div>
 
       {/* YouTube-style meta row: avatar + title + channel + stats */}
-      <div className="flex gap-3">
-        <div className="w-9 h-9 shrink-0 rounded-full overflow-hidden bg-ink-700 ring-1 ring-white/10">
+      <div className="flex gap-3 px-1">
+        <div className="w-9 h-9 shrink-0 rounded-full overflow-hidden bg-white/[0.07] backdrop-blur-md ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]">
           {channelAvatar ? (
             <img src={channelAvatar} alt={channelName} className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -180,13 +183,25 @@ function VideoCard({
               isCurrentTrack ? 'text-brand-light' : 'text-white'
             )}
           >
-            {video.title}
+            <a
+              href={`/watch/${video.videoId || video.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="hover:underline"
+            >
+              {video.title}
+            </a>
           </h3>
           <p className="text-[13px] text-mist-dark truncate hover:text-white transition-colors">
             {channelName}
           </p>
           {meta && <p className="text-[13px] text-mist-dark truncate">{meta}</p>}
         </div>
+        <ShareButton
+          videoId={video.videoId || video.id || ''}
+          title={video.title}
+          iconSize={17}
+          className="h-8 w-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white/[0.08] hover:ring-1 hover:ring-white/20"
+        />
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -194,7 +209,7 @@ function VideoCard({
           }}
           aria-label="Save to playlist"
           title="Save to playlist"
-          className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white/10 transition-all"
+          className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white/[0.08] hover:ring-1 hover:ring-white/20 transition-all"
         >
           <ListPlus size={17} />
         </button>
@@ -212,18 +227,18 @@ function VideoCard({
           onClose={() => setMenuOpen(false)}
         />
       )}
-    </motion.div>
+    </div>
   );
 }
 
 function ErrorScreen({ onRetry }: { onRetry: () => void }) {
   return (
     <main className="flex-1 flex items-center justify-center px-6">
-      <motion.div
-        className="text-center max-w-md rounded-3xl border border-white/[0.07] bg-white/[0.02] p-10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
+        className="relative text-center max-w-md liquid-glass rounded-[28px] p-10 overflow-hidden animate-fade-up"
       >
+        <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
         <div className="w-20 h-20 rounded-full bg-brand/10 border border-brand/25 flex items-center justify-center mx-auto mb-6">
           <WifiOff size={36} className="text-brand-light" />
         </div>
@@ -235,12 +250,12 @@ function ErrorScreen({ onRetry }: { onRetry: () => void }) {
         </p>
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-gradient-to-r from-brand-light to-brand-dark text-ink-950 font-bold text-sm shadow-glow hover:scale-105 active:scale-95 transition-transform"
+          className="liquid-gold inline-flex items-center gap-2 px-7 py-3 rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-transform"
         >
           <RefreshCw size={16} />
           Try Again
         </button>
-      </motion.div>
+      </div>
     </main>
   );
 }
@@ -274,7 +289,7 @@ export default function HomePage() {
 
       setVideos(data.videos);
       setNextToken(data.nextPageToken || null);
-      // BETA: total can be null when InnerTube has no key for statistics.
+      // InnerTube exposes no exact count — total is always null, UI falls back to loaded count.
       setTotalVideos(typeof data.total === 'number' ? data.total : 0);
       if (data.channel?.name) setChannelName(data.channel.name);
       if (data.channel?.avatar) setChannelAvatar(data.channel.avatar);
@@ -400,6 +415,7 @@ export default function HomePage() {
         videoId: '',
         hlsUrl: live.streamUrl,
         isLive: true,
+        location: live.location || '',
       };
       playTrack(track, [track], 0);
     } else if (live.recording?.audioUrl) {
@@ -411,6 +427,7 @@ export default function HomePage() {
         channelName: live.recording.speaker || 'Islah',
         videoId: '',
         audioUrl: live.recording.audioUrl,
+        location: live.recording.location || '',
       };
       playTrack(track, [track], 0);
     }
@@ -422,10 +439,11 @@ export default function HomePage() {
 
   return (
     <main className="pb-44 md:pb-36">
-      <div className="mx-auto max-w-[1600px] px-4 md:px-6 pt-2 md:pt-4">
+      <div className="mx-auto max-w-[1600px] px-4 md:px-6 pt-0 md:pt-1">
         {isLoading ? (
-          <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-4 md:p-8 mb-4 md:mb-6">
-            <div className="flex items-center gap-4">
+          <div className="relative liquid-glass rounded-[28px] p-4 md:p-8 mb-4 md:mb-6 overflow-hidden">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+            <div className="relative flex items-center gap-4">
               <div className="flex-1">
                 <div className="h-3 w-28 rounded shimmer mb-2.5" />
                 <div className="h-7 w-48 rounded-lg shimmer mb-2.5" />
@@ -435,18 +453,23 @@ export default function HomePage() {
             </div>
           </div>
         ) : (
-          /* ---------- Channel header (YouTube style) ---------- */
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-4 md:gap-6 px-1 md:px-2 pt-2 md:pt-6 pb-4"
+          /* ---------- Channel header (liquid-glass hero) ---------- */
+          <section
+            className="relative liquid-glass rounded-[28px] p-4 overflow-hidden animate-fade-up mt-2"
           >
-            <div className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 ring-1 ring-white/15 bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
+            <span aria-hidden="true" className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="relative flex items-center gap-4 md:gap-6">
+            <div className="w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 ring-1 ring-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)] bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center">
               {channelAvatar ? (
                 <img
                   src={channelAvatar}
                   alt={channelName}
                   className="w-full h-full object-cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                 />
               ) : (
                 <span className="text-[#E7C55A] text-4xl md:text-6xl font-bold">إ</span>
@@ -467,35 +490,51 @@ export default function HomePage() {
                 >
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    <span
+                      className="relative inline-flex rounded-full h-2 w-2 bg-red-500"
+                      style={{ boxShadow: '0 0 10px 3px rgba(239,68,68,0.95)' }}
+                    />
                   </span>
                   <span className="truncate">
                     Live now{live.title ? ` • ${live.title}` : ''}
+                    {live.location ? ` • ${live.location}` : ''}
                     {live.listeners > 0 ? ` • ${live.listeners} watching` : ''}
                   </span>
                 </button>
+              ) : live?.recording?.location ? (
+                <p className="mt-1 text-[13px] text-mist-dark truncate">
+                  Last live • {live.recording.location}
+                </p>
               ) : (
                 <p className="mt-1 hidden sm:block text-[13px] text-mist-dark truncate">
                   Bayans • Waz • Nasheeds — listen to every lecture as audio
                 </p>
               )}
 
-              {/* Actions row */}
-              <div className="mt-3 flex items-center gap-2">
+              {/* Actions row — wraps on small screens, labels never wrap */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleLive}
                   disabled={!live || (!live.isLive && !live.recording)}
                   className={cn(
-                    'h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium transition-all disabled:opacity-40',
+                    'h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-all disabled:opacity-40',
                     live?.isLive
-                      ? 'bg-red-500 text-white hover:brightness-110 active:scale-95'
+                      ? 'bg-black/60 text-white ring-1 ring-red-500 hover:bg-black/70 active:scale-95'
                       : 'bg-white/10 text-white hover:bg-white/15 active:scale-95'
                   )}
+                  style={
+                    live?.isLive
+                      ? { boxShadow: '0 0 18px 2px rgba(239,68,68,0.55)' }
+                      : undefined
+                  }
                 >
                   {live?.isLive ? (
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                      <span
+                        className="relative inline-flex rounded-full h-2 w-2 bg-red-500"
+                        style={{ boxShadow: '0 0 10px 3px rgba(239,68,68,0.95)' }}
+                      />
                     </span>
                   ) : (
                     <Radio size={15} />
@@ -510,7 +549,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={handlePlayAll}
-                  className="h-9 px-4 rounded-full bg-[#FFFFFF] text-black text-sm font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-95 transition-all shadow"
+                  className="liquid-gold h-9 px-4 rounded-full text-sm font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:scale-[1.03] active:scale-95 transition-all"
                   aria-label={currentTrack && isPlaying ? 'Pause' : 'Play all'}
                 >
                   {isPlaying && currentTrack ? (
@@ -522,30 +561,32 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={handleShuffle}
-                  className="h-9 w-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white transition-colors"
+                  className="h-9 w-9 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 hover:bg-white/[0.14] hover:border-white/40 flex items-center justify-center text-white transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
                   aria-label="Shuffle play"
                   title="Shuffle play"
                 >
                   <Shuffle size={18} />
                 </button>
               </div>
+              </div>
             </div>
-          </motion.section>
+          </section>
         )}
 
-        {/* ---------- Sticky chips bar (YouTube style) ---------- */}
+        {/* ---------- Sticky chips bar (liquid-glass pill) ---------- */}
         {!isLoading && !error && (
-          <div className="sticky top-14 z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2.5 bg-ink-950/95 backdrop-blur">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div className="sticky top-[4.75rem] z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2 transform-gpu">
+            <div className="relative liquid-glass rounded-full px-2 py-1.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-14 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
               {FILTERS.map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setFilter(f.id)}
                   className={cn(
-                    'shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                    'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all overflow-hidden',
                     filter === f.id
-                      ? 'bg-[#FFFFFF] text-black shadow'
-                      : 'bg-white/10 text-white hover:bg-white/20'
+                      ? 'liquid-gold font-bold'
+                      : 'liquid-chip text-white'
                   )}
                 >
                   {f.label}
@@ -570,8 +611,10 @@ export default function HomePage() {
         {!isLoading && !error && filtered.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
-              <AnimatePresence mode="popLayout">
-                {filtered.map((video, index) => (
+              {/* No AnimatePresence here: popLayout forces absolute
+                  positioning + layout recalcs on every filter/show-more
+                  change, which janks scrolling on phones. */}
+              {filtered.map((video, index) => (
                   <VideoCard
                     key={video.videoId || video.id}
                     video={video}
@@ -586,7 +629,6 @@ export default function HomePage() {
                     channelAvatar={channelAvatar}
                   />
                 ))}
-              </AnimatePresence>
             </div>
 
             {/* Show more — the uploads catalog is paged (100 + 200 chunks) */}
@@ -600,8 +642,9 @@ export default function HomePage() {
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  className="flex items-center gap-2 px-7 py-3 rounded-full bg-white/[0.06] border border-white/15 text-sm font-bold text-white hover:border-brand/60 hover:shadow-glow transition-all disabled:opacity-50"
+                  className="relative flex items-center gap-2 px-7 py-3 rounded-full liquid-glass text-sm font-bold text-white transition-all hover:border-white/30 disabled:opacity-50 overflow-hidden"
                 >
+                  <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                   {loadingMore ? (
                     <>
                       <Loader2 size={16} className="animate-spin text-brand-light" />
@@ -621,8 +664,9 @@ export default function HomePage() {
         )}
 
         {!isLoading && !error && filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-dashed border-white/10">
-            <span className="w-16 h-16 rounded-full bg-brand/10 border border-brand/25 flex items-center justify-center mb-4">
+          <div className="relative flex flex-col items-center justify-center py-20 text-center liquid-glass rounded-[28px] overflow-hidden">
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+            <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mb-4">
               <Music size={28} className="text-brand-light" />
             </span>
             <p className="text-white font-bold">No lectures found</p>

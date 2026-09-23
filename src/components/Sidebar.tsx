@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Home, Search, Library, Radio } from 'lucide-react';
+import { Home, Search, Library, Radio, Droplets } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
 import { useChannelStore } from '@/store/channel-store';
+import { useDesignStore } from '@/store/design-store';
 
 const navItems = [
   { icon: Home, label: 'Home', href: '/' },
@@ -35,16 +36,18 @@ function closeMobileDrawer() {
 export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const pathname = usePath();
   const { channelId, setChannelId } = useChannelStore();
+  const { mode: designMode, toggle: toggleDesign } = useDesignStore();
   const [meta, setMeta] = useState<Record<string, ChannelMeta>>({});
 
-  // Channel avatars (lightweight meta fetch, CDN-cached server-side)
+  // Channel avatars via the featherweight meta endpoint (name + avatar
+  // only — never the 100-video listing). CDN-cached server-side.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const entries = await Promise.all(
         CHANNELS.map(async (c) => {
           try {
-            const res = await fetch(`/api/channel/${c.id}`);
+            const res = await fetch(`/api/channel/${c.id}/meta`);
             const data = await res.json();
             if (data.success && data.channel) {
               return [c.id, { name: data.channel.name, avatar: data.channel.avatar }] as const;
@@ -70,14 +73,20 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   return (
     <aside
       className={cn(
-        'flex-col bg-ink-900/60 overflow-y-auto',
-        mobile ? 'flex h-full w-full px-3 py-4' : 'hidden md:flex w-60 lg:w-64 shrink-0 px-3 py-4'
+        'flex-col overflow-y-auto relative',
+        mobile
+          ? 'flex h-full w-full px-3 py-4 bg-transparent'
+          : 'hidden md:flex w-60 lg:w-64 shrink-0 h-full liquid-glass rounded-3xl px-3 py-4'
       )}
     >
+      {!mobile && (
+        <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+      )}
       {/* Brand (desktop only — drawer has its own header in Layout) */}
       {!mobile && (
         <a href="/" className="flex items-center gap-3 px-3 mb-5 group">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-light via-brand to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-gold/40 group-hover:scale-105 transition-transform">
+          <span className="relative w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br from-brand-light via-brand to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-white/30 group-hover:scale-105 transition-transform">
+            <span className="pointer-events-none absolute top-0 inset-x-1.5 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
             <span className="text-[#E7C55A] text-xl font-bold leading-none">إ</span>
           </span>
           <span className="min-w-0">
@@ -102,10 +111,10 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
               href={item.href}
               onClick={mobile ? closeMobileDrawer : undefined}
               className={cn(
-                'flex items-center gap-5 rounded-lg px-3 h-10 text-sm transition-colors',
+                'flex items-center gap-5 rounded-xl px-3 h-10 text-sm transition-all',
                 isActive
-                  ? 'bg-white/10 text-white font-medium'
-                  : 'text-white/90 hover:bg-white/10 font-normal'
+                  ? 'liquid-chip text-white font-medium ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
+                  : 'text-white/90 hover:bg-white/[0.07] font-normal border border-transparent'
               )}
             >
               <Icon
@@ -134,11 +143,13 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
               key={c.id}
               onClick={() => switchChannel(c.id)}
               className={cn(
-                'w-full flex items-center gap-4 rounded-lg px-3 h-11 text-sm transition-colors text-left',
-                active ? 'bg-brand/[0.12] text-white font-medium' : 'text-white/90 hover:bg-white/10'
+                'w-full flex items-center gap-4 rounded-xl px-3 h-11 text-sm transition-all text-left',
+                active
+                  ? 'liquid-chip text-white font-medium ring-1 ring-brand/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
+                  : 'text-white/90 hover:bg-white/[0.07] border border-transparent'
               )}
             >
-              <span className="w-6 h-6 rounded-full overflow-hidden bg-ink-700 ring-1 ring-white/10 shrink-0 flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full overflow-hidden bg-white/[0.07] backdrop-blur-md ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] shrink-0 flex items-center justify-center">
                 {m?.avatar ? (
                   <img src={m.avatar} alt="" className="w-full h-full object-cover" loading="lazy" />
                 ) : (
@@ -151,6 +162,43 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
           );
         })}
       </div>
+
+      <hr className="border-white/10 my-3" />
+
+      {/* Liquid Glass toggle (no Settings wrapper) */}
+      <button
+        onClick={toggleDesign}
+        role="switch"
+        aria-checked={designMode === 'liquid'}
+        aria-label="Liquid Glass design"
+        className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-white/[0.07] border border-transparent transition-all"
+      >
+        <span className="liquid-gold w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+          <Droplets size={15} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[13px] font-semibold text-white">
+            Liquid Glass
+          </span>
+          <span className="block text-[11px] text-mist-dark">
+            {designMode === 'liquid' ? 'iPhone-style frosted look' : 'Off — Material 3 solid look'}
+          </span>
+        </span>
+        {/* Toggle pill — gold gradient when on, same as the Open-App button */}
+        <span
+          className={cn(
+            'relative w-11 h-6 rounded-full transition-colors shrink-0 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]',
+            designMode === 'liquid' ? 'bg-[linear-gradient(135deg,#cba135_0%,#e8c96c_50%,#a07e28_100%)]' : 'bg-white/10'
+          )}
+        >
+          <span
+            className={cn(
+              'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all',
+              designMode === 'liquid' ? 'left-[22px]' : 'left-0.5'
+            )}
+          />
+        </span>
+      </button>
 
       <hr className="border-white/10 my-3" />
 

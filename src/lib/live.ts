@@ -8,6 +8,8 @@
 export interface LiveRecording {
   title: string;
   speaker: string;
+  /** Venue/place name, as shown on the main islahbd.com site. */
+  location: string;
   audioUrl: string;
   durationSeconds: number;
 }
@@ -16,6 +18,8 @@ export interface LiveStatus {
   isLive: boolean;
   title: string;
   speaker: string;
+  /** Venue/place name, as shown on the main islahbd.com site. */
+  location: string;
   listeners: number;
   /** HLS manifest URL — only meaningful when isLive. */
   streamUrl: string;

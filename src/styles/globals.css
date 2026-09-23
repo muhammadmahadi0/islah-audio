@@ -56,11 +56,24 @@ body {
   margin: 0;
   padding: 0;
   background-color: rgb(var(--ink-950));
+  /* iPhone-style ambient: faint gold/green aura behind every surface */
+  background-image:
+    radial-gradient(38rem 24rem at 85% -6rem, rgb(var(--brand) / 0.13), transparent 65%),
+    radial-gradient(30rem 22rem at -8rem 32vh, rgb(var(--brand) / 0.07), transparent 65%),
+    radial-gradient(34rem 26rem at 50% 115vh, rgb(var(--gold) / 0.06), transparent 65%);
+  /* NOTE: no background-attachment: fixed — it forces a full repaint
+     every scroll frame on mobile and makes scrolling stutter. */
   color: rgb(var(--white));
   font-family:
     Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Noto Sans Bengali', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+html.light body {
+  background-image:
+    radial-gradient(38rem 24rem at 85% -6rem, rgba(150, 113, 15, 0.1), transparent 65%),
+    radial-gradient(30rem 22rem at -8rem 32vh, rgba(150, 113, 15, 0.06), transparent 65%),
+    radial-gradient(34rem 26rem at 50% 115vh, rgba(150, 113, 15, 0.05), transparent 65%);
 }
 
 /* Slim, theme-matched scrollbars */
@@ -91,33 +104,224 @@ html.light .glass {
   box-shadow: 0 8px 32px rgba(6, 13, 10, 0.1);
 }
 
-/* iPhone liquid-glass panel (floating bars) */
+/* iPhone liquid-glass panel (floating bars) — iOS 26 style:
+   deep blur + saturation, specular top edge, diagonal gloss sheen,
+   soft refractive border and floating shadow. */
 .liquid-glass {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.16),
-    rgba(255, 255, 255, 0.05) 40%,
-    rgba(255, 255, 255, 0.11)
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.07) 38%,
+    rgba(255, 255, 255, 0.14) 62%,
+    rgba(255, 255, 255, 0.05)
   );
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  /* Blur/saturation are the main scroll cost — 20px/160% keeps the frosted
+     look while staying smooth on mid-range phones. */
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.28),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
-    0 12px 40px rgba(0, 0, 0, 0.35);
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.08),
+    inset 1px 0 1px rgba(255, 255, 255, 0.12),
+    0 16px 48px rgba(0, 0, 0, 0.42),
+    0 2px 8px rgba(0, 0, 0, 0.25);
 }
 html.light .liquid-glass {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0.3) 40%,
-    rgba(255, 255, 255, 0.5)
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0.45) 38%,
+    rgba(255, 255, 255, 0.62) 62%,
+    rgba(255, 255, 255, 0.4)
   );
-  border-color: rgba(6, 13, 10, 0.08);
+  border-color: rgba(255, 255, 255, 0.7);
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.8),
-    0 12px 40px rgba(6, 13, 10, 0.14);
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px rgba(6, 13, 10, 0.05),
+    0 16px 48px rgba(6, 13, 10, 0.16);
+}
+
+/* Frosted-glass form fields: translucent + blurred, gold focus ring */
+.liquid-input {
+  background: rgb(var(--veil) / 0.05);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgb(var(--veil) / 0.12);
+  box-shadow: inset 0 1px 1px rgb(var(--veil) / 0.08);
+}
+.liquid-input:focus {
+  border-color: rgb(var(--brand) / 0.6);
+  box-shadow:
+    inset 0 1px 1px rgb(var(--veil) / 0.1),
+    0 0 20px rgba(201, 162, 39, 0.25);
+}
+.liquid-input::placeholder {
+  color: rgb(var(--mist-dark));
+}
+
+/* Frosted-glass chip button (inactive filter/tab/nav states) */
+.liquid-chip {
+  background: rgb(var(--veil) / 0.06);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgb(var(--veil) / 0.12);
+  box-shadow: inset 0 1px 1px rgb(var(--veil) / 0.1);
+}
+.liquid-chip:hover {
+  background: rgb(var(--veil) / 0.1);
+  border-color: rgb(var(--veil) / 0.22);
+}
+
+/* Gold primary buttons — unified Open-IslahBD style in every theme.
+   Fixed gold gradient; text stays pinned dark on the gold surface (like
+   text on black photo overlays), so it reads in dark + light. Glassiness
+   comes from the gloss sheen + inner highlight + glow — no backdrop blur
+   needed (the gradient is opaque, so there is no backdrop to refract). */
+.liquid-gold,
+.islahbd-open-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #cba135 0%, #e8c96c 50%, #a07e28 100%);
+  color: #1a1405;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.22),
+    0 0 14px rgba(201, 162, 39, 0.45),
+    0 4px 16px rgba(0, 0, 0, 0.35);
+}
+.liquid-gold::after,
+.islahbd-open-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 14%;
+  right: 14%;
+  height: 50%;
+  border-radius: 9999px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.45), transparent);
+  pointer-events: none;
+}
+.liquid-gold:hover,
+.islahbd-open-btn:hover {
+  filter: brightness(1.07);
+}
+/* Light mode: same gold gradient, softer glow tuned for paper. */
+html.light .liquid-gold,
+html.light .islahbd-open-btn {
+  border-color: rgba(6, 13, 10, 0.18);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.15),
+    0 0 12px rgba(150, 113, 15, 0.35),
+    0 4px 14px rgba(6, 13, 10, 0.15);
+}
+
+/* Material 3 mode (design toggle in sidebar Settings): every glass surface
+   becomes a solid tonal surface — no blur, no translucency, no sheens.
+   Applied via the `material` class on <html> (see design-store.ts). */
+html.material body {
+  background-image: none;
+}
+html.material .liquid-glass,
+html.material .glass {
+  background: rgb(var(--ink-900));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgb(var(--veil) / 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+html.light.material .liquid-glass,
+html.light.material .glass {
+  background: rgb(var(--ink-900));
+  border-color: rgba(6, 13, 10, 0.08);
+  box-shadow: 0 2px 8px rgba(6, 13, 10, 0.12);
+}
+html.material .liquid-chip {
+  background: rgb(var(--ink-700));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+html.material .liquid-input {
+  background: rgb(var(--ink-800));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgb(var(--veil) / 0.14);
+  box-shadow: none;
+}
+html.material .liquid-input:focus {
+  border-color: rgb(var(--brand));
+  box-shadow: none;
+}
+html.material .liquid-gold,
+html.material .islahbd-open-btn {
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+html.material .liquid-gold::after,
+html.material .islahbd-open-btn::after {
+  display: none;
+}
+/* Open IslahBD button in Material mode: flat M3 — gradient stays (brand),
+   gloss + glow go. */
+html.light.material .liquid-gold,
+html.light.material .islahbd-open-btn {
+  box-shadow: 0 2px 6px rgba(6, 13, 10, 0.2);
+}
+/* Specular edges + gloss sheens only exist for glass — hide them.
+   (Sheens are always `pointer-events-none` + absolute; functional spans
+   like progress/eq-bars never are, so this is safe.) */
+html.material .liquid-glass > span.pointer-events-none {
+  display: none;
+}
+/* Expanded sheet: hide its scrim, blobs and sheen (artwork <img> stays). */
+html.material .expanded-sheet > div.pointer-events-none {
+  display: none;
+}
+/* Kill leftover backdrop blurs on tonal buttons (M3 tonal = flat). */
+html.material [class*='backdrop-blur'] {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* Expanded player sheet goes fully opaque (it isn't .liquid-glass). */
+html.material .expanded-sheet {
+  background-color: rgb(var(--ink-950));
+}
+/* Ambient aura + refraction blobs are glass dressing — off in M3. */
+html.material .ambient-blobs {
+  display: none;
+}
+
+/* Material 3 exception: bottom nav keeps a slight translucent effect
+   (flat color + light blur only — no liquid-glass gradient, saturation,
+   specular edge, or gloss sheen). Must come after the generic
+   html.material .liquid-glass override to win on specificity. */
+html.material .liquid-glass.bottom-nav {
+  background: rgb(var(--ink-900) / 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgb(var(--veil) / 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+html.light.material .liquid-glass.bottom-nav {
+  background: rgb(var(--ink-900) / 0.82);
+  border-color: rgba(6, 13, 10, 0.08);
+  box-shadow: 0 8px 24px rgba(6, 13, 10, 0.12);
+}
+
+/* Scroll performance: skip rendering off-screen items entirely.
+   .cv-card for grid cards (~340px), .cv-row for list rows (~76px).
+   The intrinsic size reserves layout space so the scrollbar stays stable. */
+.cv-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 340px;
+}
+.cv-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
 }
 
 /* Skeleton shimmer */
