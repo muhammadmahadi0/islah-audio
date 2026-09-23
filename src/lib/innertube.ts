@@ -309,7 +309,12 @@ export async function getInnertubeChannelMeta(
   return { name, avatar };
 }
 
-/** Single-video metadata for `/watch/[id]` + `/api/stream/[id]` — keyless. */
+/** Single-video metadata for `/watch/[id]` + `/api/stream/[id]` — keyless.
+ * Tries `getBasicInfo` first (full metadata), falls back to oEmbed
+ * (title/author/thumbnail — enough for the watch page + OG tags).
+ * oEmbed matters because Netlify IPs intermittently get blank player
+ * responses for BasicInfo while browse endpoints keep working
+ * (proven in prod: valid videos returned empty title). */
 export async function getInnertubeVideoMetadata(videoId: string): Promise<{
   found: boolean;
   title: string;
@@ -330,6 +335,7 @@ export async function getInnertubeVideoMetadata(videoId: string): Promise<{
     publishedAt: '',
     views: 0,
   };
+  // 1. Full metadata via BasicInfo.
   try {
     const yt = await getSession();
     // getBasicInfo throws on unknown/removed videos (caller 404s).
@@ -337,23 +343,57 @@ export async function getInnertubeVideoMetadata(videoId: string): Promise<{
     // names with "Invalid video ID" even for valid videos.
     const info = await yt.getBasicInfo(videoId);
     const basic: any = info.basic_info;
-    if (!basic?.id && !basic?.title) return empty;
-    const thumbs: any[] = basic.thumbnail || [];
-    const best = thumbs[thumbs.length - 1];
-    return {
-      found: true,
-      title: basic.title || '',
-      thumbnail: best?.url || empty.thumbnail,
-      duration: Number(basic.duration) || 0,
-      channelName: basic.channel?.name || basic.author || '',
-      description: basic.short_description || '',
-      publishedAt: basic.publish_date || info.primary_info?.published?.text || '',
-      views: Number(basic.view_count) || 0,
-    };
+    if (basic?.id || basic?.title) {
+      const thumbs: any[] = basic.thumbnail || [];
+      const best = thumbs[thumbs.length - 1];
+      const title: string = basic.title || '';
+      // A response with neither id nor title is a blank/blocked payload,
+      // not a real video — fall through to oEmbed instead of claiming found.
+      if (basic?.id || title) {
+        return {
+          found: true,
+          title,
+          thumbnail: best?.url || empty.thumbnail,
+          duration: Number(basic.duration) || 0,
+          channelName: basic.channel?.name || basic.author || '',
+          description: basic.short_description || '',
+          publishedAt: basic.publish_date || info.primary_info?.published?.text || '',
+          views: Number(basic.view_count) || 0,
+        };
+      }
+    }
   } catch {
-    // Unknown/removed video (getBasicInfo throws) — caller 404s.
-    return empty;
+    // Unknown/removed video or blocked player response — try oEmbed next.
   }
+  // 2. oEmbed fallback: lightweight, rarely blocked, no key.
+  // Returns 404 for genuinely unknown IDs, so `found` stays a real signal.
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(
+        `https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}&format=json`,
+        { headers: { Accept: 'application/json' }, signal: controller.signal }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.title) {
+          return {
+            ...empty,
+            found: true,
+            title: data.title || '',
+            channelName: data.author_name || '',
+            thumbnail: data.thumbnail_url || empty.thumbnail,
+          };
+        }
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+  } catch {
+    // oEmbed unreachable — caller 404s.
+  }
+  return empty;
 }
 
 /**
