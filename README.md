@@ -28,9 +28,9 @@ playlists, search, and a mobile-first design.
 - **Shareable links** — every lecture opens at `/watch/[videoId]` and auto-plays;
   share buttons (Home, Search, Library, player, watch page) use the native sheet
   on mobile and copy the link on desktop; links unfurl with title + thumbnail
-- **Open IslahBD** — gold-gradient top-bar button that opens the installed
-  IslahBD app (Android intent `com.islahbd.app` with native store fallback /
-  iOS universal link with guarded fallback), otherwise falls back to the
+- **Open IslahBD** — gold-gradient top-bar button (always labeled "Open IslahBD")
+  that opens the installed IslahBD app (`islahbd://open` custom scheme, same as
+  the app owner's deep links), otherwise falls back to the
   Play Store / App Store for the visitor's device
 - **Modern UI** — golden theme with light/dark mode (floating toggle,
   persisted), floating liquid-glass sidebar + top bar, mobile bottom nav pill,

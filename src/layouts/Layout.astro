@@ -131,7 +131,7 @@ const {
         title="Open IslahBD app"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
-        <span><span class="hidden sm:inline">Open&nbsp;</span>IslahBD</span>
+        <span>Open&nbsp;IslahBD</span>
       </button>
     </header>
 
@@ -180,53 +180,38 @@ const {
         openDrawer(false);
       });
       // Open IslahBD button: open the installed app, otherwise go to the
-      // right store for the device.
-      // Android (Chrome family): intent:// with S.browser_fallback_url — the
-      // OS opens the app if installed, else loads the Play Store natively.
-      // There is deliberately NO manual JS fallback here: a timer would race
-      // the intent and yank installed users to the store too (proven bug).
-      // Firefox Android ignores intent://, so only it gets a guarded timer.
-      // iOS: universal link inside the app's applinks paths (/live/ opens the
-      // app without playing a specific item) with a guarded App Store
-      // fallback — long timeout + blur/pagehide/visibility cancel, so the
-      // timer only fires when the app genuinely did not open. If the app
-      // isn't installed the link falls through to the islahbd.com website
-      // (universal links can't redirect to the store from our page alone).
-      // Desktop opens the site in a new tab.
+      // right store for the device. Mirrors the app owner's own DeepLinkRedirect
+      // (islahbd.com `live/[token]` page): the app registers the `islahbd://`
+      // custom scheme with `open/<section>/<token>` paths, so `islahbd://open`
+      // (no content segments) just launches the app.
+      // Android uses a scheme intent (the OS opens the app if installed, else
+      // loads the Play Store fallback natively — there is deliberately NO
+      // manual JS timer, which would race installed users to the store).
+      // iOS fires the custom scheme and falls back to the App Store after 2s
+      // only if the page is still visible (opening the app backgrounds the
+      // page, which cancels the timer). Desktop opens the site in a new tab.
       document.getElementById('islahbd-btn')?.addEventListener('click', function () {
         var ua = navigator.userAgent || '';
         var isAndroid = /Android/i.test(ua);
         var isiOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var playStore = 'https://play.google.com/store/apps/details?id=com.islahbd.app';
-        var appStore = 'https://apps.apple.com/app/islahbd/id6762509692';
-        var appUrl = 'https://www.islahbd.com/live/';
-        var armGuardedFallback = function (storeUrl) {
-          var cancelled = false;
-          var cancel = function () { cancelled = true; };
-          window.addEventListener('pagehide', cancel, { once: true });
-          window.addEventListener('blur', cancel, { once: true });
-          var onVis = function () {
-            if (document.hidden) {
-              cancelled = true;
-              document.removeEventListener('visibilitychange', onVis);
-            }
-          };
+        var appStore = 'https://apps.apple.com/us/app/islahbd/id6762509692';
+        if (isAndroid) {
+          window.location.replace('intent://open#Intent;scheme=islahbd;package=com.islahbd.app;S.browser_fallback_url=' + encodeURIComponent(playStore) + ';end');
+        } else if (isiOS) {
+          var opened = false;
+          var onVis = function () { if (document.hidden) opened = true; };
+          var onHide = function () { opened = true; };
           document.addEventListener('visibilitychange', onVis);
+          window.addEventListener('pagehide', onHide);
+          window.addEventListener('blur', onHide);
+          window.location.href = 'islahbd://open';
           setTimeout(function () {
             document.removeEventListener('visibilitychange', onVis);
-            if (!cancelled && !document.hidden) window.location.href = storeUrl;
-          }, 2500);
-        };
-        if (isAndroid) {
-          var isFirefox = /Firefox|FxiOS/i.test(ua);
-          var isChromium = /Chrome\/\d+|Chromium|SamsungBrowser|EdgA|OPR\/|Brave/i.test(ua);
-          window.location.href = 'intent://www.islahbd.com/live/#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.islahbd.app;S.browser_fallback_url=' + encodeURIComponent(playStore) + ';end';
-          if (isFirefox || !isChromium) {
-            armGuardedFallback(playStore);
-          }
-        } else if (isiOS) {
-          window.location.href = appUrl;
-          armGuardedFallback(appStore);
+            window.removeEventListener('pagehide', onHide);
+            window.removeEventListener('blur', onHide);
+            if (!opened && !document.hidden) window.location.replace(appStore);
+          }, 2000);
         } else {
           window.open('https://www.islahbd.com/', '_blank', 'noopener');
         }
