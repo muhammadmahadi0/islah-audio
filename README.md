@@ -21,7 +21,8 @@ playlists, search, and a mobile-first design.
   to the expanded player's **Up next** dropdown)
 - **Live broadcast** — a LIVE button in the Home hero plays the islahbd.com live
   audio stream (HLS via hls.js) when on air, and the last broadcast recording
-  when offline; live status is polled from their public status API
+  when offline; live status (incl. the `location` venue name, shown in the
+  hero banner and the player) is polled from their public status API
 - **Channels** — switch between `@islahbd` and `@IslahiGhazal` from the sidebar
   (slide-over drawer on Android); Home, Search, and Library all follow along
 - **Search** — instant client-side search across the channel catalog

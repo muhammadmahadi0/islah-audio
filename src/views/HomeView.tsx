@@ -415,6 +415,7 @@ export default function HomePage() {
         videoId: '',
         hlsUrl: live.streamUrl,
         isLive: true,
+        location: live.location || '',
       };
       playTrack(track, [track], 0);
     } else if (live.recording?.audioUrl) {
@@ -426,6 +427,7 @@ export default function HomePage() {
         channelName: live.recording.speaker || 'Islah',
         videoId: '',
         audioUrl: live.recording.audioUrl,
+        location: live.recording.location || '',
       };
       playTrack(track, [track], 0);
     }
@@ -495,9 +497,14 @@ export default function HomePage() {
                   </span>
                   <span className="truncate">
                     Live now{live.title ? ` • ${live.title}` : ''}
+                    {live.location ? ` • ${live.location}` : ''}
                     {live.listeners > 0 ? ` • ${live.listeners} watching` : ''}
                   </span>
                 </button>
+              ) : live?.recording?.location ? (
+                <p className="mt-1 hidden sm:block text-[13px] text-mist-dark truncate">
+                  Last live • {live.recording.location}
+                </p>
               ) : (
                 <p className="mt-1 hidden sm:block text-[13px] text-mist-dark truncate">
                   Bayans • Waz • Nasheeds — listen to every lecture as audio

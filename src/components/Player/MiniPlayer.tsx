@@ -14,6 +14,7 @@ import {
   VolumeX,
   Video,
   ListMusic,
+  MapPin,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ShareButton from '@/components/ShareButton';
@@ -93,6 +94,41 @@ export default function MiniPlayer() {
   const playingRef = useRef(isPlaying);
   playingRef.current = isPlaying;
 
+  // Play watchdog: autoplay without a prior user gesture (e.g. opening a
+  // /watch link directly) gets blocked by the browser — the player sits in
+  // UNSTARTED and isLoading never clears ("stuck on loading", fixed by a
+  // manual pause+play which carries a gesture). When we issue a load with
+  // autoplay intent, arm a timer; on fire, reconcile the store with the
+  // ACTUAL player state — if still not playing/buffering, drop to a paused
+  // cue state so a single user tap resumes. Cleared on PLAYING/new load.
+  const watchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearWatchdog = () => {
+    if (watchdogRef.current) {
+      clearTimeout(watchdogRef.current);
+      watchdogRef.current = null;
+    }
+  };
+  const armWatchdog = () => {
+    clearWatchdog();
+    watchdogRef.current = setTimeout(() => {
+      watchdogRef.current = null;
+      try {
+        const player = playerRef.current;
+        const state = player?.getPlayerState?.();
+        const YTNS = window.YT?.PlayerState;
+        // Healthy (playing or buffering toward playing) — nothing to do.
+        if (state === YTNS?.PLAYING || state === YTNS?.BUFFERING) return;
+        // Stuck (blocked autoplay sits in UNSTARTED/CUED/PAUSED): stop the
+        // spinner and fall back to paused cue — one tap resumes with gesture.
+        const s = storeRef.current;
+        s.setIsLoading(false);
+        s.setIsPlaying(false);
+      } catch {
+        storeRef.current.setIsLoading(false);
+      }
+    }, 8000);
+  };
+
   const isYtTrack =
     !!currentTrack && !!currentTrack.videoId && !currentTrack.hlsUrl && !currentTrack.audioUrl;
   const showVideo = isExpanded && isYtTrack && engine.mode === 'video';
@@ -165,8 +201,10 @@ export default function MiniPlayer() {
                     } catch {
                       e.target.loadVideoById(track.videoId);
                     }
+                    armWatchdog();
                   } else e.target.cueVideoById(track.videoId);
                 } catch {
+                  clearWatchdog();
                   storeRef.current.setIsLoading(false);
                 }
               }
@@ -176,6 +214,7 @@ export default function MiniPlayer() {
               const s = storeRef.current;
               switch (e.data) {
                 case YTNS?.PLAYING:
+                  clearWatchdog();
                   s.setIsPlaying(true);
                   s.setIsLoading(false);
                   break;
@@ -185,9 +224,23 @@ export default function MiniPlayer() {
                 case YTNS?.BUFFERING:
                   s.setIsLoading(true);
                   break;
-                case YTNS?.CUED:
+                case YTNS?.UNSTARTED:
+                  // Transient on every load (BUFFERING/PLAYING follows), but
+                  // terminal when autoplay is blocked — just clear the
+                  // spinner; the watchdog reconciles to paused if stuck.
                   s.setIsLoading(false);
-                  if (playingRef.current) e.target.playVideo();
+                  break;
+                case YTNS?.CUED:
+                  clearWatchdog();
+                  s.setIsLoading(false);
+                  if (playingRef.current) {
+                    try {
+                      e.target.playVideo();
+                    } catch {
+                      // Blocked autoplay — watchdog reconciles to paused.
+                    }
+                    armWatchdog();
+                  }
                   break;
                 case YTNS?.ENDED:
                   s.setIsPlaying(false);
@@ -235,6 +288,7 @@ export default function MiniPlayer() {
         (window as Window & { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
       }
       if (timer) clearTimeout(timer);
+      clearWatchdog();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -328,9 +382,11 @@ export default function MiniPlayer() {
           } catch {
             player.loadVideoById(track.videoId);
           }
+          armWatchdog();
         } else player.cueVideoById(track.videoId);
       } catch (err) {
         console.error('[MiniPlayer] YT load error:', err);
+        clearWatchdog();
         setIsLoading(false);
       }
     } else if (apiFailedRef.current) {
@@ -630,6 +686,12 @@ export default function MiniPlayer() {
             <p className="truncate text-xs font-medium text-gold/90">
               {currentTrack?.channelName || ''}
             </p>
+            {isLive && currentTrack?.location && (
+              <p className="flex items-center gap-1 truncate text-[11px] text-mist-dark">
+                <MapPin size={11} className="shrink-0" />
+                {currentTrack.location}
+              </p>
+            )}
               </div>
               {queueTotal > 1 && queuePos !== null && (
                 <span className="shrink-0 text-[11px] font-semibold tabular-nums text-mist-dark">
@@ -744,6 +806,12 @@ export default function MiniPlayer() {
           <p className="relative md:hidden mt-1 truncate text-sm font-medium text-gold/90">
             {currentTrack?.channelName || ''}
           </p>
+          {isLive && currentTrack?.location && (
+            <p className="relative md:hidden mt-0.5 flex items-center gap-1 truncate text-[11px] text-mist-dark">
+              <MapPin size={11} className="shrink-0" />
+              {currentTrack.location}
+            </p>
+          )}
 
           {/* Slider (mobile — desktop uses the compact row above) */}
           <div className="relative md:hidden pt-2">
@@ -861,6 +929,9 @@ export default function MiniPlayer() {
                       </p>
                       <p className="truncate text-[11px] text-mist-dark">
                         {playlist[playlistIndex].channelName}
+                        {playlist[playlistIndex].location
+                          ? ` • ${playlist[playlistIndex].location}`
+                          : ''}
                         {queueTotal > 1 && queuePos !== null
                           ? ` • ${queuePos} of ${queueTotal}`
                           : ''}

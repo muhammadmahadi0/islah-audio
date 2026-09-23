@@ -28,6 +28,7 @@ export const GET: APIRoute = async () => {
       isLive: !!data?.isLive,
       title: data?.title || '',
       speaker: data?.speaker || '',
+      location: data?.location || '',
       listeners: data?.listeners ?? data?.real_listeners ?? 0,
       streamUrl: data?.streamUrl || data?.hlsUrl || '',
       recording:
@@ -35,6 +36,7 @@ export const GET: APIRoute = async () => {
           ? {
               title: rec.title || '',
               speaker: rec.speaker || '',
+              location: rec.location || '',
               audioUrl: rec.audioUrl,
               durationSeconds: rec.durationSeconds || 0,
             }

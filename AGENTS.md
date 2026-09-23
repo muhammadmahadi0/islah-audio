@@ -31,7 +31,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    (`track.isLive`). `AudioPlayer.tsx` also holds the Screen Wake Lock while
    `isPlaying` (released on pause/stop, re-requested on tab-visible).
    Lecture loads request 144p `suggestedQuality` up front (audio-first) —
-   never load-then-`setPlaybackQuality`, which rebuffers.
+   never load-then-`setPlaybackQuality`, which rebuffers. Autoplay can be
+   browser-blocked (direct /watch visits): MiniPlayer handles UNSTARTED by
+   clearing the spinner and arms an 8s play watchdog on every autoplay load
+   that reconciles to paused-cue if PLAYING/BUFFERING never arrives
+   (PLAYING/CUED clear it; unmount clears it).
 2. **No audio-extraction services.** Cobalt v7 (`api.cobalt.tools`) is shut down;
    public Piped/Invidious instances return 403/525. Do NOT reintroduce `cobalt.ts`,
    `ytdl-core`, or third-party extractors. `/api/stream/[id]` intentionally returns
@@ -78,9 +82,13 @@ This file orients AI coding agents working in this repo. Read it before making c
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
    `currentTrack` for the same reason).
 8. **Live (islahbd.com).** Status via `/api/live` (proxies
-   `api.islahbd.com/api/live/status/`); HLS via `/api/hls` proxy fallback.
-   Live button lives in the Home hero (`views/HomeView.tsx`); live tracks use
-   `id: 'live'` / `'live-recording'` with `isLive` set for real broadcasts.
+   `api.islahbd.com/api/live/status/` → `LiveStatus` in `lib/live.ts`,
+   includes `location` venue name for live + recording); HLS via `/api/hls`
+   proxy fallback. Live button lives in the Home hero (`views/HomeView.tsx`);
+   "Live now" banner shows title • location • listeners, offline hero shows
+   "Last live • location". Live tracks use `id: 'live'` / `'live-recording'`
+   with `isLive` set for real broadcasts; `Track.location` carries the venue
+   into MiniPlayer (title block + Up-next header, MapPin icon).
 9. **Netlify (BETA: Astro).** `netlify.toml` publishes `dist/`; SSR/API run as
    functions via `@astrojs/netlify`. Never add manual `/api/*` redirects, and
    never re-add the Next.js plugin on this branch.

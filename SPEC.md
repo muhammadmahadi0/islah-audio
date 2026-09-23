@@ -119,7 +119,9 @@
 #### Home
 
 - Hero: channel art (gold ring), name, video count,
-  Play-all / Shuffle / **LIVE** buttons (single-line labels), "Live now" banner when on air
+  Play-all / Shuffle / **LIVE** buttons (single-line labels), "Live now"
+  banner (title • location • listeners) when on air, "Last live • location"
+  line when offline with a recording
 - Filters: All / Bayans (>5 min) / Shorts (≤5 min)
 - Cards: rounded-2xl, hover lift + play overlay, duration badge,
   "Playing" badge + equalizer on current track, **+** save-to-playlist button,
@@ -185,13 +187,19 @@
    audio-only. Collapsing also returns to audio-only.
    Unplayable videos auto-skip. Lectures load with 144p suggested quality
    so first audio arrives fast (no buffer-default-then-downshift rebuffer).
+   Blocked autoplay (direct /watch visits) surfaces UNSTARTED with the
+   spinner cleared, plus an 8s watchdog that reconciles to paused-cue.
    The screen stays on while anything is playing
    (Screen Wake Lock API, re-requested on tab-visible; silent no-op where
    unsupported).
-3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
-   glowing-red LIVE button plays HLS when on air, plain Last-live button replays
-   the latest recording when offline. HLS falls back to the `/api/hls` CORS proxy,
-   then to the last recording, so a dead live edge still yields audio.
+3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s), including
+   the `location` venue name for the live broadcast and the last recording.
+   Glowing-red LIVE button plays HLS when on air, plain Last-live button replays
+   the latest recording when offline; the "Live now" banner shows
+   title • location • listeners, and the location surfaces in the player
+   (title block + Up-next header) with a MapPin icon. HLS falls back to the
+   `/api/hls` CORS proxy, then to the last recording, so a dead live edge
+   still yields audio.
 4. **User Playlists** — persisted zustand store (`islah-playlists` key);
    duplicate-guarded adds, delete with confirm.
 5. **Search** — client-side filter over the fully indexed catalog.
@@ -208,7 +216,7 @@
 | `GET /api/channel/[id]/more/[token]` | Next ~200 videos + `nextPageToken` |
 | `GET /api/playlists/[channel]` | A channel's playlists (InnerTube Playlists tab, 6h CDN cache) |
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube (first ~200) |
-| `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
+| `GET /api/live` | Live status `{ isLive, title, speaker, location, listeners, streamUrl, recording }` (`recording` also carries `location`) |
 | `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
 
