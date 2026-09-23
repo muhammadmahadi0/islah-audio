@@ -4,6 +4,7 @@ import { Search as SearchIcon, Music, Loader2, X, ListPlus } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import { useChannelStore } from '@/store/channel-store';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
+import ShareButton from '@/components/ShareButton';
 import { fetchJson } from '@/lib/fetch-timeout';
 
 interface ChannelVideo {
@@ -65,7 +66,13 @@ function SearchRow({
             isActive ? 'text-brand-light' : 'text-white'
           )}
         >
-          {video.title}
+          <a
+            href={`/watch/${videoId}`}
+            onClick={(e) => e.stopPropagation()}
+            className="hover:underline"
+          >
+            {video.title}
+          </a>
         </p>
         <p className="text-mist-dark text-xs mt-0.5">Islah</p>
       </div>
@@ -74,6 +81,12 @@ function SearchRow({
           {formatDuration(video.duration)}
         </span>
       )}
+      <ShareButton
+        videoId={videoId}
+        title={video.title}
+        iconSize={16}
+        className="p-1.5 text-mist-dark hover:text-gold-light hover:bg-white/10"
+      />
       <button
         onClick={(e) => {
           e.stopPropagation();

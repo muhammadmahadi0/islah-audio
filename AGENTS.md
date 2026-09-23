@@ -75,6 +75,12 @@ This file orients AI coding agents working in this repo. Read it before making c
 9. **Netlify (BETA: Astro).** `netlify.toml` publishes `dist/`; SSR/API run as
    functions via `@astrojs/netlify`. Never add manual `/api/*` redirects, and
    never re-add the Next.js plugin on this branch.
+10. **Shareable links.** Every video is addressable at `/watch/[videoId]`
+   (`src/pages/watch/[id].astro` fetches SSR metadata + OG tags through
+   `lib/video.ts`, `views/WatchView.tsx` island auto-plays on open). Share via
+   `lib/share.ts` (`components/ShareButton.tsx`: native sheet on mobile,
+   clipboard copy on desktop). Same rule as APIs: the video ID travels in the
+   URL path, never a query string.
 
 ## Conventions
 

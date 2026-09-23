@@ -25,6 +25,9 @@ playlists, search, and a mobile-first design.
 - **Channels** — switch between `@islahbd` and `@IslahiGhazal` from the sidebar
   (slide-over drawer on Android); Home, Search, and Library all follow along
 - **Search** — instant client-side search across the channel catalog
+- **Shareable links** — every lecture opens at `/watch/[videoId]` and auto-plays;
+  share buttons (Home, Search, Library, player, watch page) use the native sheet
+  on mobile and copy the link on desktop; links unfurl with title + thumbnail
 - **Open IslahBD** — gold-gradient top-bar button that launches the native
   IslahBD app when installed (Android intent `com.islahbd.app` / iOS universal
   link), otherwise falls back to the Play Store / App Store for the visitor's
@@ -112,10 +115,11 @@ src/
 │   ├── index.astro           # Home shell (HomeView island)
 │   ├── search.astro          # Search shell (?q= → SearchView island)
 │   ├── library.astro         # Library shell (server playlists → island)
+│   ├── watch/[id].astro      # Shareable watch page (SSR metadata + OG tags)
 │   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream
 ├── layouts/Layout.astro      # html shell, liquid-glass top bar, islands
-├── views/                    # React islands: Home/Search/Library
-├── components/               # player, nav, sidebar, theme toggle, playlist menu
+├── views/                    # React islands: Home/Search/Library/Watch
+├── components/               # player, nav, sidebar, theme toggle, playlist menu, share button
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)
 │   ├── playlist-store.ts   # user playlists, persisted to localStorage
@@ -125,6 +129,8 @@ src/
 └── lib/
     ├── youtube.ts          # YouTube Data API helpers (fallback)
     ├── innertube.ts        # keyless InnerTube listing (primary)
+    ├── video.ts            # single-video metadata (watch page + stream API)
+    ├── share.ts            # shareable-link helpers (native share / copy)
     ├── yt-engine.ts        # single YT.Player instance, audio/video modes
     ├── channels.ts         # channel registry
     ├── live.ts             # live-status types

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { fetchJson } from '@/lib/fetch-timeout';
+import ShareButton from '@/components/ShareButton';
 
 function formatDuration(seconds: number): string {
   if (!seconds || seconds <= 0) return '0:00';
@@ -91,7 +92,17 @@ function TrackRow({  track,
       </div>
       <div className="flex-1 min-w-0">
         <p className={cn('text-sm font-semibold truncate', isActive ? 'text-brand-light' : 'text-white')}>
-          {track.title}
+          {track.videoId ? (
+            <a
+              href={`/watch/${track.videoId}`}
+              onClick={(e) => e.stopPropagation()}
+              className="hover:underline"
+            >
+              {track.title}
+            </a>
+          ) : (
+            track.title
+          )}
         </p>
         <p className="text-mist-dark text-xs truncate">{track.channelName}</p>
       </div>
@@ -99,6 +110,14 @@ function TrackRow({  track,
         {formatDuration(track.duration)}
       </span>
       {isActive && isPlaying && <EqBars />}
+      {track.videoId && (
+        <ShareButton
+          videoId={track.videoId}
+          title={track.title}
+          iconSize={15}
+          className="p-1.5 text-mist-dark hover:text-gold-light hover:bg-white/10"
+        />
+      )}
       {onRemove && (
         <button
           onClick={(e) => {

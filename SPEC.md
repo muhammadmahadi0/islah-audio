@@ -101,12 +101,24 @@
   Play-all / Shuffle / **LIVE** buttons (single-line labels), "Live now" banner when on air
 - Filters: All / Bayans (>5 min) / Shorts (≤5 min)
 - Cards: rounded-2xl, hover lift + play overlay, duration badge,
-  "Playing" badge + equalizer on current track, **+** save-to-playlist button
+  "Playing" badge + equalizer on current track, **+** save-to-playlist button,
+  share button (copies the `/watch/[id]` link); tapping the title opens the
+  shareable watch page
 
 #### Search
 
 - Large rounded search field with clear button; result count; rows with
-  thumbnail, duration, save-to-playlist button, equalizer on current track
+  thumbnail, duration, save-to-playlist button, share button, equalizer on current track
+
+#### Watch (shareable links)
+
+- Every video is addressable at `/watch/[videoId]` — opening the link plays
+  that exact content (auto-play on open, single-track queue)
+- Server-rendered metadata (title, thumbnail, channel, duration, views, date)
+  plus OG/Twitter tags, so links unfurl with title + thumbnail in chats
+- Share button on Home cards, Search rows, Library rows, the expanded player,
+  and the watch page itself (native share sheet on mobile, clipboard copy on
+  desktop); invalid IDs get a friendly not-found page
 
 #### Library (playlists only — no Queue tab)
 
@@ -154,6 +166,9 @@
 4. **User Playlists** — persisted zustand store (`islah-playlists` key);
    duplicate-guarded adds, delete with confirm.
 5. **Search** — client-side filter over the fully indexed catalog.
+6. **Shareable Links** — `/watch/[videoId]` opens + plays that exact video
+   (metadata via `lib/video.ts`: Data API when a key exists, keyless oEmbed
+   otherwise; `lib/share.ts` builds links and drives native-share-or-copy).
 
 ### API Routes (all `force-dynamic`)
 
@@ -165,7 +180,7 @@
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube first, Data API fallback |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
-| `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (compat) |
+| `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
 
 ### Data Handling
 
@@ -206,3 +221,4 @@
 9. ✅ Search filters the catalog
 10. ✅ Golden theme, sidebar on desktop, bottom nav on mobile
 11. ✅ Responsive from mobile to desktop
+12. ✅ Every video opens via `/watch/[videoId]` and auto-plays; links unfurl with title + thumbnail

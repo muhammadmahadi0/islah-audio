@@ -9,9 +9,21 @@ import BetaBadge from '../components/BetaBadge';
 
 interface Props {
   title?: string;
+  description?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  ogUrl?: string;
 }
 
-const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
+const {
+  title = 'Islah Audio — Islamic Lectures',
+  description = 'Listen to bayans, waz and nasheeds from the Islah channel. Modern audio experience.',
+  ogTitle,
+  ogDescription,
+  ogImage,
+  ogUrl,
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -19,8 +31,17 @@ const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <meta name="description" content="Listen to bayans, waz and nasheeds from the Islah channel. Modern audio experience." />
+    <meta name="description" content={description} />
     <meta name="theme-color" content="#060D0A" />
+    {ogTitle && <meta property="og:title" content={ogTitle} />}
+    {ogDescription && <meta property="og:description" content={ogDescription} />}
+    <meta property="og:type" content="video.other" />
+    {ogUrl && <meta property="og:url" content={ogUrl} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogTitle && <meta name="twitter:card" content="summary_large_image" />}
+    {ogTitle && <meta name="twitter:title" content={ogTitle} />}
+    {ogDescription && <meta name="twitter:description" content={ogDescription} />}
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
     <link rel="icon" href="/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />

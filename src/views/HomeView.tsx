@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useChannelStore } from '@/store/channel-store';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
+import ShareButton from '@/components/ShareButton';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 import { fetchJson } from '@/lib/fetch-timeout';
 import { motion } from 'framer-motion';
@@ -183,13 +184,25 @@ function VideoCard({
               isCurrentTrack ? 'text-brand-light' : 'text-white'
             )}
           >
-            {video.title}
+            <a
+              href={`/watch/${video.videoId || video.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="hover:underline"
+            >
+              {video.title}
+            </a>
           </h3>
           <p className="text-[13px] text-mist-dark truncate hover:text-white transition-colors">
             {channelName}
           </p>
           {meta && <p className="text-[13px] text-mist-dark truncate">{meta}</p>}
         </div>
+        <ShareButton
+          videoId={video.videoId || video.id || ''}
+          title={video.title}
+          iconSize={17}
+          className="h-8 w-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white/[0.08] hover:ring-1 hover:ring-white/20"
+        />
         <button
           onClick={(e) => {
             e.stopPropagation();

@@ -16,6 +16,7 @@ import {
   ListMusic,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ShareButton from '@/components/ShareButton';
 import {
   loadYouTubeAPI,
   setEnginePlayer,
@@ -584,6 +585,14 @@ export default function MiniPlayer() {
             <h2 className="clamp-2 text-[22px] font-bold leading-snug tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
               {currentTrack.title}
             </h2>
+            {isYtTrack && (
+              <ShareButton
+                videoId={currentTrack.videoId}
+                title={currentTrack.title}
+                iconSize={17}
+                className="h-9 w-9 shrink-0 bg-white/[0.07] border border-white/20 hover:bg-white/[0.14] hover:border-white/40"
+              />
+            )}
           </div>
           <p className="relative mt-1 truncate text-sm font-medium text-gold/90">
             {currentTrack.channelName}
