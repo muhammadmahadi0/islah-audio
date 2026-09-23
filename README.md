@@ -26,8 +26,9 @@ playlists, search, and a mobile-first design.
   (slide-over drawer on Android); Home, Search, and Library all follow along
 - **Search** — instant client-side search across the channel catalog
 - **Shareable links** — every lecture opens at `/watch/[videoId]` and auto-plays;
-  share buttons (Home, Search, Library, player) use the native sheet
-  (clipboard fallback); the watch page has explicit Share (native sheet
+  share buttons (Home, Search, Library, player) open a dropdown
+  (WhatsApp / Telegram / Facebook / X / Copy Link / More apps; rightward on
+  the desktop transport); the watch page has explicit Share (native sheet
   suggesting WhatsApp + other apps, WhatsApp/Telegram/Facebook/X fallback
   menu) + Copy Link buttons; links unfurl with title + thumbnail
 - **Open IslahBD** — gold-gradient top-bar button (always labeled "Open IslahBD")

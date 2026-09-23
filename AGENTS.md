@@ -82,9 +82,10 @@ This file orients AI coding agents working in this repo. Read it before making c
 10. **Shareable links.** Every video is addressable at `/watch/[videoId]`
    (`src/pages/watch/[id].astro` fetches SSR metadata + OG tags through
    `lib/video.ts`, `views/WatchView.tsx` island auto-plays on open). Share via
-   `lib/share.ts` (`components/ShareButton.tsx`: native sheet, clipboard
-   fallback on list rows; watch page uses explicit `shareNative()` +
-   `copyLink()` buttons with a WhatsApp/Telegram/Facebook/X fallback menu
+   `lib/share.ts` (`components/ShareButton.tsx`: dropdown menu with
+   WhatsApp/Telegram/Facebook/X/Copy-Link/More-apps, fixed-positioned,
+   `side="right"` on the desktop transport; watch page uses explicit
+   `shareNative()` + `copyLink()` buttons with a WhatsApp/Telegram/Facebook/X fallback menu
    via `shareTargets()`). Same rule as APIs: the video ID travels in the
    URL path, never a query string.
 11. **Open-IslahBD button (`#islahbd-btn` in `Layout.astro`).** The app
