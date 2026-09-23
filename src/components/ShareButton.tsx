@@ -39,7 +39,12 @@ export default function ShareButton({
   /** 'right' flies the menu out to the right of the button. */
   side?: 'auto' | 'right';
 }) {
-  const [menu, setMenu] = useState<{ top: number; left: number } | null>(null);
+  const [menu, setMenu] = useState<{
+    top?: number;
+    bottom?: number;
+    left: number;
+    centerY?: number;
+  } | null>(null);
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -75,30 +80,28 @@ export default function ShareButton({
     if (side === 'right') {
       // Fly out to the right of the button, vertically centered on it.
       // Flip to the left side when there is no room on the right.
-      const menuH = 264;
+      // Centering uses translateY(-50%) so no height guess is needed.
       const right = rect.right + MENU_GAP;
       const left =
         right + MENU_WIDTH <= window.innerWidth - 8
           ? right
           : Math.max(8, rect.left - MENU_WIDTH - MENU_GAP);
-      const top = Math.min(
-        Math.max(8, rect.top + rect.height / 2 - menuH / 2),
-        Math.max(8, window.innerHeight - menuH - 8)
-      );
-      setMenu({ left, top });
+      setMenu({ left, centerY: rect.top + rect.height / 2 });
       return;
     }
-    // Rough menu height: 6 rows ≈ 250px. Flip upward when space below is short.
+    // Flip upward when space below is short. Upward uses `bottom` anchored
+    // to the button top (exact 1px gap) so no menu-height guess is needed.
     const spaceBelow = window.innerHeight - rect.bottom;
     const up = spaceBelow < 270 && rect.top > spaceBelow;
     const left = Math.min(
       Math.max(8, align === 'left' ? rect.left : rect.right - MENU_WIDTH),
       window.innerWidth - MENU_WIDTH - 8
     );
-    setMenu({
-      left,
-      top: up ? rect.top - 264 - MENU_GAP : rect.bottom + MENU_GAP,
-    });
+    if (up) {
+      setMenu({ left, bottom: window.innerHeight - rect.top + MENU_GAP });
+    } else {
+      setMenu({ left, top: rect.bottom + MENU_GAP });
+    }
   };
 
   const closeMenu = (e: React.SyntheticEvent) => {
@@ -145,8 +148,14 @@ export default function ShareButton({
             onClick={closeMenu}
           />
           <span
-            className="fixed z-50 w-52 overflow-hidden rounded-2xl liquid-glass py-1.5 animate-fade-up"
-            style={{ top: menu.top, left: menu.left }}
+            className={`fixed z-50 w-52 overflow-hidden rounded-2xl liquid-glass py-1.5${menu.centerY !== undefined ? '' : ' animate-fade-up'}`}
+            style={
+              menu.centerY !== undefined
+                ? { left: menu.left, top: menu.centerY, transform: 'translateY(-50%)' }
+                : menu.bottom !== undefined
+                  ? { left: menu.left, bottom: menu.bottom }
+                  : { left: menu.left, top: menu.top }
+            }
             onClick={(e) => e.stopPropagation()}
           >
             <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
