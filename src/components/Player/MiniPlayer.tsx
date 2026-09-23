@@ -469,9 +469,9 @@ export default function MiniPlayer() {
         {/* Global diagonal gloss sheen */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.09] via-transparent to-transparent" />
 
-        <div className="relative mx-auto flex h-full w-full max-w-md md:max-w-3xl lg:max-w-4xl flex-col px-5 md:px-8 lg:px-10 pb-8 pt-3 safe-bottom md:overflow-y-auto">
+        <div className="relative mx-auto flex h-full w-full max-w-md md:max-w-3xl lg:max-w-4xl flex-col overflow-hidden px-5 md:px-8 lg:px-10 pb-4 pt-2 safe-bottom">
           {/* Liquid-glass top app bar: collapse • title • stop */}
-          <div className="liquid-glass relative flex items-center gap-2 rounded-full px-2 py-2">
+          <div className="liquid-glass relative flex shrink-0 items-center gap-2 rounded-full px-2 py-1.5">
             <span className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <button
               onClick={() => setIsExpanded(false)}
@@ -503,18 +503,21 @@ export default function MiniPlayer() {
             </button>
           </div>
 
-          {/* Video + controls: same stacked flow as mobile on all screens;
-              desktop just stretches wider with the video as the largest section */}
-          <div className="flex min-h-0 flex-1 flex-col">
+          {/* Video + controls: stacked flow on all screens (desktop stretches
+              wider with the video as the largest section). The whole sheet
+              fits one viewport — no scrolling: the video area is flex-1/min-h-0
+              and the frame is viewport-capped. On short landscape screens the
+              two stack side-by-side instead. */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden [@media(orientation:landscape)_and_(max-height:500px)]:grid [@media(orientation:landscape)_and_(max-height:500px)]:grid-cols-[1.15fr_1fr] [@media(orientation:landscape)_and_(max-height:500px)]:gap-3">
           {/* Video frame (YouTube tracks) or artwork.
               The YT mount stays rendered while a YT track is active so the
               player is never destroyed mid-track; hidden = audio-only. */}
-          <div className="flex min-h-0 flex-none w-full items-center justify-center py-4 md:py-6">
+          <div className="flex min-h-0 flex-1 w-full items-center justify-center overflow-hidden py-2 md:py-3 [@media(orientation:landscape)_and_(max-height:500px)]:py-0">
             {isYtTrack ? (
-              <div className="liquid-glass relative w-full rounded-[28px] p-2">
+              <div className="liquid-glass relative w-full max-h-full rounded-[28px] p-1.5 md:p-2 overflow-hidden">
                 <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                 <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
-                <div className="relative w-full overflow-hidden rounded-[20px] ring-1 ring-white/15 bg-black aspect-video">
+                <div className="relative mx-auto w-full max-w-full overflow-hidden rounded-[20px] ring-1 ring-white/15 bg-black aspect-video max-h-[30dvh] md:max-h-[40dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh]">
                 {/* Wrapper owns visibility (see createPlayer note) — the
                     mount div keeps a constant class so the YT iframe copy
                     never inherits `hidden`. */}
@@ -548,10 +551,10 @@ export default function MiniPlayer() {
                 </div>
               </div>
             ) : (
-              <div className="liquid-glass relative rounded-[32px] p-2 max-h-full w-full md:max-w-[560px] mx-auto">
+              <div className="liquid-glass relative rounded-[32px] p-1.5 md:p-2 max-h-full w-full md:max-w-[420px] mx-auto overflow-hidden">
                 <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                 <span className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
-                <div className="relative aspect-square max-h-full overflow-hidden rounded-[24px] ring-1 ring-white/15">
+                <div className="relative mx-auto aspect-square w-full max-h-[30dvh] md:max-h-[36dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh] overflow-hidden rounded-[24px] ring-1 ring-white/15">
                 {currentTrack.thumbnail ? (
                   <img
                     src={currentTrack.thumbnail}
@@ -568,10 +571,11 @@ export default function MiniPlayer() {
             )}
           </div>
 
-          {/* Controls + queue below the video (same order as mobile) */}
-          <div className="flex flex-col min-w-0 w-full max-w-md md:max-w-2xl mx-auto">
+          {/* Controls + queue below the video (same order as mobile).
+              Compact paddings so the whole sheet fits one viewport. */}
+          <div className="flex shrink-0 flex-col min-w-0 w-full max-w-md md:max-w-2xl mx-auto [@media(orientation:landscape)_and_(max-height:500px)]:max-w-none [@media(orientation:landscape)_and_(max-height:500px)]:overflow-y-auto">
           {/* Liquid-glass control cluster */}
-          <div className="liquid-glass relative rounded-[28px] px-5 pt-4 pb-5">
+          <div className="liquid-glass relative rounded-[28px] px-4 md:px-5 pt-3 pb-3 md:pb-4">
             <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
             <span className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -586,7 +590,7 @@ export default function MiniPlayer() {
                 Live
               </span>
             )}
-            <h2 className="clamp-2 text-[22px] font-bold leading-snug tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
+            <h2 className="clamp-2 text-lg md:text-xl font-bold leading-snug tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
               {currentTrack.title}
             </h2>
             {isYtTrack && (
@@ -603,7 +607,7 @@ export default function MiniPlayer() {
           </p>
 
           {/* Slider */}
-          <div className="relative pt-3">
+          <div className="relative pt-2">
             <input
               type="range"
               min="0"
@@ -622,45 +626,47 @@ export default function MiniPlayer() {
             </div>
           </div>
 
-          {/* Controls: glass side buttons + glossy gold FAB */}
+          {/* Controls: glass side buttons + glossy gold FAB.
+              Compact sizes so the sheet fits one viewport on all displays. */}
           <div className="relative flex items-center justify-between px-1 pt-2">
             <button
               onClick={playPrevious}
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
               aria-label="Previous"
             >
-              <SkipBack size={24} fill="currentColor" />
+              <SkipBack size={22} fill="currentColor" />
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="liquid-gold flex h-[76px] w-[76px] items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
+              className="liquid-gold flex h-16 w-16 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isLoading ? (
-                <Loader2 size={32} className="animate-spin" />
+                <Loader2 size={28} className="animate-spin" />
               ) : isPlaying ? (
-                <Pause size={32} fill="currentColor" />
+                <Pause size={28} fill="currentColor" />
               ) : (
-                <Play size={32} fill="currentColor" className="ml-1" />
+                <Play size={28} fill="currentColor" className="ml-1" />
               )}
             </button>
             <button
               onClick={playNext}
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
               aria-label="Next"
             >
-              <SkipForward size={24} fill="currentColor" />
+              <SkipForward size={22} fill="currentColor" />
             </button>
           </div>
 
-          {/* Volume row */}
-          <div className="relative flex items-center gap-3 px-1 pt-4">
+          {/* Volume row — hidden on short viewports (e.g. landscape phones)
+              where vertical space is scarce; hardware keys cover it there. */}
+          <div className="relative hidden items-center gap-3 px-1 pt-2 [@media(min-height:600px)]:flex">
             <button
               onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-mist transition-all hover:bg-white/[0.14] hover:text-white hover:border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-mist transition-all hover:bg-white/[0.14] hover:text-white hover:border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
               aria-label={volume === 0 ? 'Unmute' : 'Mute'}
             >
-              {volume === 0 ? <VolumeX size={19} /> : <Volume2 size={19} />}
+              {volume === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
             </button>
             <input
               type="range"
@@ -679,12 +685,12 @@ export default function MiniPlayer() {
           {/* Up-next queue dropdown — the playback queue lives here now,
               not in Library. Panel opens upward as an overlay so layout
               never shifts. */}
-          <div className="relative pt-3">
+          <div className="relative pt-2">
             <button
               onClick={() => setQueueOpen((v) => !v)}
               aria-expanded={queueOpen}
               aria-label="Show playback queue"
-              className="relative flex w-full items-center gap-2 overflow-hidden rounded-2xl liquid-chip px-4 py-2.5 text-sm font-bold text-white transition-all"
+              className="relative flex w-full items-center gap-2 overflow-hidden rounded-2xl liquid-chip px-4 py-2 text-sm font-bold text-white transition-all"
             >
               <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
               <ListMusic size={17} className="text-brand-light shrink-0" />

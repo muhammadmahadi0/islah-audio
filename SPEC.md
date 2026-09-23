@@ -69,7 +69,10 @@
 - **Expanded player**: full-screen liquid-glass (iPhone-style), blurred-artwork backdrop, big art,
   seek slider (locked on live), prev/play/next. Same stacked flow on all
   screens; on desktop (≥768px) the sheet stretches wider (3xl/4xl) with the
-  video as the largest section and controls + Up-next below it.
+  video as the largest section and controls + Up-next below it. The sheet
+  always fits one viewport (no scrolling): flex-1 video area with dvh-capped
+  frame, compact controls, volume hidden under 600px height, side-by-side
+  grid on short landscape screens.
 - Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
   `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
   inner reflections); primary actions use glossy gold `.liquid-gold`.
