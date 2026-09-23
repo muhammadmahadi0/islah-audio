@@ -71,8 +71,10 @@
   screens; on desktop (≥768px) the sheet stretches wider (3xl/4xl) with the
   video as the largest section and controls + Up-next below it. The sheet
   always fits one viewport (no scrolling): flex-1 video area with dvh-capped
-  frame, compact controls, volume hidden under 600px height, side-by-side
-  grid on short landscape screens.
+  frame (up to 52dvh on desktop), compact controls, volume hidden under 600px
+  height, side-by-side grid on short landscape screens. On desktop the control
+  cluster collapses to a single compact row (title + slider + transport +
+  volume), freeing the saved space for the video.
 - Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
   `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
   inner reflections); primary actions use glossy gold `.liquid-gold`.

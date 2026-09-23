@@ -517,7 +517,7 @@ export default function MiniPlayer() {
               <div className="liquid-glass relative w-full max-h-full rounded-[28px] p-1.5 md:p-2 overflow-hidden">
                 <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                 <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
-                <div className="relative mx-auto w-full max-w-full overflow-hidden rounded-[20px] ring-1 ring-white/15 bg-black aspect-video max-h-[30dvh] md:max-h-[40dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh]">
+                <div className="relative mx-auto w-full max-w-full overflow-hidden rounded-[20px] ring-1 ring-white/15 bg-black aspect-video max-h-[30dvh] md:max-h-[52dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh]">
                 {/* Wrapper owns visibility (see createPlayer note) — the
                     mount div keeps a constant class so the YT iframe copy
                     never inherits `hidden`. */}
@@ -554,7 +554,7 @@ export default function MiniPlayer() {
               <div className="liquid-glass relative rounded-[32px] p-1.5 md:p-2 max-h-full w-full md:max-w-[420px] mx-auto overflow-hidden">
                 <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                 <span className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
-                <div className="relative mx-auto aspect-square w-full max-h-[30dvh] md:max-h-[36dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh] overflow-hidden rounded-[24px] ring-1 ring-white/15">
+                <div className="relative mx-auto aspect-square w-full max-h-[30dvh] md:max-h-[44dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh] overflow-hidden rounded-[24px] ring-1 ring-white/15">
                 {currentTrack.thumbnail ? (
                   <img
                     src={currentTrack.thumbnail}
@@ -579,8 +579,101 @@ export default function MiniPlayer() {
             <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
             <span className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          {/* Title block */}
-          <div className="relative flex items-center gap-2">
+          {/* Title + slider + transport in ONE compact row on desktop
+              (title left, slider middle, play controls right) so the video
+              gets the freed vertical space. Mobile keeps the stacked blocks. */}
+          <div className="relative hidden md:flex items-center gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              {isLive && (
+                <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                  </span>
+                  Live
+                </span>
+              )}
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-bold leading-tight tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
+                  {currentTrack.title}
+                </h2>
+                <p className="truncate text-xs font-medium text-gold/90">
+                  {currentTrack.channelName}
+                </p>
+              </div>
+              {isYtTrack && (
+                <ShareButton
+                  videoId={currentTrack.videoId}
+                  title={currentTrack.title}
+                  iconSize={15}
+                  className="h-8 w-8 shrink-0 bg-white/[0.07] border border-white/20 hover:bg-white/[0.14] hover:border-white/40"
+                />
+              )}
+            </div>
+            <div className="w-56 shrink-0">
+              <input
+                type="range"
+                min="0"
+                max={duration || 0}
+                step="0.1"
+                value={currentTime}
+                onChange={handleSeek}
+                disabled={isLive}
+                className={cn('w-full', isLive && 'opacity-40')}
+                style={{ '--fill': `${progress}%` } as React.CSSProperties}
+                aria-label="Seek"
+              />
+              <div className="mt-0.5 flex justify-between text-[11px] font-medium tabular-nums text-mist">
+                <span>{isLive ? 'LIVE' : formatTime(currentTime)}</span>
+                <span>{isLive ? '' : formatTime(duration)}</span>
+              </div>
+            </div>
+            <div className="w-56 shrink-0 hidden md:block">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                className="w-full"
+                style={{ '--fill': `${Math.round(volume * 100)}%` } as React.CSSProperties}
+                aria-label="Volume"
+              />
+            </div>
+            <div className="relative flex shrink-0 items-center gap-2">
+              <button
+                onClick={playPrevious}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
+                aria-label="Previous"
+              >
+                <SkipBack size={19} fill="currentColor" />
+              </button>
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="liquid-gold flex h-12 w-12 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isLoading ? (
+                  <Loader2 size={22} className="animate-spin" />
+                ) : isPlaying ? (
+                  <Pause size={22} fill="currentColor" />
+                ) : (
+                  <Play size={22} fill="currentColor" className="ml-0.5" />
+                )}
+              </button>
+              <button
+                onClick={playNext}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
+                aria-label="Next"
+              >
+                <SkipForward size={19} fill="currentColor" />
+              </button>
+            </div>
+          </div>
+
+          {/* Title block (mobile — desktop uses the compact row above) */}
+          <div className="relative flex md:hidden items-center gap-2">
             {isLive && (
               <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
                 <span className="relative flex h-1.5 w-1.5">
@@ -602,12 +695,12 @@ export default function MiniPlayer() {
               />
             )}
           </div>
-          <p className="relative mt-1 truncate text-sm font-medium text-gold/90">
+          <p className="relative md:hidden mt-1 truncate text-sm font-medium text-gold/90">
             {currentTrack.channelName}
           </p>
 
-          {/* Slider */}
-          <div className="relative pt-2">
+          {/* Slider (mobile — desktop uses the compact row above) */}
+          <div className="relative md:hidden pt-2">
             <input
               type="range"
               min="0"
@@ -627,8 +720,8 @@ export default function MiniPlayer() {
           </div>
 
           {/* Controls: glass side buttons + glossy gold FAB.
-              Compact sizes so the sheet fits one viewport on all displays. */}
-          <div className="relative flex items-center justify-between px-1 pt-2">
+              Mobile only — desktop uses the compact row above. */}
+          <div className="relative md:hidden flex items-center justify-between px-1 pt-2">
             <button
               onClick={playPrevious}
               className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
@@ -658,9 +751,10 @@ export default function MiniPlayer() {
             </button>
           </div>
 
-          {/* Volume row — hidden on short viewports (e.g. landscape phones)
-              where vertical space is scarce; hardware keys cover it there. */}
-          <div className="relative hidden items-center gap-3 px-1 pt-2 [@media(min-height:600px)]:flex">
+          {/* Volume row (mobile only) — hidden on short viewports (e.g.
+              landscape phones) where vertical space is scarce; hardware keys
+              cover it there. Desktop volume lives in the header area. */}
+          <div className="relative hidden items-center gap-3 px-1 pt-2 [@media(min-height:600px)]:flex md:[@media(min-height:600px)]:hidden">
             <button
               onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-mist transition-all hover:bg-white/[0.14] hover:text-white hover:border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
