@@ -453,11 +453,23 @@ export default function MiniPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queueOpen, playlistIndex, currentTrack?.videoId]);
 
-  if (!currentTrack) return null;
-
-  const isLive = !!currentTrack.isLive;
+  // NOTE: no early return here — the component stays mounted even with no
+  // track so the YT iframe survives stop/replay (rebuilding it costs
+  // seconds on every replay). UI visibility is CSS-gated on hasTrack below.
+  const hasTrack = !!currentTrack;
+  const isLive = !!currentTrack?.isLive;
   const queueTotal = playlist.length;
   const queuePos = playlistIndex >= 0 ? playlistIndex + 1 : null;
+
+  // Track cleared (stop) — reset UI to the collapsed mini-pill state so the
+  // next play starts exactly like a fresh mount did before.
+  useEffect(() => {
+    if (!currentTrack) {
+      setIsExpanded(false);
+      setQueueOpen(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTrack]);
 
   // Video toggle: audio ⇄ video in the same player (no restart).
   const toggleVideo = () => {
@@ -477,13 +489,13 @@ export default function MiniPlayer() {
       <div
         className={cn(
           'fixed inset-0 z-[60] flex flex-col overflow-hidden expanded-sheet bg-ink-950/60 backdrop-blur-2xl transform-gpu transition-opacity duration-200',
-          !isExpanded && 'invisible pointer-events-none opacity-0'
+          (!hasTrack || !isExpanded) && 'invisible pointer-events-none opacity-0'
         )}
-        aria-hidden={!isExpanded}
+        aria-hidden={!hasTrack || !isExpanded}
       >
         {/* Blurred artwork backdrop + tonal scrim + refraction blobs.
             Blur radii kept modest — huge blurs repaint on every frame. */}
-        {currentTrack.thumbnail && (
+        {currentTrack?.thumbnail && (
           <>
             <img
               src={currentTrack.thumbnail}
@@ -543,11 +555,15 @@ export default function MiniPlayer() {
               The YT mount stays rendered while a YT track is active so the
               player is never destroyed mid-track; hidden = audio-only. */}
           <div className="flex min-h-0 flex-1 w-full items-center justify-center overflow-hidden py-2 md:py-3 [@media(orientation:landscape)_and_(max-height:500px)]:py-0">
-            {isYtTrack ? (
-              <div className="liquid-glass relative w-full max-h-full rounded-[28px] p-1.5 md:p-2 overflow-hidden">
-                <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-                <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
-                <div className="relative mx-auto w-full max-w-full overflow-hidden rounded-[20px] ring-1 ring-white/15 bg-black aspect-video max-h-[30dvh] md:max-h-[52dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh]">
+            {/* Single persistent video frame. The YT mount node below is
+                ALWAYS rendered (never unmounted, even with no track) so the
+                iframe survives stop/replay and replay is instant — only the
+                wrapper visibility toggles. Stream/live tracks show artwork
+                in the same frame while the embed idles hidden. */}
+            <div className="liquid-glass relative w-full max-h-full rounded-[28px] p-1.5 md:p-2 overflow-hidden">
+              <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+              <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
+              <div className="relative mx-auto w-full max-w-full overflow-hidden rounded-[20px] ring-1 ring-white/15 bg-black aspect-video max-h-[30dvh] md:max-h-[52dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh]">
                 {/* Wrapper owns visibility (see createPlayer note) — the
                     mount div keeps a constant class so the YT iframe copy
                     never inherits `hidden`. */}
@@ -555,10 +571,10 @@ export default function MiniPlayer() {
                   <div ref={ytMountRef} className="h-full w-full" />
                 </div>
                 {!showVideo &&
-                  (currentTrack.thumbnail ? (
+                  (currentTrack?.thumbnail ? (
                     <img
                       src={currentTrack.thumbnail}
-                      alt={currentTrack.title}
+                      alt={currentTrack.title || ''}
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -570,35 +586,18 @@ export default function MiniPlayer() {
                     Pinned light colors: sits on the black video frame, so it
                     must stay white-on-black in light mode too (theming rule
                     allows hardcoded colors on black overlays). */}
-                <button
-                  onClick={toggleVideo}
-                  className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-[#FFFFFF]/25 text-[#FFFFFF] transition-colors hover:bg-black/80 hover:border-[#FFFFFF]/50"
-                  aria-label={engine.mode === 'video' ? 'Switch to audio only' : 'Watch video'}
-                  title={engine.mode === 'video' ? 'Audio only' : 'Watch video'}
-                >
-                  {engine.mode === 'video' ? <Music size={18} /> : <Video size={18} />}
-                </button>
-                </div>
-              </div>
-            ) : (
-              <div className="liquid-glass relative rounded-[32px] p-1.5 md:p-2 max-h-full w-full md:max-w-[420px] mx-auto overflow-hidden">
-                <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-                <span className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
-                <div className="relative mx-auto aspect-square w-full max-h-[30dvh] md:max-h-[44dvh] [@media(orientation:landscape)_and_(max-height:500px)]:max-h-[58dvh] overflow-hidden rounded-[24px] ring-1 ring-white/15">
-                {currentTrack.thumbnail ? (
-                  <img
-                    src={currentTrack.thumbnail}
-                    alt={currentTrack.title}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-deep to-ink-800">
-                    <Music size={64} className="text-brand-light" />
-                  </div>
+                {isYtTrack && (
+                  <button
+                    onClick={toggleVideo}
+                    className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-[#FFFFFF]/25 text-[#FFFFFF] transition-colors hover:bg-black/80 hover:border-[#FFFFFF]/50"
+                    aria-label={engine.mode === 'video' ? 'Switch to audio only' : 'Watch video'}
+                    title={engine.mode === 'video' ? 'Audio only' : 'Watch video'}
+                  >
+                    {engine.mode === 'video' ? <Music size={18} /> : <Video size={18} />}
+                  </button>
                 )}
-                </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Controls + queue below the video (same order as mobile).
@@ -625,12 +624,12 @@ export default function MiniPlayer() {
                 </span>
               )}
               <div className="min-w-0 flex-1">
-                <h2 className="truncate text-base font-bold leading-tight tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
-                  {currentTrack.title}
-                </h2>
-                <p className="truncate text-xs font-medium text-gold/90">
-                  {currentTrack.channelName}
-                </p>
+            <h2 className="truncate text-base font-bold leading-tight tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
+              {currentTrack?.title || ''}
+            </h2>
+            <p className="truncate text-xs font-medium text-gold/90">
+              {currentTrack?.channelName || ''}
+            </p>
               </div>
               {queueTotal > 1 && queuePos !== null && (
                 <span className="shrink-0 text-[11px] font-semibold tabular-nums text-mist-dark">
@@ -731,7 +730,7 @@ export default function MiniPlayer() {
               </span>
             )}
             <h2 className="clamp-2 text-lg md:text-xl font-bold leading-snug tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
-              {currentTrack.title}
+              {currentTrack?.title || ''}
             </h2>
             {isYtTrack && (
               <ShareButton
@@ -743,7 +742,7 @@ export default function MiniPlayer() {
             )}
           </div>
           <p className="relative md:hidden mt-1 truncate text-sm font-medium text-gold/90">
-            {currentTrack.channelName}
+            {currentTrack?.channelName || ''}
           </p>
 
           {/* Slider (mobile — desktop uses the compact row above) */}
@@ -932,8 +931,9 @@ export default function MiniPlayer() {
           'inset-x-4 bottom-[86px]',
           // Desktop: floating card clear of the sidebar
           'md:left-[280px] lg:left-[304px] md:right-6 md:bottom-6 md:inset-x-auto',
-          isExpanded && 'invisible pointer-events-none opacity-0'
+          (!hasTrack || isExpanded) && 'invisible pointer-events-none opacity-0'
         )}
+        aria-hidden={!hasTrack || isExpanded}
       >
         <div
           onClick={() => setIsExpanded(true)}
@@ -957,10 +957,10 @@ export default function MiniPlayer() {
           </span>
 
           <div className="relative w-11 h-11 shrink-0 rounded-2xl overflow-hidden bg-white/10 ring-1 ring-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.3)]">
-            {currentTrack.thumbnail ? (
+            {currentTrack?.thumbnail ? (
               <img
                 src={currentTrack.thumbnail}
-                alt={currentTrack.title}
+                alt={currentTrack.title || ''}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -978,10 +978,10 @@ export default function MiniPlayer() {
                   Live
                 </span>
               )}
-              <span className="truncate">{currentTrack.title}</span>
+              <span className="truncate">{currentTrack?.title || ''}</span>
             </p>
             <div className="flex items-center gap-2">
-              <p className="text-mist-dark text-xs truncate">{currentTrack.channelName}</p>
+              <p className="text-mist-dark text-xs truncate">{currentTrack?.channelName || ''}</p>
               {isPlaying && <EqBars />}
             </div>
           </div>

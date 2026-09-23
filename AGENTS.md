@@ -19,9 +19,13 @@ This file orients AI coding agents working in this repo. Read it before making c
 
 1. **Playback = hidden YouTube embed + hidden `<audio>` for streams.**   The YT engine lives in `lib/yt-engine.ts` (single player, video/audio
    modes) and is mounted by MiniPlayer in a node that must
-   NEVER unmount mid-track — the expanded sheet + mini pill toggle via CSS
-   visibility, not conditional returns. If the iframe detaches (e.g. after
-   stop), the track effect rebinds a fresh player. `AudioPlayer.tsx` owns only
+   NEVER unmount — not mid-track, not on stop, not ever. MiniPlayer has NO
+   `if (!currentTrack) return null` early-return; both the YT mount node and
+   the whole component stay mounted and toggle via CSS visibility, so the
+   iframe (and its buffered stream) survives stop/replay and replay is
+   instant. The single video frame renders artwork for stream/live tracks
+   while the embed idles hidden. If the iframe ever detaches anyway, the
+   track effect rebinds a fresh player. `AudioPlayer.tsx` owns only
    the `<audio>`/hls.js stream engine. Seeking from any UI goes through the
    `islah:seek` window `CustomEvent` (`detail` = seconds), ignored for live
    (`track.isLive`). `AudioPlayer.tsx` also holds the Screen Wake Lock while
