@@ -637,14 +637,6 @@ export default function MiniPlayer() {
                   {queuePos} of {queueTotal}
                 </span>
               )}
-              {isYtTrack && (
-                <ShareButton
-                  videoId={currentTrack.videoId}
-                  title={currentTrack.title}
-                  iconSize={15}
-                  className="h-8 w-8 shrink-0 bg-white/[0.07] border border-white/20 hover:bg-white/[0.14] hover:border-white/40"
-                />
-              )}
             </div>
             <div className="relative mt-2">
               <span className="mb-1 flex justify-end text-[11px] font-medium tabular-nums text-mist">
@@ -663,7 +655,16 @@ export default function MiniPlayer() {
                 aria-label="Seek"
               />
               <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                <span />
+                <span className="flex justify-self-start">
+                  {isYtTrack && (
+                    <ShareButton
+                      videoId={currentTrack.videoId}
+                      title={currentTrack.title}
+                      iconSize={16}
+                      className="h-9 w-9 bg-white/[0.07] border border-white/20 hover:bg-white/[0.14] hover:border-white/40"
+                    />
+                  )}
+                </span>
                 <span className="flex items-center gap-2 justify-self-center">
                 <button
                   onClick={playPrevious}
@@ -731,14 +732,6 @@ export default function MiniPlayer() {
             <h2 className="clamp-2 text-lg md:text-xl font-bold leading-snug tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
               {currentTrack.title}
             </h2>
-            {isYtTrack && (
-              <ShareButton
-                videoId={currentTrack.videoId}
-                title={currentTrack.title}
-                iconSize={17}
-                className="h-9 w-9 shrink-0 bg-white/[0.07] border border-white/20 hover:bg-white/[0.14] hover:border-white/40"
-              />
-            )}
           </div>
           <p className="relative md:hidden mt-1 truncate text-sm font-medium text-gold/90">
             {currentTrack.channelName}
@@ -819,6 +812,16 @@ export default function MiniPlayer() {
               aria-label="Volume"
             />
           </div>
+          {isYtTrack && (
+            <div className="relative md:hidden flex justify-start pt-2">
+              <ShareButton
+                videoId={currentTrack.videoId}
+                title={currentTrack.title}
+                iconSize={17}
+                className="h-9 w-9 bg-white/[0.07] border border-white/20 hover:bg-white/[0.14] hover:border-white/40"
+              />
+            </div>
+          )}
           </div>
 
           {/* Up-next queue dropdown — the playback queue lives here now,
