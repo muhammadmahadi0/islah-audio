@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { shareNative, copyLink, shareTargets } from '@/lib/share';
 
 const MENU_WIDTH = 208; // w-52
-const MENU_GAP = 8;
+const MENU_GAP = 1;
 
 /**
  * Share button with a dropdown menu: WhatsApp / Telegram / Facebook / X /
