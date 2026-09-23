@@ -447,7 +447,7 @@ export default function HomePage() {
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative liquid-glass rounded-[28px] p-4 md:p-6 mb-4 md:mb-6 overflow-hidden"
+            className="relative liquid-glass rounded-[28px] p-4 md:p-6 mb-2 md:mb-3 overflow-hidden"
           >
             <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
@@ -560,7 +560,7 @@ export default function HomePage() {
 
         {/* ---------- Sticky chips bar (liquid-glass pill) ---------- */}
         {!isLoading && !error && (
-          <div className="sticky top-[4.75rem] z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2 transform-gpu">
+          <div className="sticky top-[4.75rem] z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-1 transform-gpu">
             <div className="relative liquid-glass rounded-full px-2 py-1.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
               <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-14 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
               {FILTERS.map((f) => (

@@ -25,9 +25,10 @@ playlists, search, and a mobile-first design.
 - **Channels** — switch between `@islahbd` and `@IslahiGhazal` from the sidebar
   (slide-over drawer on Android); Home, Search, and Library all follow along
 - **Search** — instant client-side search across the channel catalog
-- **Open IslahBD** — glowing top-bar button that launches the native IslahBD
-  app when installed (Android intent `com.islahbd.app` / iOS universal link),
-  otherwise falls back to the Play Store / App Store for the visitor's device
+- **Open IslahBD** — gold-gradient top-bar button that launches the native
+  IslahBD app when installed (Android intent `com.islahbd.app` / iOS universal
+  link), otherwise falls back to the Play Store / App Store for the visitor's
+  device
 - **Modern UI** — golden theme with light/dark mode (floating toggle,
   persisted), floating liquid-glass sidebar + top bar, mobile bottom nav pill,
   floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters.
