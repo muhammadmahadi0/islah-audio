@@ -35,22 +35,58 @@ export async function copyText(text: string): Promise<boolean> {
 }
 
 /**
- * Share a video link: native share sheet on mobile, clipboard otherwise.
+ * Share a video link via the native share sheet (suggests WhatsApp and
+ * other installed apps). Never falls back to clipboard — use copyLink()
+ * for that. Returns 'shared' | 'dismissed' | 'unsupported'.
+ */
+export async function shareNative(
+  videoId: string,
+  title?: string
+): Promise<'shared' | 'dismissed' | 'unsupported'> {
+  const url = watchUrl(videoId);
+  const nav = navigator as Navigator & {
+    share?: (data: { title?: string; text?: string; url: string }) => Promise<void>;
+  };
+  if (!nav.share) return 'unsupported';
+  try {
+    await nav.share({ title: title || 'Islah Audio', text: title || 'Islah Audio', url });
+    return 'shared';
+  } catch (error) {
+    if ((error as Error)?.name === 'AbortError') return 'dismissed';
+    return 'unsupported';
+  }
+}
+
+/**
+ * Share a video link: native share sheet when available, clipboard otherwise.
+ * Kept for compact list rows (Home/Search/Library/player). The watch page
+ * uses shareNative() + copyLink() as two explicit buttons instead.
  * Returns 'shared' | 'copied' | 'failed' so callers can show feedback.
  */
 export async function shareVideo(videoId: string, title?: string): Promise<'shared' | 'copied' | 'failed'> {
+  const result = await shareNative(videoId, title);
+  if (result === 'shared' || result === 'dismissed') return 'shared';
+  return (await copyLink(videoId)) ? 'copied' : 'failed';
+}
+
+/** Direct share URLs for the fallback menu when native share is unavailable. */
+export function shareTargets(videoId: string, title?: string): {
+  whatsapp: string;
+  telegram: string;
+  facebook: string;
+  x: string;
+} {
   const url = watchUrl(videoId);
-  try {
-    const nav = navigator as Navigator & {
-      share?: (data: { title?: string; text?: string; url: string }) => Promise<void>;
-    };
-    if (nav.share) {
-      await nav.share({ title: title || 'Islah Audio', url });
-      return 'shared';
-    }
-  } catch (error) {
-    // User dismissed the sheet — not a failure, don't fall through to copy.
-    if ((error as Error)?.name === 'AbortError') return 'shared';
-  }
-  return (await copyText(url)) ? 'copied' : 'failed';
+  const text = title || 'Islah Audio';
+  return {
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+  };
+}
+
+/** Copy the share link to clipboard. */
+export async function copyLink(videoId: string): Promise<boolean> {
+  return copyText(watchUrl(videoId));
 }

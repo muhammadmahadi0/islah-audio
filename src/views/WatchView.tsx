@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import {
   Play,
@@ -7,10 +7,16 @@ import {
   ArrowLeft,
   Music,
   Smartphone,
+  Share2,
+  Link2,
+  Check,
+  MessageCircle,
+  Send,
+  Facebook,
+  Twitter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import ShareButton from '@/components/ShareButton';
-import { watchUrl } from '@/lib/share';
+import { watchUrl, shareNative, copyLink, shareTargets } from '@/lib/share';
 import { openIslahBDApp } from '@/lib/open-app';
 
 export interface WatchVideo {
@@ -59,6 +65,13 @@ function formatDate(iso: string): string {
  */
 export default function WatchView({ video }: { video: WatchVideo }) {
   const { currentTrack, isPlaying, isLoading, playTrack, setIsPlaying } = usePlayerStore();
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+
+  const targets = useMemo(
+    () => shareTargets(video.videoId, video.title),
+    [video.videoId, video.title]
+  );
 
   const isCurrent = currentTrack?.videoId === video.videoId;
 
@@ -97,6 +110,21 @@ export default function WatchView({ video }: { video: WatchVideo }) {
   const meta = [formatViews(video.views), formatDate(video.publishedAt)]
     .filter(Boolean)
     .join(' • ');
+
+  // Share: native sheet (suggests WhatsApp + other apps). If the browser
+  // has no share sheet, open the fallback menu with direct app links.
+  const handleShare = async () => {
+    const result = await shareNative(video.videoId, video.title);
+    if (result === 'unsupported') setShareMenuOpen((v) => !v);
+    else setShareMenuOpen(false);
+  };
+
+  // Copy Link: always copies the share URL, with checkmark feedback.
+  const handleCopyLink = async () => {
+    const ok = await copyLink(video.videoId);
+    setCopyState(ok ? 'copied' : 'failed');
+    setTimeout(() => setCopyState('idle'), 1600);
+  };
 
   return (
     <main className="pb-44 md:pb-36">
@@ -166,10 +194,76 @@ export default function WatchView({ video }: { video: WatchVideo }) {
                 )}
                 {isCurrent && isPlaying ? 'Pause' : 'Play'}
               </button>
-              <span className={cn('flex h-10 items-center gap-2 rounded-full liquid-chip px-4 text-sm font-bold text-white')}>
-                <ShareButton videoId={video.videoId} title={video.title} iconSize={16} />
-                Share
+              <span className={cn('relative flex h-10 items-center gap-2 rounded-full liquid-chip px-4 text-sm font-bold text-white')}>
+                <button
+                  onClick={handleShare}
+                  aria-label="Share via apps"
+                  title="Share via apps"
+                  className="flex items-center gap-2"
+                >
+                  <Share2 size={16} />
+                  Share
+                </button>
+                {shareMenuOpen && (
+                  <>
+                    <button
+                      aria-label="Close share menu"
+                      className="fixed inset-0 z-10 cursor-default"
+                      onClick={() => setShareMenuOpen(false)}
+                    />
+                    <span className="absolute bottom-full mb-2 left-0 z-20 w-52 overflow-hidden rounded-2xl liquid-glass py-1.5 animate-fade-up">
+                      <a
+                        href={targets.whatsapp}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors"
+                      >
+                        <MessageCircle size={16} className="text-green-400 shrink-0" />
+                        WhatsApp
+                      </a>
+                      <a
+                        href={targets.telegram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors"
+                      >
+                        <Send size={16} className="text-sky-400 shrink-0" />
+                        Telegram
+                      </a>
+                      <a
+                        href={targets.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors"
+                      >
+                        <Facebook size={16} className="text-blue-400 shrink-0" />
+                        Facebook
+                      </a>
+                      <a
+                        href={targets.x}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors"
+                      >
+                        <Twitter size={16} className="text-mist shrink-0" />X
+                      </a>
+                    </span>
+                  </>
+                )}
               </span>
+              <button
+                onClick={handleCopyLink}
+                aria-label={copyState === 'copied' ? 'Link copied' : 'Copy link'}
+                title={copyState === 'copied' ? 'Link copied!' : 'Copy link'}
+                className="flex h-10 items-center gap-2 rounded-full liquid-chip px-4 text-sm font-bold text-white transition-all"
+              >
+                {copyState === 'copied' ? (
+                  <Check size={16} className="text-brand-light" strokeWidth={3} />
+                ) : (
+                  <Link2 size={16} />
+                )}
+                {copyState === 'copied' ? 'Copied!' : copyState === 'failed' ? 'Failed' : 'Copy Link'}
+              </button>
               <button
                 onClick={openIslahBDApp}
                 className="islahbd-open-btn flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-bold transition-all active:scale-95"

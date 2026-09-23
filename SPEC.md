@@ -127,9 +127,11 @@
   that exact content (auto-play on open, single-track queue)
 - Server-rendered metadata (title, thumbnail, channel, duration, views, date)
   plus OG/Twitter tags, so links unfurl with title + thumbnail in chats
-- Share button on Home cards, Search rows, Library rows, the expanded player,
-  and the watch page itself (native share sheet on mobile, clipboard copy on
-  desktop); invalid IDs get a friendly not-found page
+- Share button on Home cards, Search rows, Library rows, the expanded player
+  (native share sheet, clipboard fallback); the watch page has explicit
+  Share (native sheet suggesting WhatsApp + other apps, with a
+  WhatsApp/Telegram/Facebook/X fallback menu) + Copy Link buttons;
+  invalid IDs get a friendly not-found page
 - Watch page actions are Play, Share, and gold-gradient Open App
   (`islahbd://open` via `lib/open-app.ts`); no YouTube outbound link
 
