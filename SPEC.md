@@ -67,7 +67,8 @@
 - **Mobile**: floating liquid-glass mini-player above a liquid-glass bottom nav
   pill (Home / Search / Library); floating top bar + chips bar are glass pills.
 - **Expanded player**: full-screen liquid-glass (iPhone-style), blurred-artwork backdrop, big art,
-  seek slider (locked on live), prev/play/next.
+  seek slider (locked on live), prev/play/next. On desktop (≥768px) the sheet
+  stretches full width: video left, controls + Up-next right (side-by-side).
 - Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
   `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
   inner reflections); primary actions use glossy gold `.liquid-gold`.

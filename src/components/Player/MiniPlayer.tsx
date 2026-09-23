@@ -468,7 +468,7 @@ export default function MiniPlayer() {
         {/* Global diagonal gloss sheen */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.09] via-transparent to-transparent" />
 
-        <div className="relative mx-auto flex h-full w-full max-w-md flex-col px-5 pb-8 pt-3 safe-bottom">
+        <div className="relative mx-auto flex h-full w-full max-w-md md:max-w-none flex-col px-5 md:px-8 lg:px-10 pb-8 pt-3 safe-bottom md:overflow-y-auto">
           {/* Liquid-glass top app bar: collapse • title • stop */}
           <div className="liquid-glass relative flex items-center gap-2 rounded-full px-2 py-2">
             <span className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
@@ -502,10 +502,12 @@ export default function MiniPlayer() {
             </button>
           </div>
 
+          {/* Video + controls: stacked on mobile, side-by-side full-width on desktop */}
+          <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[minmax(0,1fr)_400px] md:gap-6 md:items-start md:py-4">
           {/* Video frame (YouTube tracks) or artwork.
               The YT mount stays rendered while a YT track is active so the
               player is never destroyed mid-track; hidden = audio-only. */}
-          <div className="flex min-h-0 flex-1 items-center justify-center py-4">
+          <div className="flex min-h-0 flex-1 md:flex-none md:h-auto items-center justify-center py-4 md:py-0 md:sticky md:top-0">
             {isYtTrack ? (
               <div className="liquid-glass relative w-full rounded-[28px] p-2">
                 <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
@@ -541,7 +543,7 @@ export default function MiniPlayer() {
                 </div>
               </div>
             ) : (
-              <div className="liquid-glass relative rounded-[32px] p-2 max-h-full">
+              <div className="liquid-glass relative rounded-[32px] p-2 max-h-full w-full md:max-w-[560px] mx-auto">
                 <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                 <span className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
                 <div className="relative aspect-square max-h-full overflow-hidden rounded-[24px] ring-1 ring-white/15">
@@ -561,6 +563,8 @@ export default function MiniPlayer() {
             )}
           </div>
 
+          {/* Right column on desktop: controls + queue (left = full-width video) */}
+          <div className="flex flex-col min-w-0 md:sticky md:top-0">
           {/* Liquid-glass control cluster */}
           <div className="liquid-glass relative rounded-[28px] px-5 pt-4 pb-5">
             <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
@@ -755,6 +759,8 @@ export default function MiniPlayer() {
               </>
             )}
           </div>
+          </div>
+        </div>
         </div>
       </div>
 
