@@ -221,6 +221,10 @@ export default function AudioPlayer() {
     const streamUrl = track?.hlsUrl || track?.audioUrl;
 
     if (!streamUrl) {
+      // Reset so tapping the same stream again after stop reloads it.
+      // Without this, streamUrlRef still holds the old URL and the
+      // equality check below bails out — leaving isLoading stuck on.
+      streamUrlRef.current = null;
       stopStream();
       return;
     }
