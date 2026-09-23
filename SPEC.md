@@ -83,8 +83,9 @@
   frame (up to 52dvh on desktop), compact controls, volume hidden under 600px
   height, side-by-side grid on short landscape screens. On desktop the control
   cluster is a YouTube-style bar (title row, time top-right of the seek bar,
-  then centered prev / play / next with mute+volume right); mobile keeps its
-  stacked blocks untouched.
+  then centered prev / play / next with mute+volume right and share
+  bottom-left); mobile keeps its
+  stacked blocks untouched with share bottom-left of the control cluster.
 - Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
   `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
   inner reflections); primary actions use glossy gold `.liquid-gold`.
