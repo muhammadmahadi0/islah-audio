@@ -332,9 +332,12 @@ export async function getInnertubeVideoMetadata(videoId: string): Promise<{
   };
   try {
     const yt = await getSession();
+    // getBasicInfo throws on unknown/removed videos (caller 404s).
+    // NOTE: never pass `{ client }` — youtubei.js errors on several client
+    // names with "Invalid video ID" even for valid videos.
     const info = await yt.getBasicInfo(videoId);
     const basic: any = info.basic_info;
-    if (!basic?.title) return empty;
+    if (!basic?.id && !basic?.title) return empty;
     const thumbs: any[] = basic.thumbnail || [];
     const best = thumbs[thumbs.length - 1];
     return {
