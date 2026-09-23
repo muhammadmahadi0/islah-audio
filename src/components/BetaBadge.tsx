@@ -9,7 +9,7 @@ export default function BetaBadge() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contact on WhatsApp (beta)"
-      className="fixed right-3 top-3 z-50 flex items-center gap-1.5 rounded-full liquid-glass py-1 pl-2.5 pr-3"
+      className="fixed right-0 top-0 z-50 m-0 flex items-center gap-1 rounded-bl-xl p-0 liquid-glass"
     >
       <span className="relative flex h-1.5 w-1.5">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
