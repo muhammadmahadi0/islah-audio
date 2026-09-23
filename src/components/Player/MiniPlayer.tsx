@@ -647,6 +647,9 @@ export default function MiniPlayer() {
               )}
             </div>
             <div className="relative mt-2">
+              <span className="mb-1 flex justify-end text-[11px] font-medium tabular-nums text-mist">
+                <span>{isLive ? 'LIVE' : `${formatTime(currentTime)} / ${formatTime(duration)}`}</span>
+              </span>
               <input
                 type="range"
                 min="0"
@@ -659,7 +662,9 @@ export default function MiniPlayer() {
                 style={{ '--fill': `${progress}%` } as React.CSSProperties}
                 aria-label="Seek"
               />
-              <div className="mt-1.5 flex items-center gap-2">
+              <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <span />
+                <span className="flex items-center gap-2 justify-self-center">
                 <button
                   onClick={playPrevious}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-all hover:bg-white/[0.1] active:scale-95"
@@ -687,6 +692,8 @@ export default function MiniPlayer() {
                 >
                   <SkipForward size={19} fill="currentColor" />
                 </button>
+                </span>
+                <span className="flex items-center gap-1.5 justify-self-end">
                 <button
                   onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-mist transition-colors hover:text-white"
@@ -705,8 +712,6 @@ export default function MiniPlayer() {
                   style={{ '--fill': `${Math.round(volume * 100)}%` } as React.CSSProperties}
                   aria-label="Volume"
                 />
-                <span className="ml-1 shrink-0 text-[11px] font-medium tabular-nums text-mist">
-                  {isLive ? 'LIVE' : `${formatTime(currentTime)} / ${formatTime(duration)}`}
                 </span>
               </div>
             </div>
