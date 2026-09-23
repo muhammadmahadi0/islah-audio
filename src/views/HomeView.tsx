@@ -447,7 +447,7 @@ export default function HomePage() {
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative liquid-glass rounded-[28px] p-4 md:p-6 mb-4 md:mb-6 overflow-hidden"
+            className="relative liquid-glass rounded-[28px] p-4 overflow-hidden"
           >
             <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
