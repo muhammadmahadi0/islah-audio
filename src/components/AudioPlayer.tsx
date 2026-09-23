@@ -176,6 +176,57 @@ export default function AudioPlayer() {
     }
   }, [isPlaying, currentTrack, setIsPlaying]);
 
+  // Screen Wake Lock — keep the screen on while anything is playing
+  // (both YT lectures and streams; this island is always mounted).
+  // The lock auto-releases when the tab hides, so re-request on visible.
+  useEffect(() => {
+    let lock: { release: () => Promise<void> } | null = null;
+    let cancelled = false;
+
+    const request = async () => {
+      try {
+        const nav = navigator as Navigator & {
+          wakeLock?: { request: (type: string) => Promise<{ release: () => Promise<void> }> };
+        };
+        if (!nav.wakeLock) return;
+        if (document.visibilityState !== 'visible') return;
+        if (!playingRef.current || !usePlayerStore.getState().currentTrack) return;
+        if (lock) return;
+        const l = await nav.wakeLock.request('screen');
+        if (!cancelled) lock = l;
+        else await l.release().catch(() => {});
+      } catch {
+        // Unsupported / denied / not allowed — playback works fine without it.
+      }
+    };
+
+    const release = async () => {
+      const l = lock;
+      lock = null;
+      if (l) {
+        try {
+          await l.release();
+        } catch {
+          // ignore — already released
+        }
+      }
+    };
+
+    if (isPlaying && currentTrack) void request();
+    else void release();
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') void request();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
+      void release();
+    };
+  }, [isPlaying, currentTrack]);
+
   // Volume for the stream element
   useEffect(() => {
     const audio = audioRef.current;

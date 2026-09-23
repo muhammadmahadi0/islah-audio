@@ -13,7 +13,8 @@ playlists, search, and a mobile-first design.
 - **Lecture catalog** — browses the latest uploads from the channel with thumbnails,
   durations, and view counts
 - **Audio playback** — hidden YouTube embed player wired to a global player store
-  (play/pause, next/previous, seek, volume, autoplay-next)
+  (play/pause, next/previous, seek, volume, autoplay-next); the screen stays on
+  while playing via the Wake Lock API
 - **Playlists** — the channel's YouTube playlists plus your own custom ones
   (create, save any lecture from Home/Search, play them back; yours are stored in
   `localStorage` — all merged into the **Library** tab; the playback queue moved

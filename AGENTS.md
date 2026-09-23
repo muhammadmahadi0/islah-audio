@@ -25,7 +25,8 @@ This file orients AI coding agents working in this repo. Read it before making c
    stop), the track effect rebinds a fresh player. `AudioPlayer.tsx` owns only
    the `<audio>`/hls.js stream engine. Seeking from any UI goes through the
    `islah:seek` window `CustomEvent` (`detail` = seconds), ignored for live
-   (`track.isLive`).
+   (`track.isLive`). `AudioPlayer.tsx` also holds the Screen Wake Lock while
+   `isPlaying` (released on pause/stop, re-requested on tab-visible).
 2. **No audio-extraction services.** Cobalt v7 (`api.cobalt.tools`) is shut down;
    public Piped/Invidious instances return 403/525. Do NOT reintroduce `cobalt.ts`,
    `ytdl-core`, or third-party extractors. `/api/stream/[id]` intentionally returns

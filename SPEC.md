@@ -131,7 +131,9 @@
    iframe, lowest quality). Expanded = artwork + video toggle button; tapping
    it shows the real video in the same player, tapping again returns to
    audio-only. Collapsing also returns to audio-only.
-   Unplayable videos auto-skip.
+   Unplayable videos auto-skip. The screen stays on while anything is playing
+   (Screen Wake Lock API, re-requested on tab-visible; silent no-op where
+   unsupported).
 3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
    glowing-red LIVE button plays HLS when on air, plain Last-live button replays
    the latest recording when offline. HLS falls back to the `/api/hls` CORS proxy,
