@@ -469,7 +469,7 @@ export default function MiniPlayer() {
         {/* Global diagonal gloss sheen */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.09] via-transparent to-transparent" />
 
-        <div className="relative mx-auto flex h-full w-full max-w-md md:max-w-none flex-col px-5 md:px-8 lg:px-10 pb-8 pt-3 safe-bottom md:overflow-y-auto">
+        <div className="relative mx-auto flex h-full w-full max-w-md md:max-w-3xl lg:max-w-4xl flex-col px-5 md:px-8 lg:px-10 pb-8 pt-3 safe-bottom md:overflow-y-auto">
           {/* Liquid-glass top app bar: collapse • title • stop */}
           <div className="liquid-glass relative flex items-center gap-2 rounded-full px-2 py-2">
             <span className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
@@ -503,12 +503,13 @@ export default function MiniPlayer() {
             </button>
           </div>
 
-          {/* Video + controls: stacked on mobile, side-by-side full-width on desktop */}
-          <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[minmax(0,1fr)_400px] md:gap-6 md:items-start md:py-4">
+          {/* Video + controls: same stacked flow as mobile on all screens;
+              desktop just stretches wider with the video as the largest section */}
+          <div className="flex min-h-0 flex-1 flex-col">
           {/* Video frame (YouTube tracks) or artwork.
               The YT mount stays rendered while a YT track is active so the
               player is never destroyed mid-track; hidden = audio-only. */}
-          <div className="flex min-h-0 flex-1 md:flex-none md:h-auto items-center justify-center py-4 md:py-0 md:sticky md:top-0">
+          <div className="flex min-h-0 flex-none w-full items-center justify-center py-4 md:py-6">
             {isYtTrack ? (
               <div className="liquid-glass relative w-full rounded-[28px] p-2">
                 <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
@@ -532,10 +533,13 @@ export default function MiniPlayer() {
                       <Music size={48} className="text-brand-light" />
                     </div>
                   ))}
-                {/* Video toggle: tap to watch, tap again for audio-only */}
+                {/* Video toggle: tap to watch, tap again for audio-only.
+                    Pinned light colors: sits on the black video frame, so it
+                    must stay white-on-black in light mode too (theming rule
+                    allows hardcoded colors on black overlays). */}
                 <button
                   onClick={toggleVideo}
-                  className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white transition-colors hover:bg-black/80 hover:border-white/40"
+                  className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-[#FFFFFF]/25 text-[#FFFFFF] transition-colors hover:bg-black/80 hover:border-[#FFFFFF]/50"
                   aria-label={engine.mode === 'video' ? 'Switch to audio only' : 'Watch video'}
                   title={engine.mode === 'video' ? 'Audio only' : 'Watch video'}
                 >
@@ -564,8 +568,8 @@ export default function MiniPlayer() {
             )}
           </div>
 
-          {/* Right column on desktop: controls + queue (left = full-width video) */}
-          <div className="flex flex-col min-w-0 md:sticky md:top-0">
+          {/* Controls + queue below the video (same order as mobile) */}
+          <div className="flex flex-col min-w-0 w-full max-w-md md:max-w-2xl mx-auto">
           {/* Liquid-glass control cluster */}
           <div className="liquid-glass relative rounded-[28px] px-5 pt-4 pb-5">
             <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
