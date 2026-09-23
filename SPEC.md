@@ -57,7 +57,9 @@
   IslahBD app when installed (Android intent / iOS universal link),
   otherwise sends the user to the Play Store / App Store for their device
   (desktop opens islahbd.com). No search icon on mobile — search lives in
-  the bottom nav.
+  the bottom nav. All primary buttons site-wide (Play all, filters, play
+  FABs, Create, Try again, toggles) share this exact gold-gradient
+  `.liquid-gold` style; secondary actions stay frosted glass.
 
 - **Backdrop**: fixed ambient gold/green aura + refraction blobs behind content
 - **Desktop (≥768px)**: floating liquid-glass sidebar pill + scrollable content;

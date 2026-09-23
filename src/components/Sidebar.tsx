@@ -172,8 +172,8 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
         aria-label="Liquid Glass design"
         className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-white/[0.07] border border-transparent transition-all"
       >
-        <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-light to-brand-dark ring-1 ring-white/30 flex items-center justify-center shrink-0">
-          <Droplets size={15} className="text-ink-950" />
+        <span className="liquid-gold w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+          <Droplets size={15} />
         </span>
         <span className="flex-1 min-w-0">
           <span className="block text-[13px] font-semibold text-white">
@@ -183,11 +183,11 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
             {designMode === 'liquid' ? 'iPhone-style frosted look' : 'Off — Material 3 solid look'}
           </span>
         </span>
-        {/* Toggle pill — stays glossy so it reads on both surfaces */}
+        {/* Toggle pill — gold gradient when on, same as the Open-App button */}
         <span
           className={cn(
             'relative w-11 h-6 rounded-full transition-colors shrink-0 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]',
-            designMode === 'liquid' ? 'bg-gradient-to-r from-brand-light to-brand-dark' : 'bg-white/10'
+            designMode === 'liquid' ? 'bg-[linear-gradient(135deg,#cba135_0%,#e8c96c_50%,#a07e28_100%)]' : 'bg-white/10'
           )}
         >
           <span

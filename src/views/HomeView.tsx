@@ -138,10 +138,9 @@ function VideoCard({
             isCurrentTrack ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
           )}
         >
-          <span className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow-lg ring-1 ring-white/30 scale-90 group-hover:scale-100 transition-transform">
-            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-2 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
+          <span className="liquid-gold w-12 h-12 rounded-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
             {isCurrentTrack && isPlaying ? (
-              <span className="flex items-end gap-[3px] h-4 text-ink-950">
+              <span className="flex items-end gap-[3px] h-4">
                 {[0, 1, 2].map((i) => (
                   <span
                     key={i}
@@ -151,7 +150,7 @@ function VideoCard({
                 ))}
               </span>
             ) : (
-              <Play size={20} fill="#060D0A" className="text-ink-950 ml-0.5" />
+              <Play size={20} fill="currentColor" className="ml-0.5" />
             )}
           </span>
         </div>
@@ -241,9 +240,8 @@ function ErrorScreen({ onRetry }: { onRetry: () => void }) {
         </p>
         <button
           onClick={onRetry}
-          className="relative inline-flex items-center gap-2 px-7 py-3 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 font-bold text-sm shadow-glow ring-1 ring-white/30 hover:scale-105 active:scale-95 transition-transform"
+          className="liquid-gold inline-flex items-center gap-2 px-7 py-3 rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-transform"
         >
-          <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-4 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
           <RefreshCw size={16} />
           Try Again
         </button>
@@ -533,10 +531,9 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={handlePlayAll}
-                  className="relative h-9 px-4 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 text-sm font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:scale-[1.03] active:scale-95 transition-all shadow-glow ring-1 ring-white/30"
+                  className="liquid-gold h-9 px-4 rounded-full text-sm font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:scale-[1.03] active:scale-95 transition-all"
                   aria-label={currentTrack && isPlaying ? 'Pause' : 'Play all'}
                 >
-                  <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-3 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
                   {isPlaying && currentTrack ? (
                     <Pause size={16} fill="currentColor" />
                   ) : (
@@ -568,9 +565,9 @@ export default function HomePage() {
                   key={f.id}
                   onClick={() => setFilter(f.id)}
                   className={cn(
-                    'relative shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all overflow-hidden',
+                    'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all overflow-hidden',
                     filter === f.id
-                      ? 'bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 font-bold ring-1 ring-white/30 shadow-glow'
+                      ? 'liquid-gold font-bold'
                       : 'liquid-chip text-white'
                   )}
                 >

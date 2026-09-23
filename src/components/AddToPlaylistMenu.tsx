@@ -108,10 +108,9 @@ export default function AddToPlaylistMenu({
           <button
             onClick={handleCreate}
             disabled={!newName.trim()}
-            className="relative p-2 rounded-xl overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 ring-1 ring-white/30 disabled:opacity-30 hover:shadow-glow transition-all"
+            className="liquid-gold p-2 rounded-xl disabled:opacity-30 transition-all"
             aria-label="Create playlist"
           >
-            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-1.5 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
             <Plus size={15} strokeWidth={2.5} />
           </button>
         </div>

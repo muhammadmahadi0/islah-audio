@@ -158,11 +158,10 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
         {playlist.tracks.length > 0 && (
           <button
             onClick={playAll}
-            className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-white/30 hover:scale-105 active:scale-95 transition-transform shrink-0"
+            className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shrink-0"
             aria-label={`Play ${playlist.name}`}
           >
-            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-1.5 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
-            <Play size={16} fill="#060D0A" className="text-ink-950 ml-0.5" />
+            <Play size={16} fill="currentColor" className="ml-0.5" />
           </button>
         )}
         {confirmDelete ? (
@@ -332,14 +331,13 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
         <button
           onClick={playAll}
           disabled={isLoading}
-          className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-white/30 hover:scale-105 active:scale-95 transition-transform shrink-0 disabled:opacity-40"
+          className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shrink-0 disabled:opacity-40"
           aria-label={`Play ${playlist.title}`}
         >
-          <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-1.5 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
           {isLoading ? (
-            <Loader2 size={16} className="animate-spin text-ink-950" />
+            <Loader2 size={16} className="animate-spin" />
           ) : (
-            <Play size={16} fill="#060D0A" className="text-ink-950 ml-0.5" />
+            <Play size={16} fill="currentColor" className="ml-0.5" />
           )}
         </button>
         <button
@@ -477,9 +475,8 @@ export default function LibraryView({
           <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
           <span aria-hidden="true" className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <div className="relative flex items-center gap-4">
-            <span className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shadow-glow ring-1 ring-white/30 shrink-0">
-              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-2 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
-              <ListMusic size={26} className="text-ink-950" />
+            <span className="liquid-gold w-14 h-14 rounded-2xl flex items-center justify-center shrink-0">
+              <ListMusic size={26} />
             </span>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold">
@@ -555,9 +552,8 @@ export default function LibraryView({
               <button
                 onClick={handleCreate}
                 disabled={!newName.trim()}
-                className="relative flex items-center gap-1.5 px-4 py-2.5 rounded-2xl overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 text-sm font-bold ring-1 ring-white/30 disabled:opacity-30 hover:shadow-glow transition-all shrink-0"
+                className="liquid-gold flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm font-bold disabled:opacity-30 transition-all shrink-0"
               >
-                <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-3 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
                 <Plus size={16} strokeWidth={2.5} />
                 Create
               </button>

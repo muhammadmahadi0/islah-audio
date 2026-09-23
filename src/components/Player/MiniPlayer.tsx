@@ -616,10 +616,9 @@ export default function MiniPlayer() {
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="relative flex h-[76px] w-[76px] items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-brand-light to-brand-dark text-ink-950 shadow-glow-lg ring-1 ring-white/30 transition-transform hover:scale-105 active:scale-95"
+              className="liquid-gold flex h-[76px] w-[76px] items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
-              <span className="pointer-events-none absolute top-0 inset-x-3 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
               {isLoading ? (
                 <Loader2 size={32} className="animate-spin" />
               ) : isPlaying ? (
@@ -826,17 +825,15 @@ export default function MiniPlayer() {
               e.stopPropagation();
               setIsPlaying(!isPlaying);
             }}
-            className="relative w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-dark flex items-center justify-center shrink-0 shadow-glow hover:scale-105 active:scale-95 transition-transform ring-1 ring-white/30"
+            className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-transform"
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
-            {/* Glossy top highlight on the play button */}
-            <span className="pointer-events-none absolute top-0 inset-x-2 h-1/2 rounded-full bg-gradient-to-b from-white/40 to-transparent" />
             {isLoading ? (
-              <Loader2 size={16} className="animate-spin text-ink-950" />
+              <Loader2 size={16} className="animate-spin" />
             ) : isPlaying ? (
-              <Pause size={16} fill="#060D0A" className="text-ink-950" />
+              <Pause size={16} fill="currentColor" />
             ) : (
-              <Play size={16} fill="#060D0A" className="text-ink-950 ml-0.5" />
+              <Play size={16} fill="currentColor" className="ml-0.5" />
             )}
           </button>
 
