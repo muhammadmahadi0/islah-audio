@@ -317,6 +317,7 @@ export async function getInnertubeChannelMeta(
  * (proven in prod: valid videos returned empty title). */
 export async function getInnertubeVideoMetadata(videoId: string): Promise<{
   found: boolean;
+  videoId: string;
   title: string;
   thumbnail: string;
   duration: number;
@@ -327,6 +328,11 @@ export async function getInnertubeVideoMetadata(videoId: string): Promise<{
 }> {
   const empty = {
     found: false,
+    // videoId must ALWAYS travel through — the watch page's autoplay guard
+    // compares currentTrack.videoId === video.videoId, and undefined ===
+    // undefined early-returns as if already playing (proven prod bug: no
+    // pill, dead taps, clean console).
+    videoId,
     title: '',
     thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
     duration: 0,
@@ -352,6 +358,7 @@ export async function getInnertubeVideoMetadata(videoId: string): Promise<{
       if (basic?.id || title) {
         return {
           found: true,
+          videoId,
           title,
           thumbnail: best?.url || empty.thumbnail,
           duration: Number(basic.duration) || 0,

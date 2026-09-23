@@ -76,7 +76,11 @@ export default function WatchView({ video }: { video: WatchVideo }) {
   const isCurrent = currentTrack?.videoId === video.videoId;
 
   // Auto-play on open (direct visits + in-app navigation alike).
+  // NOTE: video.videoId must be a real id — if it ever arrives undefined,
+  // bail instead of playing an unaddressable track (undefined === undefined
+  // would also fake the already-playing guard below).
   useEffect(() => {
+    if (!video.videoId) return;
     const state = usePlayerStore.getState();
     if (state.currentTrack?.videoId === video.videoId) return;
     const track: Track = {
