@@ -5,12 +5,13 @@ import {
   Pause,
   Loader2,
   ArrowLeft,
-  ExternalLink,
   Music,
+  Smartphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ShareButton from '@/components/ShareButton';
 import { watchUrl } from '@/lib/share';
+import { openIslahBDApp } from '@/lib/open-app';
 
 export interface WatchVideo {
   videoId: string;
@@ -169,15 +170,13 @@ export default function WatchView({ video }: { video: WatchVideo }) {
                 <ShareButton videoId={video.videoId} title={video.title} iconSize={16} />
                 Share
               </span>
-              <a
-                href={`https://www.youtube.com/watch?v=${video.videoId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-10 items-center gap-1.5 rounded-full liquid-chip px-4 text-sm font-bold text-white transition-all"
+              <button
+                onClick={openIslahBDApp}
+                className="islahbd-open-btn flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-bold transition-all active:scale-95"
               >
-                <ExternalLink size={15} />
-                YouTube
-              </a>
+                <Smartphone size={15} />
+                Open App
+              </button>
             </div>
             <p className="mt-3 text-[11px] text-mist-dark break-all">
               Share link: {watchUrl(video.videoId)}
