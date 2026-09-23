@@ -131,6 +131,7 @@ src/
     ├── innertube.ts        # keyless InnerTube listing (primary)
     ├── video.ts            # single-video metadata (watch page + stream API)
     ├── share.ts            # shareable-link helpers (native share / copy)
+    ├── open-app.ts         # open installed IslahBD app w/ store fallback
     ├── yt-engine.ts        # single YT.Player instance, audio/video modes
     ├── channels.ts         # channel registry
     ├── live.ts             # live-status types

@@ -88,6 +88,8 @@ This file orients AI coding agents working in this repo. Read it before making c
    (native store fallback, no JS timer — timers race installed users to the
    store). iOS gets a guarded 2s App Store fallback (blur/pagehide/visibility
    cancel). Never go back to universal-link navigation for this button.
+   The same flow lives in `lib/open-app.ts` for React callers (Watch page);
+   keep both in sync.
 
 ## Conventions
 
