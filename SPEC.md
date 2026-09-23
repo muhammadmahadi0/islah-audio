@@ -50,6 +50,12 @@
 
 ### Layout Structure (liquid-glass iPhone style)
 
+- **Top bar**: floating glass pill with ISLAH brand, desktop search field,
+  and a glowing-outline **Open IslahBD** button — launches the native IslahBD
+  app when installed (Android intent / iOS universal link), otherwise sends
+  the user to the Play Store / App Store for their device (desktop opens
+  islahbd.com). No search icon on mobile — search lives in the bottom nav.
+
 - **Backdrop**: fixed ambient gold/green aura + refraction blobs behind content
 - **Desktop (≥768px)**: floating liquid-glass sidebar pill + scrollable content;
   floating liquid-glass mini-player card bottom-right, clear of the sidebar.
@@ -77,9 +83,10 @@
   Android opens the same sidebar as a slide-over drawer via the top-bar
   hamburger button.
 - **Liquid Glass toggle**: direct sidebar row (desktop + drawer) switching the
-  **Liquid Glass** design — on = iPhone-style frosted design (default),
-  off = flat Material 3 solid surfaces. Choice persists (`islah-design`) and
-  applies pre-paint via `Layout.astro`, so there is no flash.
+  **Liquid Glass** design — on = iPhone-style frosted design,
+  off = flat Material 3 solid surfaces. Defaults ON for iOS + desktop, OFF
+  for other mobile (Android etc.); first-visit default only. Choice persists
+  (`islah-design`) and applies pre-paint via `Layout.astro`, so there is no flash.
 - Footer note
 
 #### Home

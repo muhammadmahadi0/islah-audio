@@ -88,7 +88,9 @@ This file orients AI coding agents working in this repo. Read it before making c
   behind content. The sidebar Liquid Glass toggle row switches to flat Material 3
   (`design-store.ts`, persist key `islah-design`, `material` class on `<html>`):
   glass → solid tonal surfaces, blurs/sheen spans/ambient blobs off via the
-  `html.material` overrides. New glass surfaces must degrade under it (use the
+  `html.material` overrides. Default is device-aware (`defaultDesignMode()`:
+  liquid on iOS + desktop, material on other mobile) — the pre-paint script in
+  `Layout.astro` mirrors it, keep both in sync. New glass surfaces must degrade under it (use the
   helpers, keep sheens `pointer-events-none` direct children of `.liquid-glass`). Keep blur radii small and scrolling smooth: no
   `background-attachment: fixed`, no `AnimatePresence popLayout` on lists,
   `.cv-card`/`.cv-row` on cards/rows, ambient blobs `contain: strict`.

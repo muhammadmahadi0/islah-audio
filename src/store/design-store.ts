@@ -9,6 +9,43 @@ interface DesignState {
   toggle: () => void;
 }
 
+function isIOSDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/i.test(ua)) return true;
+  // iPadOS 13+ reports as MacIntel — touch points give it away.
+  return (
+    navigator.platform === 'MacIntel' &&
+    (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints > 1
+  );
+}
+
+function isAndroidDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Android/i.test(navigator.userAgent || '');
+}
+
+function isMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Mobile|Tablet|Touch|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent || ''
+  );
+}
+
+/**
+ * Smart default: Liquid Glass ON for iOS + desktop, OFF (Material 3) for
+ * other mobile devices (Android etc.). Only applies on first visit —
+ * afterwards the persisted choice wins. The pre-paint script in
+ * `Layout.astro` mirrors this logic so there is no flash.
+ */
+export function defaultDesignMode(): DesignMode {
+  if (typeof navigator === 'undefined') return 'liquid';
+  if (isAndroidDevice()) return 'material';
+  if (isIOSDevice()) return 'liquid';
+  if (isMobileDevice()) return 'material';
+  return 'liquid';
+}
+
 function applyDesign(mode: DesignMode) {
   if (typeof document === 'undefined') return;
   // Material mode flattens every glass surface into solid M3 surfaces
@@ -19,7 +56,7 @@ function applyDesign(mode: DesignMode) {
 export const useDesignStore = create<DesignState>()(
   persist(
     (set, get) => ({
-      mode: 'liquid',
+      mode: defaultDesignMode(),
       setMode: (mode) => {
         applyDesign(mode);
         set({ mode });

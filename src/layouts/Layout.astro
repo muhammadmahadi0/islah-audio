@@ -31,9 +31,22 @@ const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
         if (s && JSON.parse(s).state.theme === 'light') {
           document.documentElement.classList.add('light');
         }
-        var d = localStorage.getItem('islah-design');
-        if (d && JSON.parse(d).state.mode === 'material') {
-          document.documentElement.classList.add('material');
+        var dm = null;
+        try { dm = JSON.parse(localStorage.getItem('islah-design') || 'null'); } catch (e2) {}
+        if (dm && dm.state && dm.state.mode) {
+          if (dm.state.mode === 'material') {
+            document.documentElement.classList.add('material');
+          }
+        } else {
+          // No saved choice: Liquid Glass defaults ON for iOS + desktop,
+          // OFF (Material 3) for other mobile — mirrors design-store.ts.
+          var dua = navigator.userAgent || '';
+          var dandroid = /Android/i.test(dua);
+          var dios = /iPad|iPhone|iPod/i.test(dua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          var dmobile = /Mobile|Tablet|Touch|webOS|BlackBerry|IEMobile|Opera Mini/i.test(dua);
+          if (dandroid || (!dios && dmobile)) {
+            document.documentElement.classList.add('material');
+          }
         }
       } catch (e) {}
     </script>
@@ -89,14 +102,17 @@ const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
 
       <div class="flex-1 md:hidden"></div>
 
-      <!-- Mobile search icon -->
-      <a
-        href="/search"
-        aria-label="Search"
-        class="md:hidden flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+      <!-- Open IslahBD app (mobile search lives in the bottom nav) -->
+      <button
+        id="islahbd-btn"
+        class="relative flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold/60 liquid-chip px-3 md:px-4 text-xs md:text-sm font-bold text-gold-light transition-all hover:border-gold active:scale-95"
+        style="box-shadow: 0 0 14px rgba(201,162,39,0.45), inset 0 1px 1px rgba(255,255,255,0.2);"
+        aria-label="Open IslahBD app"
+        title="Open IslahBD app"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-      </a>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+        <span><span class="hidden sm:inline">Open&nbsp;</span>IslahBD</span>
+      </button>
     </header>
 
     <div class="flex relative z-10">
@@ -142,6 +158,43 @@ const { title = 'Islah Audio — Islamic Lectures' } = Astro.props;
       });
       document.getElementById('drawer-backdrop')?.addEventListener('click', function () {
         openDrawer(false);
+      });
+      // Open IslahBD button: launch the native app when installed,
+      // otherwise send the user to the right store for their device.
+      // Android uses a Chrome intent (App Links open the app, the fallback
+      // URL covers not-installed); iOS uses a universal link inside the
+      // app's applinks paths (/live/ opens the app without playing a
+      // specific item) with a timed App Store fallback; desktop opens the site.
+      document.getElementById('islahbd-btn')?.addEventListener('click', function () {
+        var ua = navigator.userAgent || '';
+        var isAndroid = /Android/i.test(ua);
+        var isiOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var playStore = 'https://play.google.com/store/apps/details?id=com.islahbd.app';
+        var appStore = 'https://apps.apple.com/app/islahbd/id6762509692';
+        if (isAndroid) {
+          var cancelled = false;
+          var cancel = function () { cancelled = true; };
+          window.addEventListener('pagehide', cancel, { once: true });
+          var onVis = function () {
+            if (document.hidden) {
+              cancelled = true;
+              document.removeEventListener('visibilitychange', onVis);
+            }
+          };
+          document.addEventListener('visibilitychange', onVis);
+          window.location.href = 'intent://www.islahbd.com/#Intent;scheme=https;package=com.islahbd.app;S.browser_fallback_url=' + encodeURIComponent(playStore) + ';end';
+          setTimeout(function () {
+            if (!cancelled && !document.hidden) window.location.href = playStore;
+          }, 1800);
+        } else if (isiOS) {
+          var start = Date.now();
+          window.location.href = 'https://www.islahbd.com/live/';
+          setTimeout(function () {
+            if (document.visibilityState === 'visible' && Date.now() - start < 4000) window.location.href = appStore;
+          }, 1600);
+        } else {
+          window.open('https://www.islahbd.com/', '_blank', 'noopener');
+        }
       });
     </script>
   </body>
