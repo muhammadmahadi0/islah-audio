@@ -23,7 +23,7 @@ export default function BottomNav() {
   const pathname = usePath();
 
   return (
-    <nav className="md:hidden fixed bottom-2.5 inset-x-4 z-50 rounded-full liquid-glass safe-bottom">
+    <nav className="bottom-nav md:hidden fixed bottom-2.5 inset-x-4 z-50 rounded-full liquid-glass safe-bottom">
       <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-14 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
       <div className="relative grid grid-cols-3 px-3 py-1">

@@ -295,6 +295,23 @@ html.material .ambient-blobs {
   display: none;
 }
 
+/* Material 3 exception: bottom nav keeps a slight translucent effect
+   (flat color + light blur only — no liquid-glass gradient, saturation,
+   specular edge, or gloss sheen). Must come after the generic
+   html.material .liquid-glass override to win on specificity. */
+html.material .liquid-glass.bottom-nav {
+  background: rgb(var(--ink-900) / 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgb(var(--veil) / 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+html.light.material .liquid-glass.bottom-nav {
+  background: rgb(var(--ink-900) / 0.82);
+  border-color: rgba(6, 13, 10, 0.08);
+  box-shadow: 0 8px 24px rgba(6, 13, 10, 0.12);
+}
+
 /* Scroll performance: skip rendering off-screen items entirely.
    .cv-card for grid cards (~340px), .cv-row for list rows (~76px).
    The intrinsic size reserves layout space so the scrollbar stays stable. */

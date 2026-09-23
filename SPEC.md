@@ -107,7 +107,9 @@
   hamburger button.
 - **Liquid Glass toggle**: direct sidebar row (desktop + drawer) switching the
   **Liquid Glass** design — on = iPhone-style frosted design,
-  off = flat Material 3 solid surfaces. Defaults ON for iOS + desktop, OFF
+  off = flat Material 3 solid surfaces (mobile bottom nav keeps a slight
+  translucent blur, without the liquid-glass gradient/sheen). Defaults ON
+  for iOS + desktop, OFF
   for other mobile (Android etc.); first-visit default only. Choice persists
   (`islah-design`) and applies pre-paint via `Layout.astro`, so there is no flash.
 - Footer note
