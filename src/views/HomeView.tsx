@@ -453,7 +453,7 @@ export default function HomePage() {
         ) : (
           /* ---------- Channel header (liquid-glass hero) ---------- */
           <section
-            className="relative liquid-glass rounded-[28px] p-4 overflow-hidden animate-fade-up"
+            className="relative liquid-glass rounded-[28px] p-4 overflow-hidden animate-fade-up mt-2"
           >
             <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
