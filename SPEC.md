@@ -22,7 +22,9 @@
 - **Icons**: Lucide React
 - **State Management**: Zustand (`player-store`; persisted `playlist-store`,
   `channel-store`, `theme-store`, `design-store`)
-- **Listing Data**: keyless InnerTube first, YouTube Data API v3 fallback
+- **Listing Data**: fully keyless InnerTube (no API key, no quota) —
+  uploads, channel Playlists tab, playlist items, channel headers,
+  single-video metadata — all via youtubei.js (Flow-style)
 - **Lecture Playback**: Official YouTube IFrame embed (hidden `YT.Player`)
 - **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback).
   hls.js is lazy-loaded on first HLS play only — never in the initial bundle —
@@ -167,14 +169,14 @@
 
 ### Core Features
 
-1. **Channel Catalog (BETA: InnerTube first)** — `/api/channel/[id]` lists the
-   newest 100 uploads with durations and view counts, plus a `nextPageToken`
-   and `total`; `/api/channel/[id]/more/[token]` appends older videos in
-   200-chunks. Listing goes through keyless InnerTube (no quota) with the
-   Data API as fallback; `total` comes from a 1-unit statistics call when a
-   key exists, else the UI shows counts without a total. Home has a Show-more
+1. **Channel Catalog (fully keyless InnerTube)** — `/api/channel/[id]` lists
+   the newest ~100 uploads with durations and view counts, plus a
+   `nextPageToken`; `/api/channel/[id]/more/[token]` appends older videos in
+   ~200-chunks. No API key, no quota — everything through InnerTube
+   (youtubei.js, Flow-style); `total` is always null (InnerTube exposes no
+   exact count), so the UI shows loaded counts. Home has a Show-more
    button; Search indexes every chunk in the background. Responses are
-   CDN-cached to save quota.
+   CDN-cached.
 2. **Lecture Playback** — hidden YouTube embed driven by the player store
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
    volume, progress polling). Playback always starts audio-only (hidden
@@ -194,18 +196,18 @@
    duplicate-guarded adds, delete with confirm.
 5. **Search** — client-side filter over the fully indexed catalog.
 6. **Shareable Links** — `/watch/[videoId]` opens + plays that exact video
-   (metadata via `lib/video.ts`: Data API when a key exists, keyless oEmbed
-   otherwise; `lib/share.ts` builds links and drives native-share-or-copy).
+   (metadata via `lib/video.ts` → InnerTube `getBasicInfo`, fully keyless;
+   `lib/share.ts` builds links and drives native-share-or-copy).
 
 ### API Routes (all `force-dynamic`)
 
 | Route | Purpose |
 | ----- | ------- |
-| `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
+| `GET /api/channel/[id]` | Channel info + first ~100 videos + `nextPageToken` (`total` always null) |
 | `GET /api/channel/[id]/meta` | Name + avatar only (featherweight, for the Sidebar switcher; 1-day cache) |
-| `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
-| `GET /api/playlists/[channel]` | A channel's playlists (Data API, 6h CDN cache) |
-| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first, Data API fallback |
+| `GET /api/channel/[id]/more/[token]` | Next ~200 videos + `nextPageToken` |
+| `GET /api/playlists/[channel]` | A channel's playlists (InnerTube Playlists tab, 6h CDN cache) |
+| `GET /api/playlist-items/[id]` | Playlist items, InnerTube (first ~200) |
 | `GET /api/live` | Live status `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
@@ -230,7 +232,7 @@
   unwraps it (`fromClientToken`).
 - **Every fetch has a timeout** — bare `fetch()` hangs forever on stalled mobile
   networks, so clients use `fetchJson()` (`lib/fetch-timeout.ts`, 15–25s) and
-  server InnerTube calls race `withTimeout()` (8s) into the Data API fallback.
+  server InnerTube calls race `withTimeout()` (8s) into error responses.
 - CDN caching on API routes (`s-maxage` + `stale-while-revalidate`); no-store
   for live status.
 - Queue in memory (zustand); user playlists in `localStorage`.
@@ -238,10 +240,9 @@
 
 ### Edge Cases
 
-- Missing `YOUTUBE_API_KEY` → channel listing still works via keyless InnerTube;
-  only `/api/playlists/[channel]` (Data API-only) returns 400 with a clear message.
 - Unplayable/embed-restricted video → auto-skip to next.
 - Invalid video/playlist IDs → 400.
+- Stale catalog token (`more` route) → 400 "reload the page".
 - Live CDN without CORS → transparent `/api/hls` proxy retry.
 - Stop button clears track; ENDED auto-advance is guarded on active track.
 

@@ -1,11 +1,13 @@
 import type { APIRoute } from 'astro';
-import { getChannelDetails, getChannelDetailsByHandle } from '@/lib/youtube';
+import { getInnertubeChannelMeta, INNERTUBE_TIMEOUT_MS } from '@/lib/innertube';
+import { withTimeout } from '@/lib/fetch-timeout';
 import { CHANNELS } from '@/lib/channels';
 
 /**
  * Featherweight channel header: name + avatar only (no video listing).
  * Used by the Sidebar switcher so it never downloads 100-video payloads
- * just to render two avatars. CDN-cached for a day — headers change rarely.
+ * just to render two avatars. Fully keyless; CDN-cached for a day —
+ * headers change rarely.
  */
 
 const CHANNEL_ID = /^UC[a-zA-Z0-9_-]{22}$/;
@@ -23,25 +25,38 @@ function json(data: unknown, status = 200) {
 export const GET: APIRoute = async ({ params }) => {
   const raw = decodeURIComponent(params.id as string);
   const known = CHANNELS.find((c) => c.id === raw || c.handle === raw);
-  const idOrHandle = known?.id || raw;
 
-  let details = null;
-  if (CHANNEL_ID.test(idOrHandle)) {
-    details = await getChannelDetails(idOrHandle).catch(() => null);
-  } else if (idOrHandle.startsWith('@')) {
-    details = await getChannelDetailsByHandle(idOrHandle).catch(() => null);
+  if (known) {
+    try {
+      const meta = await withTimeout(
+        getInnertubeChannelMeta(known.id),
+        INNERTUBE_TIMEOUT_MS,
+        'innertube-meta'
+      );
+      if (meta.name || meta.avatar) {
+        return json({ success: true, channel: meta, source: 'innertube' });
+      }
+    } catch (error) {
+      console.error('[Channel Meta] InnerTube failed:', error);
+    }
+    // Lookup failed — the UI falls back to monogram + registry name.
+    return json({ success: true, channel: { name: known.name, avatar: '' }, source: 'registry' });
   }
 
-  if (!details) {
-    // No key or lookup failed — the UI falls back to monogram + registry name.
-    const fallback = known ? { name: known.name, avatar: '' } : null;
-    if (fallback) return json({ success: true, channel: fallback, source: 'registry' });
-    return json({ error: 'Channel not found' }, 404);
+  if (CHANNEL_ID.test(raw)) {
+    try {
+      const meta = await withTimeout(
+        getInnertubeChannelMeta(raw),
+        INNERTUBE_TIMEOUT_MS,
+        'innertube-meta'
+      );
+      if (meta.name || meta.avatar) {
+        return json({ success: true, channel: meta, source: 'innertube' });
+      }
+    } catch (error) {
+      console.error('[Channel Meta] InnerTube failed:', error);
+    }
   }
 
-  return json({
-    success: true,
-    channel: { name: details.title, avatar: details.thumbnail },
-    source: 'data-api',
-  });
+  return json({ error: 'Channel not found' }, 404);
 };

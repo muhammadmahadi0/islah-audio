@@ -1,13 +1,13 @@
 /**
- * BETA ONLY — InnerTube listing (no API key, no quota).
+ * Fully keyless InnerTube listing (no API key, no quota) — the only listing
+ * path since the Data API fallback was removed (full-keyless migration).
  *
  * Uses youtubei.js against YouTube's private InnerTube API (the same one
  * youtube.com uses), like the Flow Android app does. Keyless, unlimited —
- * but unofficial, so it can break when YouTube changes things. The YouTube
- * Data API remains as fallback in the routes.
+ * but unofficial, so it can break when YouTube changes things.
  *
- * Only LISTING goes through InnerTube (uploads, continuations). Playback
- * still uses the official embed and needs no extraction.
+ * Only LISTING goes through InnerTube (uploads, playlists, continuations).
+ * Playback still uses the official embed and needs no extraction.
  */
 
 import { Innertube, YTNodes, YT } from 'youtubei.js';
@@ -30,6 +30,13 @@ export interface InnertubeChannel {
   videos: InnertubeVideo[];
   /** Opaque token for the next chunk (null when exhausted). */
   nextToken: string | null;
+}
+
+export interface InnertubePlaylist {
+  id: string;
+  title: string;
+  thumbnail: string;
+  itemCount: number;
 }
 
 let sessionPromise: Promise<any> | null = null;
@@ -132,7 +139,7 @@ async function fetchContinuationPage(
 
 /**
  * Latest uploads of a channel (first page ≈ 100 videos).
- * Throws when InnerTube is unreachable — routes fall back to Data API.
+ * Throws when InnerTube is unreachable — routes return an error.
  */
 export async function getInnertubeChannelVideos(
   channelId: string
@@ -218,6 +225,132 @@ export async function getInnertubePlaylistItems(
 /** InnerTube continuation tokens are long; Data API page tokens are short. */
 export function isInnertubeToken(token: string): boolean {
   return token.length > 50;
+}
+
+/**
+ * A channel's public playlists via its Playlists tab (params are stable —
+ * channel-scoped, not per-video, so this needs no key at all).
+ * Returns [] when the tab is unreachable — routes surface "none yet".
+ */
+export async function getInnertubeChannelPlaylists(
+  channelId: string
+): Promise<InnertubePlaylist[]> {
+  const yt = await getSession();
+
+  // Discover the channel's Playlists tab (params differ per channel).
+  const channel = await yt.getChannel(channelId);
+  const tabs = channel.memo.getType(YTNodes.Tab);
+  const playlistsTab = tabs.find(
+    (t: any) => (t.title?.toString?.() || t.title || '') === 'Playlists'
+  );
+  const params: string | undefined = playlistsTab?.endpoint?.payload?.params;
+  if (!params) return [];
+
+  const raw = await yt.actions.execute('/browse', { browseId: channelId, params });
+  const { Parser } = await import('youtubei.js');
+  const memo = Parser.parseResponse(raw.data).contents_memo;
+  const lockups = memo
+    .getType(YTNodes.LockupView)
+    .filter((p: any) => p.content_type === 'PLAYLIST');
+
+  return lockups
+    .map((p: any): InnertubePlaylist | null => {
+      try {
+        const id: string = p.content_id;
+        if (!id) return null;
+        const title: string = p.metadata?.title?.text || 'Untitled playlist';
+        const thumbnail: string = p.content_image?.primary_thumbnail?.image?.[0]?.url || '';
+        // "54 videos" badge on the thumbnail overlay.
+        const badges: any[] =
+          p.content_image?.primary_thumbnail?.overlays?.flatMap?.(
+            (o: any) => o.badges || []
+          ) || [];
+        const countText: string = badges.map((b: any) => b.text || '').join(' ');
+        const count = parseInt(countText.replace(/[^0-9]/g, ''), 10);
+        return {
+          id,
+          title,
+          thumbnail,
+          itemCount: Number.isFinite(count) ? count : 0,
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter((p: InnertubePlaylist | null): p is InnertubePlaylist => p !== null);
+}
+
+/**
+ * Channel name + avatar only (no video listing) for the Sidebar switcher.
+ * Best-effort — empty strings when the lookup fails, UI falls back to the
+ * channel registry + monogram.
+ */
+export async function getInnertubeChannelMeta(
+  channelId: string
+): Promise<{ name: string; avatar: string }> {
+  const yt = await getSession();
+  const channel = await yt.getChannel(channelId).catch(() => null);
+  if (!channel) return { name: '', avatar: '' };
+
+  let name: string = channel?.metadata?.title || '';
+  let avatar = '';
+  try {
+    const thumbs =
+      channel?.header?.author?.thumbnails ||
+      channel?.header?.thumbnails ||
+      channel?.metadata?.thumbnail ||
+      [];
+    const list = Array.isArray(thumbs) ? thumbs : thumbs?.thumbnails || [];
+    avatar = list[list.length - 1]?.url || list[0]?.url || '';
+    if (!name) name = channel?.header?.author?.title?.toString() || '';
+  } catch {
+    // avatar stays empty — UI falls back to the إ monogram
+  }
+  return { name, avatar };
+}
+
+/** Single-video metadata for `/watch/[id]` + `/api/stream/[id]` — keyless. */
+export async function getInnertubeVideoMetadata(videoId: string): Promise<{
+  found: boolean;
+  title: string;
+  thumbnail: string;
+  duration: number;
+  channelName: string;
+  description: string;
+  publishedAt: string;
+  views: number;
+}> {
+  const empty = {
+    found: false,
+    title: '',
+    thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    duration: 0,
+    channelName: '',
+    description: '',
+    publishedAt: '',
+    views: 0,
+  };
+  try {
+    const yt = await getSession();
+    const info = await yt.getBasicInfo(videoId);
+    const basic: any = info.basic_info;
+    if (!basic?.title) return empty;
+    const thumbs: any[] = basic.thumbnail || [];
+    const best = thumbs[thumbs.length - 1];
+    return {
+      found: true,
+      title: basic.title || '',
+      thumbnail: best?.url || empty.thumbnail,
+      duration: Number(basic.duration) || 0,
+      channelName: basic.channel?.name || basic.author || '',
+      description: basic.short_description || '',
+      publishedAt: basic.publish_date || info.primary_info?.published?.text || '',
+      views: Number(basic.view_count) || 0,
+    };
+  } catch {
+    // Unknown/removed video (getBasicInfo throws) — caller 404s.
+    return empty;
+  }
 }
 
 /**

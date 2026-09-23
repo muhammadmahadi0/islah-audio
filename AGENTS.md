@@ -4,7 +4,7 @@ This file orients AI coding agents working in this repo. Read it before making c
 
 ## Commands
 
-- `npm run dev` — dev server, port 4321 (needs `YOUTUBE_API_KEY` in `.env.local`)
+- `npm run dev` — dev server, port 4321 (no env setup needed — fully keyless)
 - `npm run build` — production build (must pass)
 - `npm run preview` — preview the built output locally
 - No linter is configured
@@ -17,8 +17,7 @@ This file orients AI coding agents working in this repo. Read it before making c
    imports anywhere. Env keys read as
    `process.env.X || import.meta.env.X` (dev only populates the latter).
 
-1. **Playback = hidden YouTube embed + hidden `<audio>` for streams.**
-   The YT engine lives in `lib/yt-engine.ts` (single player, video/audio
+1. **Playback = hidden YouTube embed + hidden `<audio>` for streams.**   The YT engine lives in `lib/yt-engine.ts` (single player, video/audio
    modes) and is mounted by MiniPlayer in a node that must
    NEVER unmount mid-track — the expanded sheet + mini pill toggle via CSS
    visibility, not conditional returns. If the iframe detaches (e.g. after
@@ -39,10 +38,12 @@ This file orients AI coding agents working in this repo. Read it before making c
    **IDs must travel in URL paths, not query strings** — Netlify drops query
    params before function invocation (proven in prod: `?id=` and `?playlistId=`
    were silently ignored). Same rule for `/api/channel/[id]/more/[token]`.
-   **BETA branch: InnerTube first.** Listing tries keyless `lib/innertube.ts`
-   (youtubei.js uploads playlist + stateless browse continuations) before the
-   Data API fallback. Long tokens (>50 chars) are InnerTube continuations,
-   short ones are Data API page tokens - the more-route branches on that.
+   **Fully keyless (Flow-style).** ALL listing goes through `lib/innertube.ts`
+   (youtubei.js: uploads playlist + stateless browse continuations, channel
+   Playlists tab, `getBasicInfo` for single videos). There is no Data API
+   key, no quota, no `lib/youtube.ts` — it was deleted. `total` is always
+   null (InnerTube exposes no exact count — UI falls back to loaded count).
+   The more-route accepts InnerTube continuations only.
    **Continuation tokens are client-wrapped.** Raw InnerTube tokens contain
    `%`, which 404s Astro-on-Netlify once the client percent-encodes them into
    the path — so routes emit `toClientToken()` (`it1_` + base64url) and the
@@ -50,13 +51,13 @@ This file orients AI coding agents working in this repo. Read it before making c
    Data API tokens pass through untouched.
    **Timeouts everywhere.** Client fetches must use `fetchJson()` from
    `lib/fetch-timeout.ts` (bare fetch hangs forever on stalled networks);
-   server InnerTube calls race `withTimeout()` (8s) into fallbacks.
+   server InnerTube calls race `withTimeout()` (8s) into error responses.
 4. **Playlists.** User playlists live in `playlist-store.ts` (persist key
    `islah-playlists`), merged into Library — no separate Playlists nav
    item, and NO Queue tab (the playback queue lives in the expanded
    player's Up-next dropdown). The channel-YouTube-playlists section is served by
-   `/api/playlists/[channel]` (Data API) + `/api/playlist-items/[id]`
-   (InnerTube first, Data API fallback). The list is server-rendered
+   `/api/playlists/[channel]` (InnerTube Playlists tab) + `/api/playlist-items/[id]`
+   (InnerTube). The list is server-rendered
    (`library.astro` passes initial data to the island) so it can
    never hang on a client fetch; the client effect only runs as fallback.
    The Sidebar switcher reads `/api/channel/[id]/meta` (name + avatar only),
@@ -65,9 +66,9 @@ This file orients AI coding agents working in this repo. Read it before making c
    `channel-store.ts` (persist key `islah-channel`). Home/Search/Library all
    follow the active channel. Sidebar shows the switcher; Android opens the
    sidebar as a drawer (`#mobile-drawer` in the layout).
-6. **Catalog pagination.** YouTube caps pages at 50 items: initial load fetches
-   `INITIAL_PAGES` (100 videos), "more" chunks fetch `MORE_PAGES` (200) via
-   `/api/channel/[id]/more/[token]` (`getPlaylistVideosPaged` in `lib/youtube.ts`).
+6. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
+   load fetches the first page, "more" chunks fetch 2 continuation pages
+   (~200 videos) via `/api/channel/[id]/more/[token]`.
 7. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
@@ -131,8 +132,8 @@ This file orients AI coding agents working in this repo. Read it before making c
   must clear the floating player: `pb-44 md:pb-36`.
 - Client components that touch the stores or `window` must be React islands
   (`client:only="react"` in the `.astro` shell).
-- Secrets: never commit `.env.local` (gitignored). Mirror new env vars in
-  `.env.example` and document them in `README.md`.
+- Secrets: no env vars needed at all (fully keyless). Never commit local
+  env files if you create any for experiments.
 - Standing rules from the user (always follow, no need to ask):
   - **Always update `SPEC.md`, `AGENTS.md`, and `README.md`** whenever behavior,
     architecture, APIs, or conventions change.

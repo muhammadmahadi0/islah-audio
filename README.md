@@ -49,7 +49,7 @@ playlists, search, and a mobile-first design.
 | Framework| Astro 5 SSR + React islands (`client:only`)                 |
 | Styling  | Tailwind CSS + custom design tokens (`tailwind.config.js`)  |
 | State    | Zustand (`player-store`, persisted `playlist-store` + `channel-store`) |
-| Data     | Keyless InnerTube listing first, YouTube Data API v3 fallback |
+| Data     | Fully keyless InnerTube via youtubei.js (no API key, no quota — Flow-style) |
 | Playback | YouTube IFrame Player API (official embed, no extraction)   |
 | Hosting  | Netlify (SSR functions via `@astrojs/netlify`)              |
 
@@ -57,9 +57,7 @@ playlists, search, and a mobile-first design.
 
 ### Prerequisites
 
-- Node.js 20+
-- A **YouTube Data API v3** key — fallback only on this branch
-  ([enable it here](https://console.cloud.google.com/apis/library/youtube.googleapis.com))
+- Node.js 20+ (no API keys, no env setup — fully keyless)
 
 ### Setup
 
@@ -67,17 +65,8 @@ playlists, search, and a mobile-first design.
 git clone https://github.com/muhammadmahadi0/islah-audio.git
 cd islah-audio
 npm install
-cp .env.example .env.local   # then fill in YOUTUBE_API_KEY
 npm run dev                  # http://localhost:4321
 ```
-
-### Environment variables
-
-| Variable             | Required | Description                              |
-| -------------------- | -------- | ---------------------------------------- |
-| `YOUTUBE_API_KEY`    | No (fallback) | YouTube Data API v3 key — listing prefers keyless InnerTube on this branch |
-
-> On Netlify, set `YOUTUBE_API_KEY` under **Site settings → Environment variables**.
 
 ### Scripts
 
@@ -91,25 +80,24 @@ npm run preview # preview built output
 
 | Route                  | Description                                                        |
 | ---------------------- | ------------------------------------------------------------------ |
-| `GET /api/channel/[id]` | Channel info + first 100 videos + `nextPageToken` + `total` |
+| `GET /api/channel/[id]` | Channel info + first ~100 videos + `nextPageToken` (`total` always null) |
 | `GET /api/channel/[id]/meta` | Name + avatar only (Sidebar switcher; 1-day cache) |
-| `GET /api/channel/[id]/more/[token]` | Next 200 videos + `nextPageToken` |
-| `GET /api/playlists/[channel]` | A channel's playlists (Data API, 6h CDN cache) |
-| `GET /api/playlist-items/[id]` | Playlist items, InnerTube first, Data API fallback |
+| `GET /api/channel/[id]/more/[token]` | Next ~200 videos + `nextPageToken` |
+| `GET /api/playlists/[channel]` | A channel's playlists (InnerTube Playlists tab, 6h CDN cache) |
+| `GET /api/playlist-items/[id]` | Playlist items, InnerTube (first ~200) |
 | `GET /api/live` | islahbd.com live status as `{ isLive, title, speaker, listeners, streamUrl, recording }` |
 | `GET /api/hls/[...url]` | HLS manifest/media proxy with open CORS (fallback when the live CDN blocks cross-origin fetch) |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (playback is client-side) |
 
-## How Listing Works (beta experiment)
+## How Listing Works
 
-Like the Flow Android app, this branch lists channel videos through YouTube's
-**private InnerTube API** (`lib/innertube.ts`, via youtubei.js) instead of the
-quota-limited Data API: uploads playlist → `LockupView` parsing → stateless
-browse continuations. No key, no quota (≈1 unit per fresh load for the totals
-lookup when a key exists). Continuation tokens are base64url-wrapped (`it1_…`)
+Like the Flow Android app, this site lists everything through YouTube's
+**private InnerTube API** (`lib/innertube.ts`, via youtubei.js) — no API key,
+no quota: uploads playlist → `LockupView` parsing → stateless browse
+continuations, channel Playlists tab for playlists, `getBasicInfo` for
+single videos. Continuation tokens are base64url-wrapped (`it1_…`)
 because raw tokens 404 Astro-on-Netlify once percent-encoded into the path.
-If InnerTube fails, routes fall back to the Data API
-automatically — check the `source` field in API responses to see which served.
+Check the `source` field in API responses to confirm which path served.
 
 ## Project Structure
 
@@ -131,8 +119,7 @@ src/
 │   ├── theme-store.ts      # light/dark theme, persisted
 │   └── design-store.ts     # liquid-glass / material mode, persisted
 └── lib/
-    ├── youtube.ts          # YouTube Data API helpers (fallback)
-    ├── innertube.ts        # keyless InnerTube listing (primary)
+    ├── innertube.ts        # ALL listing, fully keyless (uploads, playlists, meta, video info)
     ├── video.ts            # single-video metadata (watch page + stream API)
     ├── share.ts            # shareable-link helpers (native share / copy)
     ├── open-app.ts         # open installed IslahBD app w/ store fallback
