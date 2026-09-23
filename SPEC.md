@@ -73,8 +73,9 @@
   always fits one viewport (no scrolling): flex-1 video area with dvh-capped
   frame (up to 52dvh on desktop), compact controls, volume hidden under 600px
   height, side-by-side grid on short landscape screens. On desktop the control
-  cluster collapses to a single compact row (title + slider + transport +
-  volume), freeing the saved space for the video.
+  cluster is a YouTube-style bar (title row, then full-width seek with
+  prev / play / next / mute+volume / time in one row); mobile keeps its
+  stacked blocks untouched.
 - Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
   `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
   inner reflections); primary actions use glossy gold `.liquid-gold`.

@@ -579,11 +579,12 @@ export default function MiniPlayer() {
             <span className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <span className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
             <span className="pointer-events-none absolute bottom-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          {/* Title + slider + transport in ONE compact row on desktop
-              (title left, slider middle, play controls right) so the video
-              gets the freed vertical space. Mobile keeps the stacked blocks. */}
-          <div className="relative hidden md:flex items-center gap-4">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+          {/* Desktop controller — YouTube-style bar (mobile blocks below are untouched).
+              Row 1: title + channel + share. Row 2: full-width seek, then
+              transport (prev / play / next / mute+volume / time) left and
+              queue position right. Compact so video keeps the space. */}
+          <div className="relative hidden md:block">
+            <div className="flex items-center gap-2">
               {isLive && (
                 <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
                   <span className="relative flex h-1.5 w-1.5">
@@ -593,7 +594,7 @@ export default function MiniPlayer() {
                   Live
                 </span>
               )}
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <h2 className="truncate text-base font-bold leading-tight tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
                   {currentTrack.title}
                 </h2>
@@ -601,6 +602,11 @@ export default function MiniPlayer() {
                   {currentTrack.channelName}
                 </p>
               </div>
+              {queueTotal > 1 && queuePos !== null && (
+                <span className="shrink-0 text-[11px] font-semibold tabular-nums text-mist-dark">
+                  {queuePos} of {queueTotal}
+                </span>
+              )}
               {isYtTrack && (
                 <ShareButton
                   videoId={currentTrack.videoId}
@@ -610,7 +616,7 @@ export default function MiniPlayer() {
                 />
               )}
             </div>
-            <div className="w-56 shrink-0">
+            <div className="relative mt-2">
               <input
                 type="range"
                 min="0"
@@ -623,52 +629,56 @@ export default function MiniPlayer() {
                 style={{ '--fill': `${progress}%` } as React.CSSProperties}
                 aria-label="Seek"
               />
-              <div className="mt-0.5 flex justify-between text-[11px] font-medium tabular-nums text-mist">
-                <span>{isLive ? 'LIVE' : formatTime(currentTime)}</span>
-                <span>{isLive ? '' : formatTime(duration)}</span>
+              <div className="mt-1.5 flex items-center gap-2">
+                <button
+                  onClick={playPrevious}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-all hover:bg-white/[0.1] active:scale-95"
+                  aria-label="Previous"
+                >
+                  <SkipBack size={19} fill="currentColor" />
+                </button>
+                <button
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="liquid-gold flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isLoading ? (
+                    <Loader2 size={21} className="animate-spin" />
+                  ) : isPlaying ? (
+                    <Pause size={21} fill="currentColor" />
+                  ) : (
+                    <Play size={21} fill="currentColor" className="ml-0.5" />
+                  )}
+                </button>
+                <button
+                  onClick={playNext}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-all hover:bg-white/[0.1] active:scale-95"
+                  aria-label="Next"
+                >
+                  <SkipForward size={19} fill="currentColor" />
+                </button>
+                <button
+                  onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-mist transition-colors hover:text-white"
+                  aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+                >
+                  {volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="w-24 shrink-0"
+                  style={{ '--fill': `${Math.round(volume * 100)}%` } as React.CSSProperties}
+                  aria-label="Volume"
+                />
+                <span className="ml-1 shrink-0 text-[11px] font-medium tabular-nums text-mist">
+                  {isLive ? 'LIVE' : `${formatTime(currentTime)} / ${formatTime(duration)}`}
+                </span>
               </div>
-            </div>
-            <div className="w-56 shrink-0 hidden md:block">
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="w-full"
-                style={{ '--fill': `${Math.round(volume * 100)}%` } as React.CSSProperties}
-                aria-label="Volume"
-              />
-            </div>
-            <div className="relative flex shrink-0 items-center gap-2">
-              <button
-                onClick={playPrevious}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
-                aria-label="Previous"
-              >
-                <SkipBack size={19} fill="currentColor" />
-              </button>
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="liquid-gold flex h-12 w-12 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isLoading ? (
-                  <Loader2 size={22} className="animate-spin" />
-                ) : isPlaying ? (
-                  <Pause size={22} fill="currentColor" />
-                ) : (
-                  <Play size={22} fill="currentColor" className="ml-0.5" />
-                )}
-              </button>
-              <button
-                onClick={playNext}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
-                aria-label="Next"
-              >
-                <SkipForward size={19} fill="currentColor" />
-              </button>
             </div>
           </div>
 
