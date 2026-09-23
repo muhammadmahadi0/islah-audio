@@ -25,7 +25,8 @@
 - **Listing Data**: keyless InnerTube first, YouTube Data API v3 fallback
 - **Lecture Playback**: Official YouTube IFrame embed (hidden `YT.Player`)
 - **Live Playback**: `<audio>` + hls.js (direct, `/api/hls` proxy fallback).
-  hls.js is lazy-loaded on first HLS play only — never in the initial bundle.
+  hls.js is lazy-loaded on first HLS play only — never in the initial bundle —
+  and prefetched on browser idle (skipped on data-saver / 2g).
 - **Animation**: pure CSS (`animate-fade-up`, `.shimmer`, `.eq-bar`) — no
   animation library in the bundle. No `background-attachment: fixed`.
 - **Hosting**: Netlify (`dist` publish, SSR functions via adapter).
@@ -175,7 +176,9 @@
    iframe, lowest quality). Expanded = artwork + video toggle button; tapping
    it shows the real video in the same player, tapping again returns to
    audio-only. Collapsing also returns to audio-only.
-   Unplayable videos auto-skip. The screen stays on while anything is playing
+   Unplayable videos auto-skip. Lectures load with 144p suggested quality
+   so first audio arrives fast (no buffer-default-then-downshift rebuffer).
+   The screen stays on while anything is playing
    (Screen Wake Lock API, re-requested on tab-visible; silent no-op where
    unsupported).
 3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s);
@@ -205,10 +208,12 @@
 ### Data Handling
 
 - **Load budget.** Initial JS is React + islands only: hls.js (~500KB)
-  lazy-loads on first HLS play, the YouTube iframe API prewarms on browser
-  idle (player still creates on demand), card animations are CSS-only, and
-  above-fold thumbnails load eager/high-priority with `preconnect` to
-  `i.ytimg.com`. The Sidebar reads avatars from `/api/channel/[id]/meta`,
+  lazy-loads on first HLS play (prefetched on idle unless data-saver/2g),
+  the YouTube iframe API prewarms on browser idle (player still creates on
+  demand), lecture loads request 144p first for fast audio start, card
+  animations are CSS-only, and above-fold thumbnails load eager/high-priority
+  with `preconnect` to `i.ytimg.com` + `youtube.com` + `youtube-nocookie.com`.
+  The Sidebar reads avatars from `/api/channel/[id]/meta`,
   never the 100-video listing.
 
 - **IDs travel in URL paths, never query strings** — the hosting layer drops

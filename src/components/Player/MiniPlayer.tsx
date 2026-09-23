@@ -150,14 +150,22 @@ export default function MiniPlayer() {
               if (track?.videoId && !track.hlsUrl && !track.audioUrl) {
                 trackIdRef.current = track.videoId;
                 storeRef.current.setIsLoading(true);
+                // Audio-first: ask for 144p up front so first audio arrives
+                // with small chunks instead of buffering default quality
+                // and then downshifting (which rebuffers).
+                const audioFirst = getEngineSnapshot().mode !== 'video';
                 try {
-                  if (playingRef.current) e.target.loadVideoById(track.videoId);
-                  else e.target.cueVideoById(track.videoId);
-                  // Audio-first: keep data-saver quality until the user
-                  // explicitly opens video via the video toggle.
-                  if (getEngineSnapshot().mode !== 'video') {
-                    e.target.setPlaybackQuality('tiny');
-                  }
+                  if (playingRef.current) {
+                    try {
+                      e.target.loadVideoById({
+                        videoId: track.videoId,
+                        startSeconds: 0,
+                        suggestedQuality: audioFirst ? 'tiny' : 'default',
+                      });
+                    } catch {
+                      e.target.loadVideoById(track.videoId);
+                    }
+                  } else e.target.cueVideoById(track.videoId);
                 } catch {
                   storeRef.current.setIsLoading(false);
                 }
@@ -307,8 +315,20 @@ export default function MiniPlayer() {
         return; // onReady loads the current track
       }
       try {
-        if (playingRef.current) player.loadVideoById(track.videoId);
-        else player.cueVideoById(track.videoId);
+        if (playingRef.current) {
+          // Same audio-first reasoning as onReady: 144p chunks start
+          // playing sooner than default-quality ones.
+          const audioFirst = getEngineSnapshot().mode !== 'video';
+          try {
+            player.loadVideoById({
+              videoId: track.videoId,
+              startSeconds: 0,
+              suggestedQuality: audioFirst ? 'tiny' : 'default',
+            });
+          } catch {
+            player.loadVideoById(track.videoId);
+          }
+        } else player.cueVideoById(track.videoId);
       } catch (err) {
         console.error('[MiniPlayer] YT load error:', err);
         setIsLoading(false);

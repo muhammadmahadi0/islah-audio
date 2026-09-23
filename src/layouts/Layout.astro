@@ -46,9 +46,12 @@ const {
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
     {/* Thumbnails all come from i.ytimg.com — connect early so the first
-        image doesn't pay DNS+TLS setup on the critical path. */}
+        image doesn't pay DNS+TLS setup on the critical path. youtube.com
+        serves the iframe API, youtube-nocookie.com hosts the embed — both
+        are needed the moment the user first taps play. */}
     <link rel="preconnect" href="https://i.ytimg.com" crossorigin />
-    <link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
+    <link rel="preconnect" href="https://www.youtube.com" />
+    <link rel="preconnect" href="https://www.youtube-nocookie.com" />
     <title>{title}</title>
     <script is:inline>
       try {

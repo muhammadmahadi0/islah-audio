@@ -64,8 +64,9 @@ export default function AudioPlayer() {
     }
   };
 
-  // hls.js is ~500KB — never bundle it. Load it on demand the first time
-  // an HLS stream actually plays, then reuse the cached module.
+  // hls.js is ~500KB — never bundle it. It loads on demand at first HLS
+  // play, and is prefetched on browser idle below so that first live-tap
+  // doesn't pay the full download before audio can start.
   const hlsModuleRef = useRef<typeof Hls | null>(null);
   const loadHlsModule = async (): Promise<typeof Hls | null> => {
     if (hlsModuleRef.current) return hlsModuleRef.current;
@@ -78,6 +79,38 @@ export default function AudioPlayer() {
       return null;
     }
   };
+
+  // Prefetch hls.js once the browser is idle — skipped on data-saver or
+  // very slow connections so we never spend a user's mobile data unasked.
+  useEffect(() => {
+    let idleId: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    try {
+      const conn = navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      };
+      if (conn.connection?.saveData) return;
+      const slow = conn.connection?.effectiveType;
+      if (slow === 'slow-2g' || slow === '2g') return;
+    } catch {
+      return;
+    }
+    const prefetch = () => {
+      if (!hlsModuleRef.current) void loadHlsModule();
+    };
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(prefetch, { timeout: 10000 });
+    } else {
+      timer = setTimeout(prefetch, 6000);
+    }
+    return () => {
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as Window & { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+      }
+      if (timer) clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadStream = async (url: string, autoplay: boolean) => {
     const audio = audioRef.current;

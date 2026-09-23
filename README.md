@@ -151,9 +151,11 @@ player). The **islahbd live broadcast**
 and its recording play through a hidden `<audio>` element in
 `AudioPlayer.tsx` instead
 (tracks carrying `hlsUrl`/`audioUrl`; live tracks also set `isLive`, which disables
-seeking). hls.js is lazy-loaded on first HLS play only — Safari plays HLS
+seeking). hls.js is lazy-loaded on first HLS play only (prefetched on idle
+unless data-saver/2g) — Safari plays HLS
 natively with zero download. The YouTube iframe API prewarms on browser idle
-but the player itself is created on demand at first play. The store drives play/pause/seek/volume, and UI components request seeks
+but the player itself is created on demand at first play; lectures load at
+144p first so audio starts fast. The store drives play/pause/seek/volume, and UI components request seeks
 via the `islah:seek` window event (defined in `lib/yt-engine.ts`).
 
 ## Deployment (BETA)
