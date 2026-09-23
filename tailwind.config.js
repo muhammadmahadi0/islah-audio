@@ -61,6 +61,14 @@ module.exports = {
           '"Noto Sans Bengali"',
           'sans-serif',
         ],
+        // Brand wordmark — same display serif as islahbd.com
+        // (their --font-display maps to Playfair Display).
+        display: [
+          '"Playfair Display"',
+          'Georgia',
+          '"Times New Roman"',
+          'serif',
+        ],
       },
       boxShadow: {
         glow: '0 0 24px rgba(201, 162, 39, 0.35)',
