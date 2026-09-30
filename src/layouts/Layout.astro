@@ -189,7 +189,11 @@ const {
       <MiniPlayer client:only="react" />
     </div>
     <BottomNav client:only="react" />
-    <ThemeToggle client:only="react" />
+    {/* Persisted: survives SPA swaps so the toggle (and a mid-flight wrap
+        overlay) never unmounts on navigation. */}
+    <div transition:persist="islah-theme-toggle">
+      <ThemeToggle client:only="react" />
+    </div>
     <BetaBadge client:only="react" />
     <div transition:persist="islah-stream-engine">
       <AudioPlayer client:only="react" />

@@ -542,4 +542,50 @@ html.light .ripple-ink {
   .ripple-ink {
     display: none;
   }
+  .theme-wrap {
+    display: none;
+  }
+}
+
+/* Theme toggle on-click wrapping effect: a circle blooms from the tap point
+   in the incoming theme's base color, wraps the screen mid-flip, then fades.
+   Rendered fixed + pointer-events-none at very high z so it sits above the
+   player/nav; removed from the DOM after ~680ms by the component. */
+.theme-wrap {
+  position: fixed;
+  z-index: 90;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  animation: theme-wrap-bloom 0.65s ease-out forwards;
+}
+.theme-wrap-light {
+  background: radial-gradient(
+    circle,
+    #f4f6f3 0%,
+    rgba(244, 246, 243, 0.92) 55%,
+    rgba(244, 246, 243, 0) 72%
+  );
+}
+.theme-wrap-dark {
+  background: radial-gradient(
+    circle,
+    #060d0a 0%,
+    rgba(6, 13, 10, 0.92) 55%,
+    rgba(6, 13, 10, 0) 72%
+  );
+}
+@keyframes theme-wrap-bloom {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
 }

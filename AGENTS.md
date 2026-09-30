@@ -174,7 +174,11 @@ This file orients AI coding agents working in this repo. Read it before making c
   do NOT reintroduce framer-motion. Site-wide press feedback is the water-drop
   ripple (delegated `pointerdown` in `Layout.astro` blooms `.ripple-ink` inside
   any `button`/`a`; opt out with `data-no-ripple`; menus render fixed so host
-  `overflow:hidden` never clips them). Desktop sidebar collapse is a
+  `overflow:hidden` never clips them). The floating theme toggle is rebuilt
+  around its on-click wrap (`.theme-wrap` bloom in `globals.css`, persisted
+  island `islah-theme-toggle` so a mid-flight wrap survives SPA swaps; it
+  opts out of the droplet via `data-no-ripple` and skips the overlay under
+  `prefers-reduced-motion`). Desktop sidebar collapse is a
   max-width + slide transition on `#sidebar-wrap` (`body.sb-hidden`, persisted
   `islah-sidebar-hidden`); the mobile drawer slides via `#mobile-drawer.open`.
   Layout listeners must be document-delegated + guarded (`__islahLayoutWired`)
