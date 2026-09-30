@@ -403,14 +403,11 @@ export default function HomePage() {
     else if (filter === 'short') list = list.filter((v) => (v.duration || 0) <= SHORT_MAX_SECONDS);
     if (sort === 'popular') return [...list].sort((a, b) => (b.views || 0) - (a.views || 0));
     if (sort === 'oldest') {
-      return [...list].sort((a, b) => {
-        const ta = a.publishedAt ? new Date(a.publishedAt).getTime() : NaN;
-        const tb = b.publishedAt ? new Date(b.publishedAt).getTime() : NaN;
-        if (isNaN(ta) && isNaN(tb)) return 0;
-        if (isNaN(ta)) return 1;
-        if (isNaN(tb)) return -1;
-        return ta - tb;
-      });
+      // InnerTube exposes NO absolute dates here — publishedAt is a relative
+      // label ("6 days ago"), so date-parsing sorts nothing. But the uploads
+      // catalog arrives in exact newest-first order, so oldest-first is just
+      // the reverse (filter preserves order, so this holds for subsets too).
+      return [...list].reverse();
     }
     return list;
   }, [videos, filter, sort]);

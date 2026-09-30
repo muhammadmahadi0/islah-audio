@@ -102,7 +102,10 @@ This file orients AI coding agents working in this repo. Read it before making c
    `HomeView` (Most viewed / Oldest) background-index ALL remaining chunks
    (deduped progressive append, same pattern as Search) so they rank the
    whole catalog, never just the loaded page; manual Show-more hides under
-   those sorts. Newest is native API order (no extra fetch).
+   those sorts. Newest is native API order (no extra fetch). Oldest is the
+   exact reverse of that order — never date-parse `publishedAt` (InnerTube
+   returns relative labels like "6 days ago", so `new Date()` yields NaN
+   and the sort silently no-ops).
 9. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
