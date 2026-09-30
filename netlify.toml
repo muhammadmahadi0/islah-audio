@@ -1,6 +1,9 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  # Netlify builds master ONLY (production). Beta deploys on Vercel instead —
+  # any non-master branch (incl. beta) is ignored here. Exit 0 = skip build.
+  ignore = 'test "$BRANCH" != "master"'
 
 [build.environment]
   NODE_VERSION = "20"

@@ -148,14 +148,14 @@ but the player itself is created on demand at first play; lectures load at
 144p first so audio starts fast. The store drives play/pause/seek/volume, and UI components request seeks
 via the `islah:seek` window event (defined in `lib/yt-engine.ts`).
 
-## Deployment (BETA → Vercel)
+## Deployment (beta → Vercel ONLY, master → Netlify ONLY)
 
-Pushes to `beta` auto-deploy on Vercel (production branch = `beta`, so only
-beta builds — other branches are ignored). `astro.config.mjs` selects the
-adapter by env (`VERCEL` set → `@astrojs/vercel/serverless`, else
-`@astrojs/netlify`), so `master` still deploys to Netlify unchanged. No env
-vars needed on either host (fully keyless). Do not add manual `/api/*`
-redirects; they break routing.
+Pushes to `beta` auto-deploy on Vercel (production branch = `beta`, other
+branches ignored there). Netlify is master-only: `netlify.toml` has
+`ignore = 'test "$BRANCH" != "master"'` so beta/preview builds are skipped.
+`astro.config.mjs` selects the adapter by env (`VERCEL` set → `@astrojs/vercel`,
+else `@astrojs/netlify`). No env vars needed on either host (fully keyless).
+Do not add manual `/api/*` redirects; they break routing.
 
 ## Contributing
 
