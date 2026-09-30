@@ -66,30 +66,35 @@ const {
         reloads by restoring the track paused. */}
     <ClientRouter />
     <title>{title}</title>
+    {/* Theme + design pre-paint. Runs on first load AND after every SPA
+        swap: the ClientRouter replaces <html> attributes from the incoming
+        SSR HTML (which carries no classes), wiping `light`/`material` on
+        every navigation — so re-apply the saved modes on astro:after-swap.
+        Same document throughout, so one listener covers all navigations. */}
     <script is:inline>
-      try {
-        var s = localStorage.getItem('islah-theme');
-        if (s && JSON.parse(s).state.theme === 'light') {
-          document.documentElement.classList.add('light');
-        }
-        var dm = null;
-        try { dm = JSON.parse(localStorage.getItem('islah-design') || 'null'); } catch (e2) {}
-        if (dm && dm.state && dm.state.mode) {
-          if (dm.state.mode === 'material') {
-            document.documentElement.classList.add('material');
+      function applySavedModes() {
+        try {
+          var s = localStorage.getItem('islah-theme');
+          document.documentElement.classList.toggle('light', !!(s && JSON.parse(s).state.theme === 'light'));
+          var dm = null;
+          try { dm = JSON.parse(localStorage.getItem('islah-design') || 'null'); } catch (e2) {}
+          var material = false;
+          if (dm && dm.state && dm.state.mode) {
+            material = dm.state.mode === 'material';
+          } else {
+            // No saved choice: Liquid Glass defaults ON for iOS + desktop,
+            // OFF (Material 3) for other mobile — mirrors design-store.ts.
+            var dua = navigator.userAgent || '';
+            var dandroid = /Android/i.test(dua);
+            var dios = /iPad|iPhone|iPod/i.test(dua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            var dmobile = /Mobile|Tablet|Touch|webOS|BlackBerry|IEMobile|Opera Mini/i.test(dua);
+            material = dandroid || (!dios && dmobile);
           }
-        } else {
-          // No saved choice: Liquid Glass defaults ON for iOS + desktop,
-          // OFF (Material 3) for other mobile — mirrors design-store.ts.
-          var dua = navigator.userAgent || '';
-          var dandroid = /Android/i.test(dua);
-          var dios = /iPad|iPhone|iPod/i.test(dua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-          var dmobile = /Mobile|Tablet|Touch|webOS|BlackBerry|IEMobile|Opera Mini/i.test(dua);
-          if (dandroid || (!dios && dmobile)) {
-            document.documentElement.classList.add('material');
-          }
-        }
-      } catch (e) {}
+          document.documentElement.classList.toggle('material', material);
+        } catch (e) {}
+      }
+      applySavedModes();
+      document.addEventListener('astro:after-swap', applySavedModes);
     </script>
   </head>
   <body class="antialiased bg-ink-950 text-white">

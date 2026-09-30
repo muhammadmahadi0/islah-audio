@@ -174,6 +174,46 @@ export const usePlayerStore = create<PlayerState>()(
         currentTime: 0,
         duration: 0,
       }),
+      // Progress ticks set() twice a second — without throttling, every tick
+      // would JSON.stringify the whole queue (100+ tracks) into localStorage
+      // and jank low-end phones. Trailing-edge 2s throttle: track/queue
+      // changes still land promptly on pause/stop/nav.
+      storage: {
+        getItem: (name) => {
+          try {
+            const raw = localStorage.getItem(name);
+            return raw ? JSON.parse(raw) : null;
+          } catch {
+            return null;
+          }
+        },
+        setItem: (() => {
+          let timer: ReturnType<typeof setTimeout> | null = null;
+          let pending: { name: string; value: unknown } | null = null;
+          const flush = () => {
+            timer = null;
+            if (!pending) return;
+            const { name, value } = pending;
+            pending = null;
+            try {
+              localStorage.setItem(name, JSON.stringify(value));
+            } catch {
+              // Quota/private-mode — playback continues in memory.
+            }
+          };
+          return (name: string, value: unknown) => {
+            pending = { name, value };
+            if (!timer) timer = setTimeout(flush, 2000);
+          };
+        })(),
+        removeItem: (name) => {
+          try {
+            localStorage.removeItem(name);
+          } catch {
+            // ignore
+          }
+        },
+      },
     }
   )
 );

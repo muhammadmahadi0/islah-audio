@@ -32,7 +32,12 @@ This file orients AI coding agents working in this repo. Read it before making c
    player store persists track + queue + volume (`islah-player`) so even a
    hard reload restores the mini-player paused (autoplay stays off —
    browsers block it). Sidebar/BottomNav active states listen to
-   `astro:page-load` since islands aren't remounted on SPA nav. `AudioPlayer.tsx` owns only
+   `astro:page-load` since islands aren't remounted on SPA nav.
+   **View-transition gotcha:** the ClientRouter replaces `<html>` attributes
+   from the incoming SSR HTML on every swap, wiping the `light`/`material`
+   classes — so `Layout.astro` re-applies the saved theme + design from
+   localStorage on `astro:after-swap` (same-document listener, registered
+   once). Never rely on `<html>` classes surviving navigation. `AudioPlayer.tsx` owns only
    the `<audio>`/hls.js stream engine. Seeking from any UI goes through the
    `islah:seek` window `CustomEvent` (`detail` = seconds), ignored for live
    (`track.isLive`). `AudioPlayer.tsx` also holds the Screen Wake Lock while
