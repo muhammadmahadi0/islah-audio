@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import {
   Play,
@@ -280,6 +280,17 @@ export default function HomePage() {
   const [nextToken, setNextToken] = useState<string | null>(null);
   const [totalVideos, setTotalVideos] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [indexing, setIndexing] = useState(false);
+  const [loadedChannel, setLoadedChannel] = useState('');
+  // Guards for the global-sort background indexer (not state — no re-renders).
+  const indexingRef = useRef(false);
+  const indexedForRef = useRef<string | null>(null);
+  // Latest catalog snapshot for the indexer effect (kept out of its deps so
+  // progressive appends don't restart the loop).
+  const videosRef = useRef(videos);
+  videosRef.current = videos;
+  const tokenRef = useRef(nextToken);
+  tokenRef.current = nextToken;
 
   const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayerStore();
   const { channelId } = useChannelStore();
@@ -288,6 +299,8 @@ export default function HomePage() {
     try {
       setIsLoading(true);
       setError(null);
+      setIndexing(false);
+      indexedForRef.current = null;
 
       // NOTE: channel ID goes in the path — query strings are dropped
       // by our hosting before function invocation.
@@ -298,6 +311,7 @@ export default function HomePage() {
 
       setVideos(data.videos);
       setNextToken(data.nextPageToken || null);
+      setLoadedChannel(channelId);
       // BETA: total can be null when InnerTube has no key for statistics.
       setTotalVideos(typeof data.total === 'number' ? data.total : 0);
       if (data.channel?.name) setChannelName(data.channel.name);
@@ -313,6 +327,54 @@ export default function HomePage() {
   useEffect(() => {
     fetchVideos();
   }, [fetchVideos]);
+
+  // Global sorts (Most viewed / Oldest) must rank the WHOLE catalog, not just
+  // the loaded page — background-index remaining chunks (deduped progressive
+  // append, same pattern as Search) and sort as they arrive. Newest is native
+  // API order, so it needs no extra fetch.
+  useEffect(() => {
+    if (sort === 'newest') return;
+    if (indexingRef.current) return;
+    if (indexedForRef.current === channelId) return;
+    const startToken = tokenRef.current;
+    if (loadedChannel !== channelId || !startToken) {
+      if (!startToken && loadedChannel === channelId) indexedForRef.current = channelId;
+      return;
+    }
+    indexingRef.current = true;
+    let cancelled = false;
+    (async () => {
+      setIndexing(true);
+      const seen = new Set(videosRef.current.map((v) => v.videoId || v.id));
+      let token: string | null = startToken;
+      while (token && !cancelled) {
+        let mdata: { success?: boolean; videos?: VideoItem[]; nextPageToken?: string } | null = null;
+        try {
+          mdata = await fetchJson(
+            `/api/channel/${channelId}/more/${encodeURIComponent(token)}`,
+            25000
+          );
+        } catch (err) {
+          console.error('[Page] Sort indexing error:', err);
+          break;
+        }
+        if (!mdata?.success || !Array.isArray(mdata.videos)) break;
+        const fresh = mdata.videos.filter((v) => !seen.has(v.videoId || v.id));
+        fresh.forEach((v) => seen.add(v.videoId || v.id));
+        token = mdata.nextPageToken || null;
+        if (cancelled) break;
+        if (fresh.length > 0) setVideos((prev) => [...prev, ...fresh]);
+        setNextToken(token);
+      }
+      if (!cancelled) indexedForRef.current = channelId;
+      indexingRef.current = false;
+      setIndexing(false);
+    })();
+    return () => {
+      cancelled = true;
+      indexingRef.current = false;
+    };
+  }, [sort, channelId, loadedChannel]);
 
   // Live status from islahbd.com (polled)
   useEffect(() => {
@@ -629,7 +691,9 @@ export default function HomePage() {
                 </button>
               ))}
               <span className="ml-1 shrink-0 text-xs text-mist-dark tabular-nums">
-                {filter === 'all' ? `${totalVideos || videos.length} videos` : `${filtered.length} videos`}
+                {indexing && sort !== 'newest'
+                  ? `indexing ${videos.length}…`
+                  : filter === 'all' ? `${totalVideos || videos.length} videos` : `${filtered.length} videos`}
               </span>
             </div>
           </div>
@@ -667,14 +731,22 @@ export default function HomePage() {
                 ))}
             </div>
 
-            {/* Show more — the uploads catalog is paged (100 + 200 chunks) */}
+            {/* Show more — the uploads catalog is paged (100 + 200 chunks).
+                Under global sorts (Most viewed / Oldest) the whole catalog is
+                background-indexed instead, so manual paging is hidden there. */}
             <div className="flex flex-col items-center mt-8 gap-2">
               {totalVideos > 0 && (
                 <p className="text-xs font-semibold text-mist-dark tabular-nums">
                   Showing {videos.length} of {totalVideos} lectures
                 </p>
               )}
-              {nextToken ? (
+              {sort !== 'newest' && indexing && (
+                <p className="flex items-center gap-2 text-xs font-semibold text-brand-light">
+                  <Loader2 size={14} className="animate-spin" />
+                  Loading all videos for accurate sorting… {videos.length} so far
+                </p>
+              )}
+              {sort === 'newest' && nextToken ? (
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
@@ -691,8 +763,12 @@ export default function HomePage() {
                   )}
                 </button>
               ) : (
-                videos.length > 0 && (
-                  <p className="text-xs text-mist-dark">You’ve reached the end ✓</p>
+                videos.length > 0 && !indexing && (
+                  <p className="text-xs text-mist-dark">
+                    {sort === 'newest'
+                      ? 'You’ve reached the end ✓'
+                      : `Sorted across all ${videos.length} videos ✓`}
+                  </p>
                 )
               )}
             </div>

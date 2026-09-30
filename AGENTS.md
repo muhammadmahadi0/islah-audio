@@ -98,7 +98,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    Home/Search/Boyan/Hamd-Naat/Library — keep Sidebar + BottomNav in sync.
 8. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
    load fetches the first page, "more" chunks fetch 2 continuation pages
-   (~200 videos) via `/api/channel/[id]/more/[token]`.
+   (~200 videos) via `/api/channel/[id]/more/[token]`. Global sorts in
+   `HomeView` (Most viewed / Oldest) background-index ALL remaining chunks
+   (deduped progressive append, same pattern as Search) so they rank the
+   whole catalog, never just the loaded page; manual Show-more hides under
+   those sorts. Newest is native API order (no extra fetch).
 9. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on

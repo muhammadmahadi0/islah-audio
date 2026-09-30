@@ -43,7 +43,7 @@ playlists, search, and a mobile-first design.
   Play Store / App Store for the visitor's device
 - **Modern UI** — golden theme with light/dark mode (floating toggle,
   persisted), floating liquid-glass sidebar + top bar, mobile bottom nav pill,
-   floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters + Newest/Most-viewed/Oldest sorts.
+   floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters + Newest/Most-viewed/Oldest sorts (global sorts auto-load the full catalog in the background).
   A sidebar **Liquid Glass** toggle (persisted; defaults on for iOS + desktop,
   off for other mobile) flattens the
   whole site to a Material 3 solid look
