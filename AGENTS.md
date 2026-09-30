@@ -35,7 +35,10 @@ This file orients AI coding agents working in this repo. Read it before making c
    browser-blocked (direct /watch visits): MiniPlayer handles UNSTARTED by
    clearing the spinner and arms an 8s play watchdog on every autoplay load
    that reconciles to paused-cue if PLAYING/BUFFERING never arrives
-   (PLAYING/CUED clear it; unmount clears it).
+   (PLAYING/CUED clear it; unmount clears it). Downloads are MP3 recordings
+   only (`track.audioUrl`, non-HLS): MiniPlayer fetches as blob with a
+   direct-open fallback; the button is disabled with a tooltip for YouTube
+   embeds and live HLS — never add extraction to support them.
 2. **No audio-extraction services.** Cobalt v7 (`api.cobalt.tools`) is shut down;
    public Piped/Invidious instances return 403/525. Do NOT reintroduce `cobalt.ts`,
    `ytdl-core`, or third-party extractors. `/api/stream/[id]` intentionally returns

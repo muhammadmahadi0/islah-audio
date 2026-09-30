@@ -89,7 +89,11 @@
   cluster is a YouTube-style bar (title row, time top-right of the seek bar,
   then centered prev / play / next with mute+volume right and share
   bottom-left, its platform menu flying out rightward); mobile keeps its
-  stacked blocks untouched with share in the title row.
+  stacked blocks untouched with share in the title row. A small download
+  button sits top-right on mobile (top bar) and bottom-left on desktop —
+  active only for MP3 recordings (fetched as blob, direct-open fallback);
+  disabled with a tooltip for YouTube embeds and live HLS (no downloadable
+  file without an extractor, which is banned).
 - Cards/panels/inputs system-wide use `.liquid-glass` / `.liquid-chip` /
   `.liquid-input` from `globals.css` (specular top edge, diagonal gloss sheen,
   inner reflections); primary actions use glossy gold `.liquid-gold`.

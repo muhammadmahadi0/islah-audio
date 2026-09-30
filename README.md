@@ -14,7 +14,8 @@ playlists, search, and a mobile-first design.
   durations, and view counts
 - **Audio playback** — hidden YouTube embed player wired to a global player store
   (play/pause, next/previous, seek, volume, autoplay-next); the screen stays on
-  while playing via the Wake Lock API
+  while playing via the Wake Lock API; MP3 recordings can be downloaded from
+  the expanded player (top-right on mobile, bottom-left on desktop)
 - **Playlists** — the channel's YouTube playlists plus your own custom ones
   (create, save any lecture from Home/Search, play them back; yours are stored in
   `localStorage` — all merged into the **Library** tab; the playback queue moved

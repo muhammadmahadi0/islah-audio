@@ -7,6 +7,7 @@ import {
   SkipForward,
   ChevronUp,
   ChevronDown,
+  Download,
   Music,
   Loader2,
   X,
@@ -532,6 +533,49 @@ export default function MiniPlayer() {
     setVideoMode(engine.mode === 'video' ? 'audio' : 'video');
   };
 
+  // Download: only tracks with a direct MP3 file (recordings) can be saved.
+  // YouTube lectures play through the official embed (no extractable file)
+  // and live HLS streams have no single file — the button stays disabled
+  // for those with an explanatory tooltip.
+  const [downloading, setDownloading] = useState(false);
+  const downloadableUrl =
+    currentTrack?.audioUrl && !/\.m3u8(\?|$)|\/live(\?|$)/i.test(currentTrack.audioUrl)
+      ? currentTrack.audioUrl
+      : null;
+  const downloadHint = downloadableUrl
+    ? 'Download audio'
+    : isLive
+      ? 'Live streams can\u2019t be downloaded'
+      : 'Only recordings can be downloaded';
+
+  const handleDownload = async () => {
+    if (!downloadableUrl || downloading) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(downloadableUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const safe = (currentTrack?.title || 'recording')
+        .replace(/[\\/:*?"<>|]/g, '')
+        .trim()
+        .slice(0, 80) || 'recording';
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = `${safe}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objUrl), 5000);
+    } catch {
+      // CORS-blocked fetch (or anything else) — let the browser handle the
+      // file directly instead of failing silently.
+      window.open(downloadableUrl, '_blank', 'noopener');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   // Up-next queue row tap: toggle if current, else jump to it.
   const playQueueTrack = (track: (typeof playlist)[number], index: number) => {
     if (index === playlistIndex) setIsPlaying(!isPlaying);
@@ -588,6 +632,21 @@ export default function MiniPlayer() {
                 </p>
               )}
             </div>
+            {/* Download (mobile only — top-right). Active for MP3 recordings;
+                disabled with a tooltip for YouTube/live tracks. */}
+            <button
+              onClick={handleDownload}
+              disabled={!downloadableUrl || downloading}
+              className="md:hidden flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] disabled:opacity-40"
+              aria-label="Download audio"
+              title={downloadHint}
+            >
+              {downloading ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Download size={18} />
+              )}
+            </button>
             <button
               onClick={() => {
                 setIsExpanded(false);
@@ -716,7 +775,7 @@ export default function MiniPlayer() {
                 aria-label="Seek"
               />
               <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                <span className="flex justify-self-start">
+                <span className="flex justify-self-start gap-1.5">
                   {isYtTrack && (
                     <ShareButton
                       videoId={currentTrack.videoId}
@@ -726,6 +785,21 @@ export default function MiniPlayer() {
                       className="h-9 w-9 bg-white/[0.07] border border-white/20 hover:bg-white/[0.14] hover:border-white/40"
                     />
                   )}
+                  {/* Download (desktop bottom-left). Active for MP3
+                      recordings; disabled with a tooltip otherwise. */}
+                  <button
+                    onClick={handleDownload}
+                    disabled={!downloadableUrl || downloading}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] disabled:opacity-40"
+                    aria-label="Download audio"
+                    title={downloadHint}
+                  >
+                    {downloading ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Download size={16} />
+                    )}
+                  </button>
                 </span>
                 <span className="flex items-center gap-2 justify-self-center">
                 <button
