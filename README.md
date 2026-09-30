@@ -26,6 +26,9 @@ playlists, search, and a mobile-first design.
   hero banner and the player) is polled from their public status API
 - **Channels** — switch between `@islahbd` and `@IslahiGhazal` from the sidebar
   (slide-over drawer on Android); Home, Search, and Library all follow along
+  (Boyan is channel-independent)
+- **Boyan** — direct MP3 lectures from the IslahBD API with search + category
+  chips; plays in-app, saves to playlists, downloads like recordings
 - **Search** — instant client-side search across the channel catalog
 - **Shareable links** — every lecture opens at `/watch/[videoId]` and auto-plays;
   share buttons (Home, Search, Library, player) open a dropdown
@@ -87,7 +90,8 @@ npm run preview # preview built output
 | `GET /api/channel/[id]/more/[token]` | Next ~200 videos + `nextPageToken` |
 | `GET /api/playlists/[channel]` | A channel's playlists (InnerTube Playlists tab, 6h CDN cache) |
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube (first ~200) |
-| `GET /api/live` | islahbd.com live status as `{ isLive, title, speaker, listeners, streamUrl, recording }` |
+| `GET /api/live` | islahbd.com live status as `{ isLive, title, speaker, location, listeners, streamUrl, recording }` |
+| `GET /api/boyan` | IslahBD MP3 catalog `{ audios, categories }` (1h CDN cache) |
 | `GET /api/hls/[...url]` | HLS manifest/media proxy with open CORS (fallback when the live CDN blocks cross-origin fetch) |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (playback is client-side) |
 
@@ -110,9 +114,10 @@ src/
 │   ├── search.astro          # Search shell (?q= → SearchView island)
 │   ├── library.astro         # Library shell (server playlists → island)
 │   ├── watch/[id].astro      # Shareable watch page (SSR metadata + OG tags)
-│   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream
+│   ├── boyan.astro           # Boyan shell (BoyanView island)
+│   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream, boyan
 ├── layouts/Layout.astro      # html shell, liquid-glass top bar, islands
-├── views/                    # React islands: Home/Search/Library/Watch
+├── views/                    # React islands: Home/Search/Library/Watch/Boyan
 ├── components/               # player, nav, sidebar, theme toggle, playlist menu, share button
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)
@@ -122,6 +127,7 @@ src/
 │   └── design-store.ts     # liquid-glass / material mode, persisted
 └── lib/
     ├── innertube.ts        # ALL listing, fully keyless (uploads, playlists, meta, video info)
+    ├── boyan.ts            # IslahBD MP3 catalog + Track mapping (boyan page)
     ├── video.ts            # single-video metadata (watch page + stream API)
     ├── share.ts            # shareable-link helpers (native share / copy)
     ├── open-app.ts         # open installed IslahBD app w/ store fallback

@@ -75,16 +75,26 @@ This file orients AI coding agents working in this repo. Read it before making c
    never the full listing.
 5. **Channels.** Registry in `lib/channels.ts`, active channel in
    `channel-store.ts` (persist key `islah-channel`). Home/Search/Library all
-   follow the active channel. Sidebar shows the switcher; Android opens the
-   sidebar as a drawer (`#mobile-drawer` in the layout).
-6. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
+   follow the active channel (Boyan is channel-independent). Sidebar shows
+   the switcher; Android opens the sidebar as a drawer (`#mobile-drawer`
+   in the layout). Nav is Home/Search/Boyan/Library — BottomNav mirrors it
+   (4-col grid, keep both in sync).
+6. **Boyan (IslahBD MP3s).** Catalog in `lib/boyan.ts` (types + upstream
+   fetch + `toBoyanTrack` mapping + duration/date helpers), served by
+   `/api/boyan` (proxies `api.islahbd.com/api/audios/` + `/api/categories/`,
+   1h CDN cache, no pagination/search upstream — filter client-side).
+   `/boyan` page renders `views/BoyanView.tsx` (search, category chips,
+   play, save-to-playlist). Tracks use `id: 'boyan-<id>'` with a direct
+   `audioUrl` and empty `videoId` (stream engine + download button pick them
+   up automatically; share button correctly absent).
+7. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
    load fetches the first page, "more" chunks fetch 2 continuation pages
    (~200 videos) via `/api/channel/[id]/more/[token]`.
-7. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
+8. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
    `currentTrack` for the same reason).
-8. **Live (islahbd.com).** Status via `/api/live` (proxies
+9. **Live (islahbd.com).** Status via `/api/live` (proxies
    `api.islahbd.com/api/live/status/` → `LiveStatus` in `lib/live.ts`,
    includes `location` venue name for live + recording); HLS via `/api/hls`
    proxy fallback. Live button lives in the Home hero (`views/HomeView.tsx`);
@@ -92,13 +102,13 @@ This file orients AI coding agents working in this repo. Read it before making c
    "Last live • location". Live tracks use `id: 'live'` / `'live-recording'`
    with `isLive` set for real broadcasts; `Track.location` carries the venue
    into MiniPlayer (title block + Up-next header, MapPin icon).
-9. **Hosting (beta = Vercel ONLY, master = Netlify ONLY).** `astro.config.mjs`
+10. **Hosting (beta = Vercel ONLY, master = Netlify ONLY).** `astro.config.mjs`
    picks the adapter by env: `VERCEL` set → `@astrojs/vercel`, otherwise
    `@astrojs/netlify`. `netlify.toml` has `ignore = 'test "$BRANCH" != "master"'`
    so Netlify skips every non-master branch (incl. beta); Vercel's production
    branch is `beta` with other branches ignored. Never add manual `/api/*`
    redirects, and never re-add the Next.js plugin on either branch.
-10. **Shareable links.** Every video is addressable at `/watch/[videoId]`
+11. **Shareable links.** Every video is addressable at `/watch/[videoId]`
    (`src/pages/watch/[id].astro` fetches SSR metadata + OG tags through
    `lib/video.ts`, `views/WatchView.tsx` island auto-plays on open). Share via
    `lib/share.ts` (`components/ShareButton.tsx`: dropdown menu with
@@ -107,7 +117,7 @@ This file orients AI coding agents working in this repo. Read it before making c
    `shareNative()` + `copyLink()` buttons with a WhatsApp/Telegram/Facebook/X fallback menu
    via `shareTargets()`). Same rule as APIs: the video ID travels in the
    URL path, never a query string.
-11. **Open-IslahBD button (`#islahbd-btn` in `Layout.astro`).** The app
+12. **Open-IslahBD button (`#islahbd-btn` in `Layout.astro`).** The app
    registers the `islahbd://` custom scheme (`open/<section>/<token>` paths —
    same as the owner's DeepLinkRedirect). Fire `islahbd://open` on iOS /
    an `intent://open` scheme-intent on Android with `S.browser_fallback_url`

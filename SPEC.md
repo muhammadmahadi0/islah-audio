@@ -156,6 +156,19 @@
 - Watch page actions are Play, Share, and gold-gradient Open App
   (`islahbd://open` via `lib/open-app.ts`); no YouTube outbound link
 
+#### Boyan (IslahBD direct MP3s)
+
+- Catalog from the IslahBD API (`/api/boyan`, proxied + 1h CDN cache;
+  whole list ~70KB, filtered client-side) — title, speaker, category,
+  location, upload date, direct MP3
+- Header card with count, search (title/speaker/location/category),
+  category chips (gold active), liquid-glass rows with save-to-playlist
+  and equalizer on the playing track
+- Plays through the stream engine as `boyan-<id>` tracks (no videoId, so no
+  share button) with artwork fallback; durations fill in from the element;
+  download button picks up the MP3 automatically
+- Sidebar nav + mobile bottom-nav item (Mic icon, `/boyan`)
+
 #### Library (playlists only — no Queue tab)
 
 - **Playlists → From YouTube**: every channel's real YouTube playlists,
@@ -224,6 +237,7 @@
 | `GET /api/playlists/[channel]` | A channel's playlists (InnerTube Playlists tab, 6h CDN cache) |
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube (first ~200) |
 | `GET /api/live` | Live status `{ isLive, title, speaker, location, listeners, streamUrl, recording }` (`recording` also carries `location`) |
+| `GET /api/boyan` | IslahBD MP3 catalog `{ audios, categories }` (1h CDN cache) |
 | `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
 
@@ -275,3 +289,4 @@
 10. ✅ Golden theme, sidebar on desktop, bottom nav on mobile
 11. ✅ Responsive from mobile to desktop
 12. ✅ Every video opens via `/watch/[videoId]` and auto-plays; links unfurl with title + thumbnail
+13. ✅ Boyan page lists IslahBD MP3s with search + categories, plays + downloads them
