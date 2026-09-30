@@ -178,7 +178,11 @@ This file orients AI coding agents working in this repo. Read it before making c
   around its on-click wrap (`.theme-wrap` bloom in `globals.css`, persisted
   island `islah-theme-toggle` so a mid-flight wrap survives SPA swaps; it
   opts out of the droplet via `data-no-ripple` and skips the overlay under
-  `prefers-reduced-motion`). Desktop sidebar collapse is a
+  `prefers-reduced-motion`). The sidebar Liquid Glass row has the same
+  tap-bloom pattern (`.design-wrap` in `globals.css`) with a liquid variant —
+  glassy blob (blur + saturation + gloss sheen + gold shimmer) wobbling
+  through organic border-radius shapes; direction-aware
+  (`.design-wrap-to-liquid` vs `.design-wrap-to-material`). Desktop sidebar collapse is a
   max-width + slide transition on `#sidebar-wrap` (`body.sb-hidden`, persisted
   `islah-sidebar-hidden`); the mobile drawer slides via `#mobile-drawer.open`.
   Layout listeners must be document-delegated + guarded (`__islahLayoutWired`)

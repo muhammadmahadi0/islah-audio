@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Home, Search, Library, Mic, Music, Radio, Droplets } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
@@ -44,6 +44,42 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const { channelId, setChannelId } = useChannelStore();
   const { mode: designMode, toggle: toggleDesign } = useDesignStore();
   const [meta, setMeta] = useState<Record<string, ChannelMeta>>({});
+  const [designWrap, setDesignWrap] = useState<{
+    x: number;
+    y: number;
+    to: 'liquid' | 'material';
+    size: number;
+    key: number;
+  } | null>(null);
+
+  // Same tap-bloom wrap as the theme toggle, but liquid: a glassy blob
+  // blooms from the tap point while the design flips mid-expansion.
+  const handleDesignToggle = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const to: 'liquid' | 'material' = designMode === 'liquid' ? 'material' : 'liquid';
+      if (
+        typeof window !== 'undefined' &&
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      ) {
+        toggleDesign();
+        return;
+      }
+      let x = window.innerWidth / 2;
+      let y = window.innerHeight / 2;
+      try {
+        const rect = e.currentTarget.getBoundingClientRect();
+        x = typeof e.clientX === 'number' && e.clientX > 0 ? e.clientX : rect.left + rect.width / 2;
+        y = typeof e.clientY === 'number' && e.clientY > 0 ? e.clientY : rect.top + rect.height / 2;
+      } catch {
+        // fall back to the viewport center above
+      }
+      const size = Math.hypot(window.innerWidth, window.innerHeight) * 2.2;
+      setDesignWrap({ x, y, to, size, key: Date.now() });
+      window.setTimeout(toggleDesign, 180);
+      window.setTimeout(() => setDesignWrap(null), 950);
+    },
+    [designMode, toggleDesign]
+  );
 
   // Channel avatars via the featherweight meta endpoint (name + avatar
   // only — never the 100-video listing). CDN-cached server-side.
@@ -173,7 +209,8 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
 
       {/* Liquid Glass toggle (no Settings wrapper) */}
       <button
-        onClick={toggleDesign}
+        onClick={handleDesignToggle}
+        data-no-ripple
         role="switch"
         aria-checked={designMode === 'liquid'}
         aria-label="Liquid Glass design"
@@ -214,6 +251,22 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
       <p className="px-3 text-[11px] leading-relaxed text-mist-dark">
         Audio streaming from public YouTube lectures. For listening &amp; learning.
       </p>
+      {designWrap && (
+        <span
+          key={designWrap.key}
+          aria-hidden="true"
+          className={cn(
+            'design-wrap',
+            designWrap.to === 'liquid' ? 'design-wrap-to-liquid' : 'design-wrap-to-material'
+          )}
+          style={{
+            left: designWrap.x,
+            top: designWrap.y,
+            width: designWrap.size,
+            height: designWrap.size,
+          }}
+        />
+      )}
     </aside>
   );
 }
