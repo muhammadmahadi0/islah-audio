@@ -129,7 +129,7 @@
   Play-all / Shuffle / **LIVE** buttons (single-line labels), "Live now"
   banner (title • location • listeners) when on air, "Last live • location"
   line when offline with a recording
-- Filters: All / Bayans (>5 min) / Shorts (≤5 min)
+- Filters: All / Bayans (>5 min) / Shorts (≤5 min) + sorts Newest / Most viewed / Oldest
 - Cards: rounded-2xl, hover lift + play overlay, duration badge,
   "Playing" badge + equalizer on current track, **+** save-to-playlist button,
   share button (copies the `/watch/[id]` link); tapping the title opens the

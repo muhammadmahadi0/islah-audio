@@ -32,10 +32,18 @@ interface VideoItem {
 
 type Filter = 'all' | 'bayan' | 'short';
 
+type Sort = 'newest' | 'popular' | 'oldest';
+
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'bayan', label: 'Bayans' },
   { id: 'short', label: 'Shorts' },
+];
+
+const SORTS: { id: Sort; label: string }[] = [
+  { id: 'newest', label: 'Newest' },
+  { id: 'popular', label: 'Most viewed' },
+  { id: 'oldest', label: 'Oldest' },
 ];
 
 const SHORT_MAX_SECONDS = 5 * 60;
@@ -267,6 +275,7 @@ export default function HomePage() {
   const [channelName, setChannelName] = useState('Islah');
   const [channelAvatar, setChannelAvatar] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const [sort, setSort] = useState<Sort>('newest');
   const [live, setLive] = useState<LiveStatus | null>(null);
   const [nextToken, setNextToken] = useState<string | null>(null);
   const [totalVideos, setTotalVideos] = useState(0);
@@ -327,10 +336,22 @@ export default function HomePage() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (filter === 'bayan') return videos.filter((v) => (v.duration || 0) > SHORT_MAX_SECONDS);
-    if (filter === 'short') return videos.filter((v) => (v.duration || 0) <= SHORT_MAX_SECONDS);
-    return videos;
-  }, [videos, filter]);
+    let list = videos;
+    if (filter === 'bayan') list = list.filter((v) => (v.duration || 0) > SHORT_MAX_SECONDS);
+    else if (filter === 'short') list = list.filter((v) => (v.duration || 0) <= SHORT_MAX_SECONDS);
+    if (sort === 'popular') return [...list].sort((a, b) => (b.views || 0) - (a.views || 0));
+    if (sort === 'oldest') {
+      return [...list].sort((a, b) => {
+        const ta = a.publishedAt ? new Date(a.publishedAt).getTime() : NaN;
+        const tb = b.publishedAt ? new Date(b.publishedAt).getTime() : NaN;
+        if (isNaN(ta) && isNaN(tb)) return 0;
+        if (isNaN(ta)) return 1;
+        if (isNaN(tb)) return -1;
+        return ta - tb;
+      });
+    }
+    return list;
+  }, [videos, filter, sort]);
 
   const toTrack = useCallback(
     (video: VideoItem): Track => ({
@@ -590,6 +611,21 @@ export default function HomePage() {
                   )}
                 >
                   {f.label}
+                </button>
+              ))}
+              <span aria-hidden="true" className="shrink-0 w-px h-5 bg-white/15 mx-1" />
+              {SORTS.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setSort(s.id)}
+                  className={cn(
+                    'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all overflow-hidden',
+                    sort === s.id
+                      ? 'liquid-gold font-bold'
+                      : 'liquid-chip text-white'
+                  )}
+                >
+                  {s.label}
                 </button>
               ))}
               <span className="ml-1 shrink-0 text-xs text-mist-dark tabular-nums">

@@ -40,3 +40,7 @@ next-env.d.ts
 .idea/
 # Local Netlify folder
 .netlify
+
+# local session handoff — never push to github
+session.md
+SESSION.md
