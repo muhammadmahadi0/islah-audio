@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useSyncExternalStore } from 'react';
 import { usePlayerStore } from '@/store/player-store';
+import { useLanguageStore } from '@/store/language-store';
+import { t } from '@/lib/i18n';
 import {
   Play,
   Pause,
@@ -59,6 +61,8 @@ function EqBars({ className }: { className?: string }) {
 export default function MiniPlayer() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const {
     currentTrack,
     isPlaying,
@@ -543,10 +547,10 @@ export default function MiniPlayer() {
       ? currentTrack.audioUrl
       : null;
   const downloadHint = downloadableUrl
-    ? 'Download audio'
+    ? s.downloadAudio
     : isLive
-      ? 'Live streams can\u2019t be downloaded'
-      : 'Only recordings can be downloaded';
+      ? s.liveNoDownload
+      : s.onlyRecordingsDownload;
 
   const handleDownload = async () => {
     if (!downloadableUrl || downloading) return;
@@ -618,13 +622,13 @@ export default function MiniPlayer() {
             <button
               onClick={() => setIsExpanded(false)}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
-              aria-label="Collapse player"
+              aria-label={s.collapsePlayer}
             >
               <ChevronDown size={22} />
             </button>
             <div className="min-w-0 flex-1 text-center">
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-mist">
-                Now playing
+                {s.npNowPlaying}
               </p>
               {queueTotal > 1 && queuePos !== null && (
                 <p className="mt-0.5 text-[11px] font-semibold tabular-nums text-mist-dark">
@@ -638,7 +642,7 @@ export default function MiniPlayer() {
               onClick={handleDownload}
               disabled={!downloadableUrl || downloading}
               className="md:hidden flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] disabled:opacity-40"
-              aria-label="Download audio"
+              aria-label={downloadHint}
               title={downloadHint}
             >
               {downloading ? (
@@ -653,8 +657,8 @@ export default function MiniPlayer() {
                 stop();
               }}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20 backdrop-blur-md border border-red-400/30 text-red-400 transition-all hover:bg-red-500/30 hover:border-red-400/50 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_16px_rgba(239,68,68,0.25)]"
-              aria-label="Stop and close player"
-              title="Stop"
+              aria-label={s.stopClose}
+              title={s.stop}
             >
               <X size={20} />
             </button>
@@ -705,8 +709,8 @@ export default function MiniPlayer() {
                   <button
                     onClick={toggleVideo}
                     className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-[#FFFFFF]/25 text-[#FFFFFF] transition-colors hover:bg-black/80 hover:border-[#FFFFFF]/50"
-                    aria-label={engine.mode === 'video' ? 'Switch to audio only' : 'Watch video'}
-                    title={engine.mode === 'video' ? 'Audio only' : 'Watch video'}
+                    aria-label={engine.mode === 'video' ? s.switchToAudio : s.watchVideo}
+                    title={engine.mode === 'video' ? s.toAudioOnly : s.watchVideo}
                   >
                     {engine.mode === 'video' ? <Music size={18} /> : <Video size={18} />}
                   </button>
@@ -735,7 +739,7 @@ export default function MiniPlayer() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
                   </span>
-                  Live
+                  {s.liveBadge}
                 </span>
               )}
               <div className="min-w-0 flex-1">
@@ -760,7 +764,7 @@ export default function MiniPlayer() {
             </div>
             <div className="relative mt-2">
               <span className="mb-1 flex justify-end text-[11px] font-medium tabular-nums text-mist">
-                <span>{isLive ? 'LIVE' : `${formatTime(currentTime)} / ${formatTime(duration)}`}</span>
+                <span>{isLive ? s.liveBadge : `${formatTime(currentTime)} / ${formatTime(duration)}`}</span>
               </span>
               <input
                 type="range"
@@ -772,7 +776,7 @@ export default function MiniPlayer() {
                 disabled={isLive}
                 className={cn('w-full', isLive && 'opacity-40')}
                 style={{ '--fill': `${progress}%` } as React.CSSProperties}
-                aria-label="Seek"
+                aria-label={s.seek}
               />
               <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <span className="flex justify-self-start gap-1.5">
@@ -791,7 +795,7 @@ export default function MiniPlayer() {
                     onClick={handleDownload}
                     disabled={!downloadableUrl || downloading}
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] disabled:opacity-40"
-                    aria-label="Download audio"
+                    aria-label={downloadHint}
                     title={downloadHint}
                   >
                     {downloading ? (
@@ -805,14 +809,14 @@ export default function MiniPlayer() {
                 <button
                   onClick={playPrevious}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-all hover:bg-white/[0.1] active:scale-95"
-                  aria-label="Previous"
+                  aria-label={s.previous}
                 >
                   <SkipBack size={19} fill="currentColor" />
                 </button>
                 <button
                   onClick={() => setIsPlaying(!isPlaying)}
                   className="liquid-gold flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
-                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                  aria-label={isPlaying ? s.pause : s.play}
                 >
                   {isLoading ? (
                     <Loader2 size={21} className="animate-spin" />
@@ -825,7 +829,7 @@ export default function MiniPlayer() {
                 <button
                   onClick={playNext}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-all hover:bg-white/[0.1] active:scale-95"
-                  aria-label="Next"
+                  aria-label={s.next}
                 >
                   <SkipForward size={19} fill="currentColor" />
                 </button>
@@ -834,7 +838,7 @@ export default function MiniPlayer() {
                 <button
                   onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-mist transition-colors hover:text-white"
-                  aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+                  aria-label={volume === 0 ? s.unmute : s.mute}
                 >
                   {volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
                 </button>
@@ -847,7 +851,7 @@ export default function MiniPlayer() {
                   onChange={(e) => setVolume(parseFloat(e.target.value))}
                   className="w-24 shrink-0"
                   style={{ '--fill': `${Math.round(volume * 100)}%` } as React.CSSProperties}
-                  aria-label="Volume"
+                  aria-label={s.volume}
                 />
                 </span>
               </div>
@@ -862,7 +866,7 @@ export default function MiniPlayer() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
                 </span>
-                Live
+                {s.liveBadge}
               </span>
             )}
             <h2 className="clamp-2 text-lg md:text-xl font-bold leading-snug tracking-tight text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
@@ -899,10 +903,10 @@ export default function MiniPlayer() {
               disabled={isLive}
               className={cn('w-full', isLive && 'opacity-40')}
               style={{ '--fill': `${progress}%` } as React.CSSProperties}
-              aria-label="Seek"
+              aria-label={s.seek}
             />
             <div className="mt-1 flex justify-between text-xs font-medium tabular-nums text-mist">
-              <span>{isLive ? 'LIVE' : formatTime(currentTime)}</span>
+              <span>{isLive ? s.liveBadge : formatTime(currentTime)}</span>
               <span>{isLive ? '' : formatTime(duration)}</span>
             </div>
           </div>
@@ -913,14 +917,14 @@ export default function MiniPlayer() {
             <button
               onClick={playPrevious}
               className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
-              aria-label="Previous"
+              aria-label={s.previous}
             >
               <SkipBack size={22} fill="currentColor" />
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               className="liquid-gold flex h-16 w-16 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
-              aria-label={isPlaying ? 'Pause' : 'Play'}
+              aria-label={isPlaying ? s.pause : s.play}
             >
               {isLoading ? (
                 <Loader2 size={28} className="animate-spin" />
@@ -933,7 +937,7 @@ export default function MiniPlayer() {
             <button
               onClick={playNext}
               className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
-              aria-label="Next"
+              aria-label={s.next}
             >
               <SkipForward size={22} fill="currentColor" />
             </button>
@@ -946,7 +950,7 @@ export default function MiniPlayer() {
             <button
               onClick={() => setVolume(volume === 0 ? 0.8 : 0)}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-mist transition-all hover:bg-white/[0.14] hover:text-white hover:border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
-              aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+              aria-label={volume === 0 ? s.unmute : s.mute}
             >
               {volume === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
             </button>
@@ -959,7 +963,7 @@ export default function MiniPlayer() {
               onChange={(e) => setVolume(parseFloat(e.target.value))}
               className="w-full"
               style={{ '--fill': `${Math.round(volume * 100)}%` } as React.CSSProperties}
-              aria-label="Volume"
+              aria-label={s.volume}
             />
           </div>
           </div>
@@ -971,12 +975,12 @@ export default function MiniPlayer() {
             <button
               onClick={() => setQueueOpen((v) => !v)}
               aria-expanded={queueOpen}
-              aria-label="Show playback queue"
+              aria-label={s.showQueue}
               className="relative flex w-full items-center gap-2 overflow-hidden rounded-2xl liquid-chip px-4 py-2 text-sm font-bold text-white transition-all"
             >
               <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
               <ListMusic size={17} className="text-brand-light shrink-0" />
-              <span>Up next</span>
+              <span>{s.upNext}</span>
               {queueTotal > 0 && (
                 <span className="text-mist-dark font-semibold tabular-nums">({queueTotal})</span>
               )}
@@ -986,7 +990,7 @@ export default function MiniPlayer() {
             {queueOpen && (
               <>
                 <button
-                  aria-label="Close queue"
+                  aria-label={s.closeQueue}
                   className="fixed inset-0 z-10 cursor-default"
                   onClick={() => setQueueOpen(false)}
                 />
@@ -996,7 +1000,7 @@ export default function MiniPlayer() {
                   {playlist.length > 0 && playlistIndex >= 0 && playlist[playlistIndex] && (
                     <div className="relative border-b border-white/10 bg-black/20 px-3 py-2">
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold">
-                        Now playing
+                        {s.npNowPlaying}
                       </p>
                       <p className="mt-0.5 truncate text-[13px] font-semibold text-white">
                         {playlist[playlistIndex].title}
@@ -1015,7 +1019,7 @@ export default function MiniPlayer() {
                   <div ref={queueScrollRef} className="relative max-h-64 overflow-y-auto p-1.5">
                     {playlist.length === 0 ? (
                       <p className="px-3 py-5 text-center text-[13px] text-mist-dark">
-                        Queue is empty — play some lectures and they’ll show up here.
+                        {s.queueEmpty}
                       </p>
                     ) : (
                       playlist.map((t, i) => {
@@ -1120,7 +1124,7 @@ export default function MiniPlayer() {
               {isLive && (
                 <span className="flex items-center gap-1 rounded-full bg-red-500 px-1.5 py-px text-[9px] font-extrabold uppercase tracking-widest text-white shrink-0">
                   <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
-                  Live
+                  {s.liveBadge}
                 </span>
               )}
               <span className="truncate">{currentTrack?.title || ''}</span>
@@ -1137,7 +1141,7 @@ export default function MiniPlayer() {
               setIsPlaying(!isPlaying);
             }}
             className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-transform"
-            aria-label={isPlaying ? 'Pause' : 'Play'}
+            aria-label={isPlaying ? s.pause : s.play}
           >
             {isLoading ? (
               <Loader2 size={16} className="animate-spin" />
@@ -1156,8 +1160,8 @@ export default function MiniPlayer() {
               stop();
             }}
             className="w-7 h-7 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0 text-mist-dark hover:text-white hover:border-white/40 hover:bg-white/[0.14] transition-colors shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
-            aria-label="Stop and close player"
-            title="Stop"
+            aria-label={s.stopClose}
+            title={s.stop}
           >
             <X size={14} />
           </button>

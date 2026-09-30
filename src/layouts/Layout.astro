@@ -4,7 +4,6 @@ import Sidebar from '../components/Sidebar';
 import BottomNav from '../components/BottomNav';
 import MiniPlayer from '../components/Player/MiniPlayer';
 import AudioPlayer from '../components/AudioPlayer';
-import ThemeToggle from '../components/ThemeToggle';
 import BetaBadge from '../components/BetaBadge';
 import { ClientRouter } from 'astro:transitions';
 
@@ -136,12 +135,14 @@ const {
       <div class="hidden md:flex flex-1 justify-center">
         <form action="/search" method="get" class="flex w-full max-w-xl">
           <input
+            id="top-search-input"
             type="text"
             name="q"
             placeholder="Search lectures…"
             class="w-full rounded-l-full liquid-input px-5 py-2 text-sm text-white outline-none"
           />
           <button
+            id="top-search-btn"
             type="submit"
             aria-label="Search"
             class="rounded-r-full liquid-chip border-l-0 px-5 transition-colors"
@@ -161,7 +162,7 @@ const {
         title="Open IslahBD app"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
-        <span>Open&nbsp;IslahBD</span>
+        <span id="islahbd-btn-label">Open&nbsp;IslahBD</span>
       </button>
     </header>
 
@@ -194,11 +195,6 @@ const {
       <MiniPlayer client:only="react" />
     </div>
     <BottomNav client:only="react" />
-    {/* Persisted: survives SPA swaps so the toggle (and a mid-flight wrap
-        overlay) never unmounts on navigation. */}
-    <div transition:persist="islah-theme-toggle">
-      <ThemeToggle client:only="react" />
-    </div>
     <BetaBadge client:only="react" />
     <div transition:persist="islah-stream-engine">
       <AudioPlayer client:only="react" />
@@ -290,7 +286,64 @@ const {
         });
         document.addEventListener('astro:after-swap', function () {
           applySidebar();
+          applyHeaderLang();
           openDrawer(false, true);
+        });
+        // Header (SSR, not a React island) translation. The persisted
+        // language (islah-lang) is the source of truth; the Sidebar's
+        // language switch dispatches `islah:lang` for live updates, and
+        // swaps re-render the header in English so it must be re-applied.
+        var HEADER_STRINGS = {
+          en: {
+            searchPh: 'Search lectures…',
+            searchAria: 'Search',
+            menuToggle: 'Toggle sidebar',
+            menuOpen: 'Open menu',
+            openApp: 'Open IslahBD app',
+            openAppLabel: 'Open IslahBD'
+          },
+          bn: {
+            searchPh: 'লেকচার খুঁজুন…',
+            searchAria: 'খুঁজুন',
+            menuToggle: 'সাইডবার দেখান/লুকান',
+            menuOpen: 'মেনু খুলুন',
+            openApp: 'IslahBD অ্যাপ খুলুন',
+            openAppLabel: 'IslahBD খুলুন'
+          }
+        };
+        var currentLang = 'en';
+        var applyHeaderLang = function (lang) {
+          try {
+            if (!lang) {
+              var stored = null;
+              try { stored = JSON.parse(localStorage.getItem('islah-lang') || 'null'); } catch (e2) {}
+              lang = (stored && stored.state && stored.state.lang === 'bn') ? 'bn' : 'en';
+            }
+            currentLang = lang;
+            var d = HEADER_STRINGS[lang] || HEADER_STRINGS.en;
+            var si = document.getElementById('top-search-input');
+            if (si) si.setAttribute('placeholder', d.searchPh);
+            var sb = document.getElementById('top-search-btn');
+            if (sb) sb.setAttribute('aria-label', d.searchAria);
+            var mb = document.getElementById('menu-btn');
+            if (mb) mb.setAttribute('aria-label', d.menuToggle);
+            var mm = document.getElementById('menu-btn-mobile');
+            if (mm) mm.setAttribute('aria-label', d.menuOpen);
+            var ab = document.getElementById('islahbd-btn');
+            if (ab) {
+              ab.setAttribute('aria-label', d.openApp);
+              ab.setAttribute('title', d.openApp);
+            }
+            var al = document.getElementById('islahbd-btn-label');
+            if (al) al.textContent = d.openAppLabel;
+          } catch (e3) {}
+        };
+        applyHeaderLang();
+        document.addEventListener('islah:lang', function (e) {
+          applyHeaderLang(e && e.detail);
+        });
+        document.addEventListener('astro:page-load', function () {
+          applyHeaderLang(currentLang);
         });
         // Open IslahBD button (delegated — survives SPA swaps): open the
         // installed app, otherwise go to the right store for the device.

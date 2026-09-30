@@ -45,7 +45,7 @@ playlists, search, and a mobile-first design.
   that opens the installed IslahBD app (`islahbd://open` custom scheme, same as
   the app owner's deep links), otherwise falls back to the
   Play Store / App Store for the visitor's device
-- **Modern UI** — golden theme with light/dark mode (floating toggle,
+- **Modern UI** — golden theme with dark/light mode (sidebar Theme row,
   persisted), floating liquid-glass sidebar (collapsible via the hamburger —
   slides away on desktop, slide-over drawer on mobile) + top bar, mobile bottom nav pill,
    floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters + Newest/Most-viewed/Oldest sorts (global sorts auto-load the full catalog in the background).
@@ -54,10 +54,12 @@ playlists, search, and a mobile-first design.
    whole site to a Material 3 solid look. Every button/link blooms a
   water-drop ripple from the touch point (theme-aware ink, gold buttons get
    dark ink; `prefers-reduced-motion` disables it)
-- **Language (EN / বাংলা)** — segmented switch directly under the Liquid
-  Glass toggle in the sidebar (desktop + mobile drawer, persisted) that
-  translates the app chrome — sidebar nav, Channels heading, toggle labels,
-  footer, and the mobile bottom nav (video titles stay as-is from the APIs)
+- **Language (EN / বাংলা)** — segmented switch in the sidebar settings
+  cluster (persisted) that translates the whole site chrome — header, all
+  views, player + queue, menus, counts, and dates (video titles stay as-is
+  from the APIs)
+- **Theme (Dark / Light)** — segmented switch in the same sidebar cluster
+  with the tap-bloom wrap effect (the old floating toggle is gone)
 
 ## Tech Stack (BETA: Astro rebuild)
 

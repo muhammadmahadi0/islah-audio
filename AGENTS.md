@@ -169,12 +169,21 @@ This file orients AI coding agents working in this repo. Read it before making c
   glass → solid tonal surfaces, blurs/sheen spans/ambient blobs off via the
   `html.material` overrides. Default is device-aware (`defaultDesignMode()`:
   liquid on iOS + desktop, material on other mobile) — the pre-paint script in
-  `Layout.astro` mirrors it, keep both in sync. Chrome-level i18n lives in
-  `language-store.ts` (persist key `islah-lang`, `en`/`bn`) + `lib/i18n.ts`
-  dictionary — phase 1 covers Sidebar (nav, Channels, toggles, footer) +
-  BottomNav only; video titles stay as-is from the APIs. Sidebar/BottomNav
-  read via `t(lang)`; `Layout.astro` pre-paint sets `<html lang>` from the
-  persisted choice (first load + `astro:after-swap`). Animations are CSS-only
+  `Layout.astro` mirrors it, keep both in sync. Whole-site i18n lives in
+  `language-store.ts` (persist key `islah-lang`, `en`/`bn` — `setLang`
+  dispatches a same-document `islah:lang` event) + `lib/i18n.ts` dictionary
+  with count/sentence helpers (`videosCount`, `resultsCount`, …) and
+  locale formatters (`fmtViews`, `fmtPublished`, `fmtDate`). EVERY UI chrome
+  string in every view, the player, both menus, and the sidebar/bottom-nav
+  goes through `t(lang)` — video titles/descriptions stay as-is (API data).
+  The SSR top-bar header is translated by a vanilla script in `Layout.astro`
+  (element ids `top-search-input`, `top-search-btn`, `menu-btn`,
+  `menu-btn-mobile`, `islahbd-btn`, `islahbd-btn-label`) reading the
+  persisted choice on load + `astro:after-swap`, and live on `islah:lang` +
+  `astro:page-load`. `Layout.astro` pre-paint sets `<html lang>` from the
+  persisted choice (first load + `astro:after-swap`). The theme toggle is a
+  sidebar row (`ThemeToggle variant="sidebar"`, explicit `setTheme` —
+  no floating variant is rendered anywhere). Animations are CSS-only
   (`animate-fade-up`/`.shimmer`/`.eq-bar`/`.ripple-ink` in `globals.css` + tailwind config) —
   do NOT reintroduce framer-motion. Site-wide press feedback is the water-drop
   ripple (delegated `pointerdown` in `Layout.astro` blooms `.ripple-ink` inside

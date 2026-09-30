@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { shareNative, copyLink, shareTargets } from '@/lib/share';
+import { useLanguageStore } from '@/store/language-store';
+import { t } from '@/lib/i18n';
 
 const MENU_WIDTH = 208; // w-52
 const MENU_GAP = 1;
@@ -46,6 +48,8 @@ export default function ShareButton({
     centerY?: number;
   } | null>(null);
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const targets = useMemo(
@@ -131,8 +135,8 @@ export default function ShareButton({
         ref={buttonRef}
         onClick={toggleMenu}
         aria-expanded={menu !== null}
-        aria-label="Share"
-        title="Share"
+        aria-label={s.shareAria}
+        title={s.shareAria}
         className={cn(
           'shrink-0 rounded-full flex items-center justify-center text-white transition-all',
           className
@@ -143,7 +147,7 @@ export default function ShareButton({
       {menu && (
         <>
           <button
-            aria-label="Close share menu"
+            aria-label={s.closeShareMenu}
             className="fixed inset-0 z-40 cursor-default bg-transparent"
             onClick={closeMenu}
           />
@@ -205,15 +209,15 @@ export default function ShareButton({
                 <Link2 size={16} className="text-mist shrink-0" />
               )}
               {copyState === 'copied'
-                ? 'Copied!'
+                ? s.copied
                 : copyState === 'failed'
-                  ? 'Copy failed'
-                  : 'Copy Link'}
+                  ? s.copyFailedMenu
+                  : s.copyLink}
             </button>
             {canNativeShare && (
               <button onClick={handleMoreApps} className={rowClass}>
                 <Share2 size={16} className="text-brand-light shrink-0" />
-                More apps…
+                {s.moreApps}
               </button>
             )}
           </span>

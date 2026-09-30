@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import { usePlaylistStore, type SavedPlaylist } from '@/store/playlist-store';
 import { useChannelStore } from '@/store/channel-store';
+import { useLanguageStore } from '@/store/language-store';
+import { t, tracksCount, playlistsCount, ytPlaylistSub, playName } from '@/lib/i18n';
 import {
   Music,
   Clock,
@@ -61,6 +63,8 @@ function TrackRow({  track,
   isActive: boolean;
   isPlaying: boolean;
 }) {
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   return (
     <div
       onClick={onPlay}
@@ -125,8 +129,8 @@ function TrackRow({  track,
             onRemove();
           }}
           className="p-1.5 rounded-lg text-mist-dark hover:text-red-400 hover:bg-red-400/10 transition-colors shrink-0"
-          aria-label="Remove from playlist"
-          title="Remove"
+          aria-label={s.removeFromPlaylist}
+          title={s.remove}
         >
           <X size={16} />
         </button>
@@ -136,6 +140,8 @@ function TrackRow({  track,
 }
 
 function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const [expanded, setExpanded] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { deletePlaylist, removeTrack } = usePlaylistStore();
@@ -170,7 +176,7 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
         <button onClick={() => setExpanded((v) => !v)} className="flex-1 min-w-0 text-left">
           <p className="text-white font-bold truncate">{playlist.name}</p>
           <p className="text-mist-dark text-xs mt-0.5">
-            {playlist.tracks.length} track{playlist.tracks.length === 1 ? '' : 's'}
+            {tracksCount(lang, playlist.tracks.length)}
             {totalSeconds > 0 && ` • ${formatDuration(totalSeconds)}`}
           </p>
         </button>
@@ -178,7 +184,7 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
           <button
             onClick={playAll}
             className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shrink-0"
-            aria-label={`Play ${playlist.name}`}
+            aria-label={playName(lang, playlist.name)}
           >
             <Play size={16} fill="currentColor" className="ml-0.5" />
           </button>
@@ -189,12 +195,12 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
               onClick={() => deletePlaylist(playlist.id)}
               className="px-2.5 py-1.5 rounded-lg bg-red-500/15 border border-red-500/40 text-red-500 text-xs font-bold"
             >
-              Delete?
+              {s.deleteAsk}
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
               className="p-1.5 rounded-lg text-mist-dark hover:text-white"
-              aria-label="Cancel"
+              aria-label={s.cancel}
             >
               <X size={15} />
             </button>
@@ -203,7 +209,7 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
           <button
             onClick={() => setConfirmDelete(true)}
             className="p-2 rounded-xl text-mist-dark hover:text-red-400 hover:bg-red-400/10 transition-colors shrink-0"
-            aria-label="Delete playlist"
+            aria-label={s.deletePlaylist}
           >
             <Trash2 size={16} />
           </button>
@@ -211,7 +217,7 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
         <button
           onClick={() => setExpanded((v) => !v)}
           className="p-2 rounded-xl text-mist-dark hover:text-white hover:bg-white/10 transition-colors shrink-0"
-          aria-label={expanded ? 'Collapse' : 'Expand'}
+          aria-label={expanded ? s.collapse : s.expand}
         >
           <ChevronDown size={17} className={cn('transition-transform', expanded && 'rotate-180')} />
         </button>
@@ -221,7 +227,7 @@ function PlaylistCard({ playlist }: { playlist: SavedPlaylist }) {
         <div className="border-t border-white/[0.06]">
           {playlist.tracks.length === 0 ? (
             <p className="px-4 py-5 text-[13px] text-mist-dark text-center">
-              Empty playlist — tap <Plus size={12} className="inline" /> on any lecture to add tracks.
+              {s.emptyPlPre}<Plus size={12} className="inline" />{s.emptyPlPost}
             </p>
           ) : (
             <div className="divide-y divide-white/[0.05]">
@@ -254,6 +260,8 @@ export interface ChannelPlaylist {
 
 /** A real YouTube playlist from the channel — items lazy-load on expand. */
 function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const [expanded, setExpanded] = useState(false);
   const [tracks, setTracks] = useState<Track[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -344,14 +352,14 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
             <span className="truncate">{playlist.title}</span>
           </p>
           <p className="text-mist-dark text-xs mt-0.5">
-            YouTube playlist • {playlist.itemCount} video{playlist.itemCount === 1 ? '' : 's'}
+            {ytPlaylistSub(lang, playlist.itemCount)}
           </p>
         </button>
         <button
           onClick={playAll}
           disabled={isLoading}
           className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shrink-0 disabled:opacity-40"
-          aria-label={`Play ${playlist.title}`}
+          aria-label={playName(lang, playlist.title)}
         >
           {isLoading ? (
             <Loader2 size={16} className="animate-spin" />
@@ -362,7 +370,7 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
         <button
           onClick={toggle}
           className="p-2 rounded-xl text-mist-dark hover:text-white hover:bg-white/10 transition-colors shrink-0"
-          aria-label={expanded ? 'Collapse' : 'Expand'}
+          aria-label={expanded ? s.collapse : s.expand}
         >
           <ChevronDown size={17} className={cn('transition-transform', expanded && 'rotate-180')} />
         </button>
@@ -378,8 +386,8 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
             <div className="px-4 py-5 text-center">
               <p className="text-[13px] text-mist-dark">
                 {loadFailed
-                  ? 'Couldn’t load this playlist.'
-                  : 'This playlist is empty or unavailable.'}
+                  ? s.loadFailPl
+                  : s.emptyPlUnavailable}
               </p>
               {loadFailed && loadErrorMsg && (
                 <p className="text-[11px] text-mist-dark/80 mt-1 break-words">
@@ -391,7 +399,7 @@ function ChannelPlaylistCard({ playlist }: { playlist: ChannelPlaylist }) {
                   onClick={reload}
                   className="mt-2.5 px-5 py-1.5 rounded-full bg-white/[0.06] border border-white/15 text-xs font-bold text-white hover:border-brand/60 transition-colors"
                 >
-                  Retry
+                  {s.retry}
                 </button>
               )}
             </div>
@@ -431,6 +439,8 @@ export default function LibraryView({
   const [ytErrorMsg, setYtErrorMsg] = useState('');
   const { playlists, createPlaylist } = usePlaylistStore();
   const { channelId } = useChannelStore();
+  const { lang } = useLanguageStore();
+  const s = t(lang);
 
   // Channel playlists follow the active channel, served from the
   // server-rendered map. Client fetch is only a fallback when the server
@@ -499,13 +509,13 @@ export default function LibraryView({
             </span>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold">
-                Collection
+                {s.libEyebrow}
               </p>
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-                Your Library
+                {s.libTitle}
               </h1>
               <p className="text-[13px] text-mist mt-0.5">
-                {playlists.length} playlist{playlists.length === 1 ? '' : 's'}
+                {playlistsCount(lang, playlists.length)}
               </p>
             </div>
           </div>
@@ -516,7 +526,7 @@ export default function LibraryView({
         <div>
             {/* Channel's YouTube playlists */}
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold mb-2.5">
-              From YouTube
+              {s.fromYoutube}
             </p>
             {ytLoading || ytPlaylists === null ? (
               <div className="flex items-center justify-center py-8 liquid-glass rounded-3xl">
@@ -532,7 +542,7 @@ export default function LibraryView({
               <div className="relative liquid-glass rounded-3xl px-4 py-6 text-center mb-7 overflow-hidden">
                 <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                 <p className="text-[13px] text-mist-dark mb-1">
-                  Couldn’t load channel playlists.
+                  {s.channelPlFail}
                 </p>
                 {ytErrorMsg && (
                   <p className="text-[11px] text-mist-dark/80 mb-3 break-words">
@@ -544,18 +554,18 @@ export default function LibraryView({
                   className="relative px-5 py-2 rounded-full liquid-glass text-sm font-bold text-white transition-all overflow-hidden"
                 >
                   <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-                  Retry
+                  {s.retry}
                 </button>
               </div>
             ) : (
               <p className="text-[13px] text-mist-dark liquid-glass rounded-3xl px-4 py-5 text-center mb-7">
-                No public playlists on this channel yet.
+                {s.noPublicPl}
               </p>
             )}
 
             {/* User playlists */}
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold mb-2.5">
-              Your Playlists
+              {s.yourPlaylists}
             </p>
             <div className="flex items-center gap-2 mb-4">
               <input
@@ -564,7 +574,7 @@ export default function LibraryView({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleCreate();
                 }}
-                placeholder="New playlist name…"
+                placeholder={s.newPlaylistPh}
                 maxLength={60}
                 className="flex-1 min-w-0 rounded-2xl liquid-input px-4 py-2.5 text-sm text-white outline-none transition-all"
               />
@@ -574,7 +584,7 @@ export default function LibraryView({
                 className="liquid-gold flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm font-bold disabled:opacity-30 transition-all shrink-0"
               >
                 <Plus size={16} strokeWidth={2.5} />
-                Create
+                {s.create}
               </button>
             </div>
 
@@ -590,10 +600,9 @@ export default function LibraryView({
                 <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                   <Heart size={26} className="text-gold-light" />
                 </span>
-                <p className="text-white font-bold text-lg">No playlists yet</p>
+                <p className="text-white font-bold text-lg">{s.noPlaylistsTitle}</p>
                 <p className="text-mist-dark text-sm mt-1 max-w-xs mx-auto">
-                  Create one above, or tap <Plus size={12} className="inline" /> on any
-                  lecture to save it to a playlist
+                  {s.noPlPre}<Plus size={12} className="inline" />{s.noPlPost}
                 </p>
               </div>
             )}
@@ -606,11 +615,11 @@ export default function LibraryView({
             <div className="flex items-center gap-2 mb-2">
               <Clock size={17} className="text-gold" />
               <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">
-                Recently Played
+                {s.recentTitle}
               </h2>
             </div>
             <p className="text-mist-dark text-[13px] leading-relaxed">
-              Your listening history will appear here as you play more lectures.
+              {s.recentSub}
             </p>
           </div>
           <div className="relative liquid-glass rounded-3xl p-5 overflow-hidden">
@@ -618,11 +627,11 @@ export default function LibraryView({
             <div className="flex items-center gap-2 mb-2">
               <Heart size={17} className="text-gold" />
               <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">
-                Saved Offline
+                {s.savedTitle}
               </h2>
             </div>
             <p className="text-mist-dark text-[13px] leading-relaxed">
-              Your playlists are stored on this device and survive reloads.
+              {s.savedSub}
             </p>
           </div>
         </div>

@@ -16,6 +16,8 @@ import {
   Twitter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguageStore } from '@/store/language-store';
+import { t, fmtViews, fmtDate } from '@/lib/i18n';
 import { shareNative, copyLink, shareTargets } from '@/lib/share';
 import { openIslahBDApp } from '@/lib/open-app';
 
@@ -39,24 +41,6 @@ function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function formatViews(views: number): string {
-  if (!views || views <= 0) return '';
-  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M views`;
-  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}K views`;
-  return `${views} views`;
-}
-
-function formatDate(iso: string): string {
-  if (!iso) return '';
-  const t = new Date(iso).getTime();
-  if (isNaN(t)) return iso;
-  return new Date(t).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 /**
  * Shared-link landing page for one video (`/watch/[videoId]`).
  * Auto-plays the video on open (single-track queue); the global
@@ -64,6 +48,8 @@ function formatDate(iso: string): string {
  * the share button copies it (native sheet on mobile).
  */
 export default function WatchView({ video }: { video: WatchVideo }) {
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const { currentTrack, isPlaying, isLoading, playTrack, setIsPlaying } = usePlayerStore();
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
@@ -85,7 +71,7 @@ export default function WatchView({ video }: { video: WatchVideo }) {
     if (state.currentTrack?.videoId === video.videoId) return;
     const track: Track = {
       id: video.videoId,
-      title: video.title || 'Untitled lecture',
+      title: video.title || s.untitled,
       thumbnail: video.thumbnail,
       duration: video.duration || 0,
       channelName: video.channelName || 'Islah',
@@ -102,7 +88,7 @@ export default function WatchView({ video }: { video: WatchVideo }) {
     }
     const track: Track = {
       id: video.videoId,
-      title: video.title || 'Untitled lecture',
+      title: video.title || s.untitled,
       thumbnail: video.thumbnail,
       duration: video.duration || 0,
       channelName: video.channelName || 'Islah',
@@ -111,7 +97,7 @@ export default function WatchView({ video }: { video: WatchVideo }) {
     playTrack(track, [track], 0);
   };
 
-  const meta = [formatViews(video.views), formatDate(video.publishedAt)]
+  const meta = [fmtViews(lang, video.views), fmtDate(lang, video.publishedAt)]
     .filter(Boolean)
     .join(' • ');
 
@@ -138,7 +124,7 @@ export default function WatchView({ video }: { video: WatchVideo }) {
           className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-mist-dark hover:text-white transition-colors"
         >
           <ArrowLeft size={16} />
-          All lectures
+          {s.allLectures}
         </a>
 
         <section className="relative liquid-glass rounded-[28px] p-3 md:p-4 overflow-hidden">
@@ -158,7 +144,7 @@ export default function WatchView({ video }: { video: WatchVideo }) {
             )}
             <button
               onClick={handlePlayPause}
-              aria-label={isCurrent && isPlaying ? 'Pause' : 'Play'}
+              aria-label={isCurrent && isPlaying ? s.pause : s.play}
               className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors hover:bg-black/20"
             >
               <span className="liquid-gold flex h-16 w-16 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95">
@@ -175,7 +161,7 @@ export default function WatchView({ video }: { video: WatchVideo }) {
 
           <div className="relative px-2 pt-4 pb-2">
             <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-white leading-snug">
-              {video.title || 'Untitled lecture'}
+              {video.title || s.untitled}
             </h1>
             <p className="mt-1.5 text-sm font-medium text-gold/90">
               {video.channelName || 'Islah'}
@@ -190,17 +176,17 @@ export default function WatchView({ video }: { video: WatchVideo }) {
               <span className={cn('relative flex h-10 items-center gap-2 rounded-full liquid-chip px-4 text-sm font-bold text-white')}>
                 <button
                   onClick={handleShare}
-                  aria-label="Share via apps"
-                  title="Share via apps"
+                  aria-label={s.shareViaApps}
+                  title={s.shareViaApps}
                   className="flex items-center gap-2"
                 >
                   <Share2 size={16} />
-                  Share
+                  {s.shareBtn}
                 </button>
                 {shareMenuOpen && (
                   <>
                     <button
-                      aria-label="Close share menu"
+                      aria-label={s.closeShareMenu}
                       className="fixed inset-0 z-10 cursor-default"
                       onClick={() => setShareMenuOpen(false)}
                     />
@@ -246,8 +232,8 @@ export default function WatchView({ video }: { video: WatchVideo }) {
               </span>
               <button
                 onClick={handleCopyLink}
-                aria-label={copyState === 'copied' ? 'Link copied' : 'Copy link'}
-                title={copyState === 'copied' ? 'Link copied!' : 'Copy link'}
+                aria-label={copyState === 'copied' ? s.linkCopied : s.copyLinkTitle}
+                title={copyState === 'copied' ? s.linkCopiedTitle : s.copyLinkTitle}
                 className="flex h-10 items-center gap-2 rounded-full liquid-chip px-4 text-sm font-bold text-white transition-all"
               >
                 {copyState === 'copied' ? (
@@ -255,14 +241,14 @@ export default function WatchView({ video }: { video: WatchVideo }) {
                 ) : (
                   <Link2 size={16} />
                 )}
-                {copyState === 'copied' ? 'Copied!' : copyState === 'failed' ? 'Failed' : 'Copy Link'}
+                {copyState === 'copied' ? s.copied : copyState === 'failed' ? s.copyFailed : s.copyLink}
               </button>
               <button
                 onClick={openIslahBDApp}
                 className="islahbd-open-btn flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-bold transition-all active:scale-95"
               >
                 <Smartphone size={15} />
-                Open App
+                {s.openApp}
               </button>
             </div>
 

@@ -49,7 +49,7 @@
 - **Text**: `#F2F5F3` / secondary `#9DB3A8` / muted `#647C71`
   (light: ink text + slate secondary)
 - All tokens resolve through CSS variables (`globals.css`); `white` remaps to
-  theme foreground. A floating toggle (persisted `islah-theme`) switches themes.
+  theme foreground. A sidebar Theme row (persisted `islah-theme`) switches themes.
 
 ### Typography
 
@@ -124,12 +124,20 @@
   for iOS + desktop, OFF
   for other mobile (Android etc.); first-visit default only. Choice persists
   (`islah-design`) and applies pre-paint via `Layout.astro`, so there is no flash.
-- **Language switch (EN / বাংলা)**: segmented row directly under the Liquid
-  Glass toggle (desktop + drawer) switching the app chrome between English
-  and Bangla — sidebar nav, Channels heading, toggle labels, footer, and the
-  mobile bottom nav (phase 1; video titles stay as-is from the APIs). Choice
-  persists (`islah-lang`), sets `<html lang>`, and applies pre-paint via
-  `Layout.astro`.
+- **Language switch (EN / বাংলা)**: segmented row in the sidebar settings
+  cluster switching the WHOLE site chrome between English and Bangla —
+  sidebar + bottom nav, top-bar header (search placeholder, aria labels,
+  Open-IslahBD label — applied live via the `islah:lang` event since the
+  header is SSR, not a React island), every view (Home hero/buttons/chips,
+  Search, Boyan, Hamd-Naat, Library, Watch), the player (mini + expanded +
+  queue), and all menus (share, save-to-playlist). View counts, relative
+  dates, and absolute dates localize too (`fmtViews`/`fmtPublished`/`fmtDate`
+  in `lib/i18n.ts`). Video titles/descriptions stay as-is (API data, not
+  chrome). Choice persists (`islah-lang`), sets `<html lang>`, and applies
+  pre-paint via `Layout.astro`.
+- **Theme switch (Dark / Light)**: segmented row in the sidebar settings
+  cluster (the old floating toggle is gone) with the same tap-bloom wrap
+  effect; choice persists (`islah-theme`).
 - Footer note
 
 #### Home

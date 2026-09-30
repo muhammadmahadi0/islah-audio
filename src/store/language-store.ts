@@ -21,6 +21,12 @@ export const useLanguageStore = create<LanguageState>()(
       setLang: (lang) => {
         applyLang(lang);
         set({ lang });
+        // The top-bar header is SSR Astro (not a React island) — it
+        // re-reads the persisted choice via this event and re-translates
+        // itself live. Same-document, so one listener covers SPA swaps.
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent<AppLang>('islah:lang', { detail: lang }));
+        }
       },
     }),
     {

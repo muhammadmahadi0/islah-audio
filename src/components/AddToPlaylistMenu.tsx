@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Check, ListPlus, Plus } from 'lucide-react';
 import { usePlaylistStore } from '@/store/playlist-store';
+import { useLanguageStore } from '@/store/language-store';
+import { t, savedTo, createdPl } from '@/lib/i18n';
 import type { Track } from '@/store/player-store';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +18,8 @@ export default function AddToPlaylistMenu({
   onClose: () => void;
 }) {
   const { playlists, createPlaylist, addTrack } = usePlaylistStore();
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const [newName, setNewName] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -23,10 +27,10 @@ export default function AddToPlaylistMenu({
     const result = addTrack(playlistId, track);
     setNotice(
       result === 'added'
-        ? `Saved to “${playlistName}”`
+        ? savedTo(lang, playlistName)
         : result === 'duplicate'
-          ? 'Already in that playlist'
-          : 'Playlist not found'
+          ? s.plmDuplicate
+          : s.plmNotFound
     );
   };
 
@@ -36,13 +40,13 @@ export default function AddToPlaylistMenu({
     const id = createPlaylist(name);
     addTrack(id, track);
     setNewName('');
-    setNotice(`Created “${name}”`);
+    setNotice(createdPl(lang, name));
   };
 
   return (
     <>
       <button
-        aria-label="Close"
+        aria-label={s.plmClose}
         className="fixed inset-0 z-20 cursor-default bg-black/40"
         onClick={(e) => {
           e.stopPropagation();
@@ -56,13 +60,13 @@ export default function AddToPlaylistMenu({
         <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
         <p className="flex items-center gap-1.5 px-2.5 pt-1.5 pb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-mist-dark">
           <ListPlus size={13} className="text-brand-light" />
-          Save to playlist
+          {s.plmTitle}
         </p>
 
         <div className="max-h-44 overflow-y-auto space-y-0.5">
           {playlists.length === 0 && (
             <p className="px-2.5 py-2 text-xs text-mist-dark">
-              No playlists yet — create one below.
+              {s.plmEmpty}
             </p>
           )}
           {playlists.map((p) => {
@@ -101,7 +105,7 @@ export default function AddToPlaylistMenu({
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleCreate();
             }}
-            placeholder="New playlist…"
+            placeholder={s.plmNewPh}
             maxLength={60}
             className="flex-1 min-w-0 rounded-xl liquid-input px-2.5 py-1.5 text-[13px] text-white outline-none"
           />
@@ -109,7 +113,7 @@ export default function AddToPlaylistMenu({
             onClick={handleCreate}
             disabled={!newName.trim()}
             className="liquid-gold p-2 rounded-xl disabled:opacity-30 transition-all"
-            aria-label="Create playlist"
+            aria-label={s.plmCreate}
           >
             <Plus size={15} strokeWidth={2.5} />
           </button>

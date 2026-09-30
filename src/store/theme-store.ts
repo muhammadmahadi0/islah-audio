@@ -5,6 +5,7 @@ export type Theme = 'dark' | 'light';
 
 interface ThemeState {
   theme: Theme;
+  setTheme: (theme: Theme) => void;
   toggle: () => void;
 }
 
@@ -17,6 +18,11 @@ export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
       theme: 'dark',
+      setTheme: (theme) => {
+        if (get().theme === theme) return;
+        applyTheme(theme);
+        set({ theme });
+      },
       toggle: () => {
         const next: Theme = get().theme === 'dark' ? 'light' : 'dark';
         applyTheme(next);

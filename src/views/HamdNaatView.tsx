@@ -10,6 +10,8 @@ import {
   Youtube,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguageStore } from '@/store/language-store';
+import { t, type I18nKey, resultsCount, tracksCount, hamdSub } from '@/lib/i18n';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import ShareButton from '@/components/ShareButton';
 import { fetchJson } from '@/lib/fetch-timeout';
@@ -21,10 +23,10 @@ import {
 
 type TypeFilter = 'all' | 'audio' | 'video';
 
-const TYPE_FILTERS: { id: TypeFilter; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'audio', label: 'Audio' },
-  { id: 'video', label: 'Video' },
+const TYPE_FILTERS: { id: TypeFilter; key: I18nKey }[] = [
+  { id: 'all', key: 'filterAll' },
+  { id: 'audio', key: 'chipAudio' },
+  { id: 'video', key: 'chipVideo' },
 ];
 
 function HamdNaatRow({
@@ -39,6 +41,8 @@ function HamdNaatRow({
   isPlaying: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const isVideo = item.type === 'video';
 
   const sub = [item.artist, item.writingPlace, formatHamdNaatDate(item.createdAt)]
@@ -95,7 +99,7 @@ function HamdNaatRow({
               isVideo ? 'bg-red-500/15 text-red-400' : 'bg-brand/15 text-brand-light'
             )}
           >
-            {isVideo ? 'Video' : 'Audio'}
+            {isVideo ? s.chipVideo : s.chipAudio}
           </span>
           {credits && <span className="truncate">{credits}</span>}
         </p>
@@ -113,7 +117,7 @@ function HamdNaatRow({
           e.stopPropagation();
           setMenuOpen((v) => !v);
         }}
-        aria-label="Save to playlist"
+        aria-label={s.saveToPlaylist}
         className="p-1.5 rounded-lg text-mist-dark hover:text-gold-light hover:bg-white/10 transition-colors shrink-0"
       >
         <ListPlus size={16} />
@@ -140,6 +144,8 @@ function HamdNaatRow({
 }
 
 export default function HamdNaatView() {
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const [items, setItems] = useState<HamdNaatItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -230,15 +236,15 @@ export default function HamdNaatView() {
             </span>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold">
-                IslahBD
+                {s.brandEyebrow}
               </p>
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-                Hamd-Naat
+                {s.hamdTitle}
               </h1>
               <p className="text-[13px] text-mist mt-0.5">
                 {isLoading
-                  ? 'Loading…'
-                  : `${items.length} track${items.length === 1 ? '' : 's'} • ${audioCount} audio • ${videoCount} video`}
+                  ? s.loading
+                  : hamdSub(lang, items.length, audioCount, videoCount)}
               </p>
             </div>
           </div>
@@ -255,7 +261,7 @@ export default function HamdNaatView() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search hamd-naat…"
+              placeholder={s.searchHamdPh}
               className="w-full rounded-2xl liquid-input py-3.5 pl-12 pr-12 text-white outline-none transition-all"
             />
             {query && (
@@ -263,7 +269,7 @@ export default function HamdNaatView() {
                 type="button"
                 onClick={clearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-mist-dark hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Clear search"
+                aria-label={s.clearSearch}
               >
                 <X size={16} />
               </button>
@@ -284,11 +290,11 @@ export default function HamdNaatView() {
                 )}
               >
                 {f.id === 'video' && <Youtube size={14} />}
-                {f.label}
+                {s[f.key]}
               </button>
             ))}
             <span className="ml-1 shrink-0 text-xs text-mist-dark tabular-nums">
-              {results.length} tracks
+              {tracksCount(lang, results.length)}
             </span>
           </div>
         )}
@@ -314,14 +320,14 @@ export default function HamdNaatView() {
               <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                 <Music size={26} className="text-brand-light" />
               </span>
-              <p className="text-white font-bold text-lg">Couldn’t load Hamd-Naat</p>
+              <p className="text-white font-bold text-lg">{s.hamdLoadFail}</p>
               <p className="text-mist-dark text-sm mt-1 max-w-xs mx-auto break-words">{error}</p>
               <button
                 onClick={() => load()}
                 className="relative mt-4 inline-flex items-center gap-2 px-6 py-2.5 rounded-full liquid-gold text-sm font-bold transition-all"
               >
                 <RefreshCw size={15} />
-                Retry
+                {s.retry}
               </button>
             </div>
           )}
@@ -329,8 +335,8 @@ export default function HamdNaatView() {
           {!isLoading && !error && results.length > 0 && (
             <>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-mist-dark mb-3">
-                {results.length} result{results.length === 1 ? '' : 's'}
-                {typeFilter !== 'all' ? ` • ${typeFilter}` : ''}
+                {resultsCount(lang, results.length)}
+                {typeFilter === 'all' ? '' : ` • ${typeFilter === 'audio' ? s.chipAudio : s.chipVideo}`}
               </p>
               <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
                 <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
@@ -355,8 +361,8 @@ export default function HamdNaatView() {
               <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                 <MapPin size={26} className="text-brand-light" />
               </span>
-              <p className="text-white font-bold">No hamd-naat found</p>
-              <p className="text-mist-dark text-sm mt-1">Try different keywords or type</p>
+              <p className="text-white font-bold">{s.noHamd}</p>
+              <p className="text-mist-dark text-sm mt-1">{s.tryKeywordsType}</p>
             </div>
           )}
         </div>

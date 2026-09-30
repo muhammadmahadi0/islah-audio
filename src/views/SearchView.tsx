@@ -3,6 +3,8 @@ import { usePlayerStore, type Track } from '@/store/player-store';
 import { Search as SearchIcon, Music, Loader2, X, ListPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChannelStore } from '@/store/channel-store';
+import { useLanguageStore } from '@/store/language-store';
+import { t, resultsCount, noResultsFor, lecturesIndexed, indexingLabel } from '@/lib/i18n';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import ShareButton from '@/components/ShareButton';
 import { fetchJson } from '@/lib/fetch-timeout';
@@ -40,6 +42,8 @@ function SearchRow({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const videoId = video.videoId || video.id || '';
+  const { lang } = useLanguageStore();
+  const s = t(lang);
 
   return (
     <div
@@ -92,7 +96,7 @@ function SearchRow({
           e.stopPropagation();
           setMenuOpen((v) => !v);
         }}
-        aria-label="Save to playlist"
+        aria-label={s.saveToPlaylist}
         className="p-1.5 rounded-lg text-mist-dark hover:text-gold-light hover:bg-white/10 transition-colors shrink-0"
       >
         <ListPlus size={16} />
@@ -135,6 +139,8 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
 
   const { playTrack, currentTrack, isPlaying } = usePlayerStore();
   const { channelId } = useChannelStore();
+  const { lang } = useLanguageStore();
+  const s = t(lang);
 
   // Index the whole catalog in the background (100 first, then 200-chunks)
   // so search covers every video, not just the first page.
@@ -222,13 +228,13 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
     <main className="pb-44 md:pb-36">
       <div className="mx-auto max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-1">
-          Search
+          {s.searchTitle}
         </h1>
         <p className="text-sm text-mist-dark mb-5">
-          Find bayans, waz and nasheeds from the channel
+          {s.searchSub}
           {indexing && (
             <span className="ml-2 text-brand-light">
-              • indexing {videos.length}{totalVideos ? `/${totalVideos}` : ''}…
+              • {indexingLabel(lang, videos.length)}
             </span>
           )}
         </p>
@@ -243,7 +249,7 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search lectures…"
+              placeholder={s.searchPlaceholder}
               className="w-full rounded-2xl liquid-input py-3.5 pl-12 pr-12 text-white outline-none transition-all"
             />
             {query && (
@@ -251,7 +257,7 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
                 type="button"
                 onClick={clearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-mist-dark hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Clear search"
+                aria-label={s.clearSearch}
               >
                 <X size={16} />
               </button>
@@ -269,7 +275,7 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
           {!isLoading && results.length > 0 && (
             <>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-mist-dark mb-3">
-                {results.length} result{results.length === 1 ? '' : 's'}
+                {resultsCount(lang, results.length)}
               </p>
               <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
                 <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
@@ -295,8 +301,8 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
             <div className="relative text-center py-16 liquid-glass rounded-[28px] overflow-hidden">
               <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
               <SearchIcon size={40} className="mx-auto mb-4 text-mist-dark" />
-              <p className="text-white font-bold">No results for “{submittedQuery}”</p>
-              <p className="text-mist-dark text-sm mt-1">Try different keywords</p>
+              <p className="text-white font-bold">{noResultsFor(lang, submittedQuery)}</p>
+              <p className="text-mist-dark text-sm mt-1">{s.tryDifferentKeywords}</p>
             </div>
           )}
 
@@ -306,11 +312,11 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
               <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                 <SearchIcon size={26} className="text-brand-light" />
               </span>
-              <p className="text-white font-bold">Search the collection</p>
+              <p className="text-white font-bold">{s.searchCollection}</p>
               <p className="text-mist-dark text-sm mt-1">
                 {videos.length > 0
-                  ? `${videos.length} lectures indexed`
-                  : 'Type above to begin'}
+                  ? lecturesIndexed(lang, videos.length)
+                  : s.typeAbove}
               </p>
             </div>
           )}

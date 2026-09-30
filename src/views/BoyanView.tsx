@@ -10,6 +10,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguageStore } from '@/store/language-store';
+import { t, resultsCount, boyanSub } from '@/lib/i18n';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import { fetchJson } from '@/lib/fetch-timeout';
 import {
@@ -42,6 +44,8 @@ function BoyanRow({
   isPlaying: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { lang } = useLanguageStore();
+  const s = t(lang);
 
   const sub = [audio.speaker, audio.location, formatBoyanDate(audio.uploadDate)]
     .filter(Boolean)
@@ -84,7 +88,7 @@ function BoyanRow({
           e.stopPropagation();
           setMenuOpen((v) => !v);
         }}
-        aria-label="Save to playlist"
+        aria-label={s.saveToPlaylist}
         className="p-1.5 rounded-lg text-mist-dark hover:text-gold-light hover:bg-white/10 transition-colors shrink-0"
       >
         <ListPlus size={16} />
@@ -111,6 +115,8 @@ function BoyanRow({
 }
 
 export default function BoyanView() {
+  const { lang } = useLanguageStore();
+  const s = t(lang);
   const [audios, setAudios] = useState<BoyanAudio[]>([]);
   const [categories, setCategories] = useState<BoyanCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -201,15 +207,15 @@ export default function BoyanView() {
             </span>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold">
-                IslahBD
+                {s.brandEyebrow}
               </p>
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-                Boyan
+                {s.boyanTitle}
               </h1>
               <p className="text-[13px] text-mist mt-0.5">
                 {isLoading
-                  ? 'Loading…'
-                  : `${audios.length} lecture${audios.length === 1 ? '' : 's'} • direct MP3, downloadable`}
+                  ? s.loading
+                  : boyanSub(lang, audios.length)}
               </p>
             </div>
           </div>
@@ -226,7 +232,7 @@ export default function BoyanView() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search boyan…"
+              placeholder={s.searchBoyanPh}
               className="w-full rounded-2xl liquid-input py-3.5 pl-12 pr-12 text-white outline-none transition-all"
             />
             {query && (
@@ -234,7 +240,7 @@ export default function BoyanView() {
                 type="button"
                 onClick={clearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-mist-dark hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Clear search"
+                aria-label={s.clearSearch}
               >
                 <X size={16} />
               </button>
@@ -252,7 +258,7 @@ export default function BoyanView() {
                 category === 'all' ? 'liquid-gold font-bold' : 'liquid-chip text-white'
               )}
             >
-              All
+              {s.filterAll}
             </button>
             {categories.map((c) => (
               <button
@@ -291,14 +297,14 @@ export default function BoyanView() {
               <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                 <Music size={26} className="text-brand-light" />
               </span>
-              <p className="text-white font-bold text-lg">Couldn’t load Boyan</p>
+              <p className="text-white font-bold text-lg">{s.boyanLoadFail}</p>
               <p className="text-mist-dark text-sm mt-1 max-w-xs mx-auto break-words">{error}</p>
               <button
                 onClick={() => load()}
                 className="relative mt-4 inline-flex items-center gap-2 px-6 py-2.5 rounded-full liquid-gold text-sm font-bold transition-all"
               >
                 <RefreshCw size={15} />
-                Retry
+                {s.retry}
               </button>
             </div>
           )}
@@ -306,7 +312,7 @@ export default function BoyanView() {
           {!isLoading && !error && results.length > 0 && (
             <>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-mist-dark mb-3">
-                {results.length} result{results.length === 1 ? '' : 's'}
+                {resultsCount(lang, results.length)}
                 {category !== 'all' ? ` • ${category}` : ''}
               </p>
               <div className="relative liquid-glass rounded-3xl p-2 overflow-hidden">
@@ -332,8 +338,8 @@ export default function BoyanView() {
               <span className="relative w-16 h-16 rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center mx-auto mb-4">
                 <MapPin size={26} className="text-brand-light" />
               </span>
-              <p className="text-white font-bold">No boyan found</p>
-              <p className="text-mist-dark text-sm mt-1">Try different keywords or category</p>
+              <p className="text-white font-bold">{s.noBoyan}</p>
+              <p className="text-mist-dark text-sm mt-1">{s.tryKeywordsCategory}</p>
             </div>
           )}
         </div>
