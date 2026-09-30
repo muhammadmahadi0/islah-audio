@@ -181,8 +181,9 @@ This file orients AI coding agents working in this repo. Read it before making c
   `prefers-reduced-motion`). The sidebar Liquid Glass row has the same
   tap-bloom pattern (`.design-wrap` in `globals.css`) with a liquid variant —
   glassy blob (blur + saturation + gloss sheen + gold shimmer) wobbling
-  through organic border-radius shapes; direction-aware
-  (`.design-wrap-to-liquid` vs `.design-wrap-to-material`). Desktop sidebar collapse is a
+  through organic border-radius shapes; turning OFF plays the SAME bloom
+  backward (`.design-wrap-reverse` retract keyframes, design flips early to
+  reveal underneath). Desktop sidebar collapse is a
   max-width + slide transition on `#sidebar-wrap` (`body.sb-hidden`, persisted
   `islah-sidebar-hidden`); the mobile drawer slides via `#mobile-drawer.open`.
   Layout listeners must be document-delegated + guarded (`__islahLayoutWired`)

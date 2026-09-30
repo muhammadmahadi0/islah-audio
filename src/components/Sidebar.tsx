@@ -54,6 +54,8 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
 
   // Same tap-bloom wrap as the theme toggle, but liquid: a glassy blob
   // blooms from the tap point while the design flips mid-expansion.
+  // Turning OFF plays the SAME bloom backward (starts covering, retracts
+  // into the tap point) — so flip the design early to reveal it underneath.
   const handleDesignToggle = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       const to: 'liquid' | 'material' = designMode === 'liquid' ? 'material' : 'liquid';
@@ -75,7 +77,7 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
       }
       const size = Math.hypot(window.innerWidth, window.innerHeight) * 2.2;
       setDesignWrap({ x, y, to, size, key: Date.now() });
-      window.setTimeout(toggleDesign, 180);
+      window.setTimeout(toggleDesign, to === 'liquid' ? 180 : 100);
       window.setTimeout(() => setDesignWrap(null), 950);
     },
     [designMode, toggleDesign]
@@ -257,7 +259,7 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
           aria-hidden="true"
           className={cn(
             'design-wrap',
-            designWrap.to === 'liquid' ? 'design-wrap-to-liquid' : 'design-wrap-to-material'
+            designWrap.to === 'liquid' ? 'design-wrap-to-liquid' : 'design-wrap-to-material design-wrap-reverse'
           )}
           style={{
             left: designWrap.x,
