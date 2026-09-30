@@ -89,9 +89,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    "Last live • location". Live tracks use `id: 'live'` / `'live-recording'`
    with `isLive` set for real broadcasts; `Track.location` carries the venue
    into MiniPlayer (title block + Up-next header, MapPin icon).
-9. **Netlify (BETA: Astro).** `netlify.toml` publishes `dist/`; SSR/API run as
-   functions via `@astrojs/netlify`. Never add manual `/api/*` redirects, and
-   never re-add the Next.js plugin on this branch.
+9. **Hosting (beta = Vercel, master = Netlify).** `astro.config.mjs` picks
+   the adapter by env: `VERCEL` set → `@astrojs/vercel/serverless`, otherwise
+   `@astrojs/netlify`. `netlify.toml` publishes `dist/` for master; Vercel
+   builds `beta` with `npm run build` and default output. Never add manual
+   `/api/*` redirects, and never re-add the Next.js plugin on either branch.
 10. **Shareable links.** Every video is addressable at `/watch/[videoId]`
    (`src/pages/watch/[id].astro` fetches SSR metadata + OG tags through
    `lib/video.ts`, `views/WatchView.tsx` island auto-plays on open). Share via

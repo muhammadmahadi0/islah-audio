@@ -31,7 +31,9 @@
   and prefetched on browser idle (skipped on data-saver / 2g).
 - **Animation**: pure CSS (`animate-fade-up`, `.shimmer`, `.eq-bar`) — no
   animation library in the bundle. No `background-attachment: fixed`.
-- **Hosting**: Netlify (`dist` publish, SSR functions via adapter).
+- **Hosting**: beta → Vercel, master → Netlify (`dist` publish, SSR functions
+  via adapter; `astro.config.mjs` picks `@astrojs/vercel/serverless` when
+  `VERCEL` is set, `@astrojs/netlify` otherwise).
   Hashed `/_astro/*` bundles cache immutable for a year.
 
 ## UI/UX Specification

@@ -52,7 +52,7 @@ playlists, search, and a mobile-first design.
 | State    | Zustand (`player-store`, persisted `playlist-store` + `channel-store`) |
 | Data     | Fully keyless InnerTube via youtubei.js (no API key, no quota — Flow-style) |
 | Playback | YouTube IFrame Player API (official embed, no extraction)   |
-| Hosting  | Netlify (SSR functions via `@astrojs/netlify`)              |
+| Hosting  | Vercel for `beta`, Netlify for `master` (adapter picked by `VERCEL` env) |
 
 ## Getting Started
 
@@ -147,11 +147,14 @@ but the player itself is created on demand at first play; lectures load at
 144p first so audio starts fast. The store drives play/pause/seek/volume, and UI components request seeks
 via the `islah:seek` window event (defined in `lib/yt-engine.ts`).
 
-## Deployment (BETA)
+## Deployment (BETA → Vercel)
 
-Pushes to `beta` auto-deploy on Netlify (branch deploy). `netlify.toml`
-publishes `dist/`; SSR/API routes run as functions via `@astrojs/netlify`.
-Do not add manual `/api/*` redirects; they break routing.
+Pushes to `beta` auto-deploy on Vercel (production branch = `beta`, so only
+beta builds — other branches are ignored). `astro.config.mjs` selects the
+adapter by env (`VERCEL` set → `@astrojs/vercel/serverless`, else
+`@astrojs/netlify`), so `master` still deploys to Netlify unchanged. No env
+vars needed on either host (fully keyless). Do not add manual `/api/*`
+redirects; they break routing.
 
 ## Contributing
 
