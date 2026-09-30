@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { SEEK_EVENT } from '@/lib/yt-engine';
 
 export interface Track {
   id: string;
@@ -100,9 +101,14 @@ export const usePlayerStore = create<PlayerState>()(
     const { playlist, playlistIndex, currentTime } = get();
     if (playlist.length === 0) return;
 
-    // If more than 3 seconds in, restart current track
+    // If more than 3 seconds in, restart current track — and SEEK the
+    // engines there too, so audio follows the progress bar. Both engines
+    // (YT in MiniPlayer, <audio> in AudioPlayer) listen for SEEK_EVENT.
     if (currentTime > 3) {
       set({ currentTime: 0 });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(SEEK_EVENT, { detail: 0 }));
+      }
       return;
     }
 

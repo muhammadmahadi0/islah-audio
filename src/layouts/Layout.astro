@@ -188,17 +188,16 @@ const {
     </div>
 
     <!-- Floating pill bars + player engines.
-         Player islands persist across SPA navigations (transition:persist)
-         so the iframe/audio nodes — and playback — survive page changes.
-         MiniPlayer itself also never unmounts (CSS visibility toggle). -->
-    <div transition:persist="islah-mini-player">
-      <MiniPlayer client:only="react" />
-    </div>
+         `transition:persist` sits DIRECTLY on the player islands (Astro's
+         documented persistent-island pattern): the same <astro-island>
+         element — with its live React root, YT iframe and <audio> node —
+         is moved into the new page instead of re-created, so playback
+         survives every SPA navigation. MiniPlayer itself also never
+         unmounts (CSS visibility toggle). -->
+    <MiniPlayer client:only="react" transition:persist="islah-mini-player" />
     <BottomNav client:only="react" />
     <BetaBadge client:only="react" />
-    <div transition:persist="islah-stream-engine">
-      <AudioPlayer client:only="react" />
-    </div>
+    <AudioPlayer client:only="react" transition:persist="islah-stream-engine" />
 
     <script is:inline>
       // Wired once per document (guard): SPA swaps re-execute this inline

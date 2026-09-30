@@ -162,7 +162,9 @@ Third-party audio-extraction APIs (Cobalt v7, public Piped/Invidious instances) 
 dead or blocked, so YouTube tracks play through the **official YouTube embed**
 (the single `YT.Player` in `lib/yt-engine.ts`, mounted by `MiniPlayer.tsx` —
 minimized/audio-only by default, video opt-in via the toggle in the expanded
-player). The **islahbd live broadcast**
+player — the toggle only flips visibility + quality on the live player with
+the position captured first, so it never reloads, restarts, or stops the
+track; it stays disabled until the embed is ready). The **islahbd live broadcast**
 and its recording play through a hidden `<audio>` element in
 `AudioPlayer.tsx` instead
 (tracks carrying `hlsUrl`/`audioUrl`; live tracks also set `isLive`, which disables

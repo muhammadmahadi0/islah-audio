@@ -108,6 +108,7 @@ export function setEnginePlayer(player: any | null) {
 
 /** Show or hide the video frame; audio mode drops to lowest quality. */
 export function setVideoMode(mode: VideoMode) {
+  if (engine.mode === mode) return; // no-op — avoids useless re-renders
   engine.mode = mode;
   const player = engine.player;
   // Guard: never talk to a player that isn't ready or whose iframe React

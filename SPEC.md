@@ -240,8 +240,13 @@
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
    volume, progress polling). Playback always starts audio-only (hidden
    iframe, lowest quality). Expanded = artwork + video toggle button; tapping
-   it shows the real video in the same player, tapping again returns to
-   audio-only. Collapsing also returns to audio-only.
+   it shows the real video in the SAME player instance (position captured
+   first, quality raised to auto, playback explicitly continued — a toggle
+   never reloads, restarts, or stops the track), tapping again returns to
+   audio-only. The toggle is disabled until the embed reports ready, so it
+   can never show a dead frame. Collapsing also returns to audio-only.
+   Previous restarts the current track past 3s AND seeks the engine to 0,
+   so audio always follows the progress bar.
    Unplayable videos auto-skip. Lectures load with 144p suggested quality
    so first audio arrives fast (no buffer-default-then-downshift rebuffer).
    Blocked autoplay (direct /watch visits) surfaces UNSTARTED with the

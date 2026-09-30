@@ -27,12 +27,22 @@ This file orients AI coding agents working in this repo. Read it before making c
    while the embed idles hidden. If the iframe ever detaches anyway, the
    track effect rebinds a fresh player. Navigation never interrupts playback:
    `Layout.astro` uses Astro's `<ClientRouter />` (SPA page swaps) +
-   `transition:persist` wrappers around both player islands, so the iframe /
-   `<audio>` nodes survive Home/Search/Library/Boyan/Hamd-Naat changes; the
+   `transition:persist` DIRECTLY on both player islands (the documented
+   persistent-island pattern — never a wrapper div: the same
+   `<astro-island>` element with its live React root + iframe/`<audio>`
+   nodes moves into the new page), so the iframe / `<audio>` nodes survive
+   Home/Search/Library/Boyan/Hamd-Naat changes; the
    player store persists track + queue + volume (`islah-player`) so even a
    hard reload restores the mini-player paused (autoplay stays off —
    browsers block it). Sidebar/BottomNav active states listen to
    `astro:page-load` since islands aren't remounted on SPA nav.
+   The video toggle (`MiniPlayer.toggleVideo`) must NEVER load/cue — it
+   only flips visibility + quality on the live player with the position
+   captured first (continuity guaranteed); it is disabled until the engine
+   reports ready. `playPrevious` past 3s seeks the engines to 0 via
+   `islah:seek` (audio always follows the bar). Player transport buttons
+   (toggle, play/pause, prev/next) carry `data-no-ripple` so the droplet
+   effect never injects nodes inside the player during playback.
    **View-transition gotcha:** the ClientRouter replaces `<html>` attributes
    from the incoming SSR HTML on every swap, wiping the `light`/`material`
    classes — so `Layout.astro` re-applies the saved theme + design from

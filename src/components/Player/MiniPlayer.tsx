@@ -532,9 +532,57 @@ export default function MiniPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack]);
 
-  // Video toggle: audio ⇄ video in the same player (no restart).
+  // Video toggle: audio ⇄ video in the SAME player instance — never
+  // load/cue here, so a toggle can never restart the track or kill
+  // playback. Position is captured first and restored as a safeguard, the
+  // incoming mode gets a suitable quality (real pixels for video, 144p
+  // data-saver for audio), and play state is explicitly continued.
   const toggleVideo = () => {
-    setVideoMode(engine.mode === 'video' ? 'audio' : 'video');
+    const player = playerRef.current;
+    if (!player || !readyRef.current || !isYtTrack) return;
+    let detached = false;
+    try {
+      const iframe = player.getIframe?.();
+      detached = !!iframe && !iframe.isConnected;
+    } catch {
+      detached = true;
+    }
+    if (detached) return; // load effect rebinds a fresh player
+    let pos = 0;
+    try {
+      pos = player.getCurrentTime?.() || currentTime || 0;
+    } catch {
+      pos = currentTime || 0;
+    }
+    const toVideo = engine.mode !== 'video';
+    try {
+      if (toVideo) {
+        setVideoMode('video'); // unhide frame — same player, no reload
+        try {
+          player.setPlaybackQuality?.('default');
+        } catch {
+          // ignore — quality adapts on its own
+        }
+        if (usePlayerStore.getState().isPlaying) {
+          try {
+            player.playVideo?.();
+          } catch {
+            // ignore — already playing
+          }
+        }
+      } else {
+        setVideoMode('audio'); // hide frame + drop to 144p (engine guard)
+        if (pos > 1) {
+          try {
+            player.seekTo?.(pos, true);
+          } catch {
+            // ignore — already at position
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[MiniPlayer] video toggle error:', err);
+    }
   };
 
   // Download: only tracks with a direct MP3 file (recordings) can be saved.
@@ -708,7 +756,9 @@ export default function MiniPlayer() {
                 {isYtTrack && (
                   <button
                     onClick={toggleVideo}
-                    className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-[#FFFFFF]/25 text-[#FFFFFF] transition-colors hover:bg-black/80 hover:border-[#FFFFFF]/50"
+                    disabled={!engine.ready}
+                    data-no-ripple
+                    className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-md border border-[#FFFFFF]/25 text-[#FFFFFF] transition-colors hover:bg-black/80 hover:border-[#FFFFFF]/50 disabled:opacity-40"
                     aria-label={engine.mode === 'video' ? s.switchToAudio : s.watchVideo}
                     title={engine.mode === 'video' ? s.toAudioOnly : s.watchVideo}
                   >
@@ -808,6 +858,7 @@ export default function MiniPlayer() {
                 <span className="flex items-center gap-2 justify-self-center">
                 <button
                   onClick={playPrevious}
+                  data-no-ripple
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-all hover:bg-white/[0.1] active:scale-95"
                   aria-label={s.previous}
                 >
@@ -815,6 +866,7 @@ export default function MiniPlayer() {
                 </button>
                 <button
                   onClick={() => setIsPlaying(!isPlaying)}
+                  data-no-ripple
                   className="liquid-gold flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
                   aria-label={isPlaying ? s.pause : s.play}
                 >
@@ -828,6 +880,7 @@ export default function MiniPlayer() {
                 </button>
                 <button
                   onClick={playNext}
+                  data-no-ripple
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-all hover:bg-white/[0.1] active:scale-95"
                   aria-label={s.next}
                 >
@@ -916,6 +969,7 @@ export default function MiniPlayer() {
           <div className="relative md:hidden flex items-center justify-between px-1 pt-2">
             <button
               onClick={playPrevious}
+              data-no-ripple
               className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
               aria-label={s.previous}
             >
@@ -923,6 +977,7 @@ export default function MiniPlayer() {
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
+              data-no-ripple
               className="liquid-gold flex h-16 w-16 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
               aria-label={isPlaying ? s.pause : s.play}
             >
@@ -936,6 +991,7 @@ export default function MiniPlayer() {
             </button>
             <button
               onClick={playNext}
+              data-no-ripple
               className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.07] backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/[0.14] hover:border-white/40 active:scale-95 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]"
               aria-label={s.next}
             >
@@ -1140,6 +1196,7 @@ export default function MiniPlayer() {
               e.stopPropagation();
               setIsPlaying(!isPlaying);
             }}
+            data-no-ripple
             className="liquid-gold w-10 h-10 rounded-full flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-transform"
             aria-label={isPlaying ? s.pause : s.play}
           >
