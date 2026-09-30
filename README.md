@@ -4,9 +4,7 @@ A modern, YouTube-style web app for listening to Islamic lectures (bayans, waz, 
 from the [Islah YouTube channel](https://www.youtube.com/@islahbd). Audio-only experience with
 playlists, search, and a mobile-first design.
 
-**Live (beta):** https://beta--islahiboyan.netlify.app/
-
-![Astro](https://img.shields.io/badge/Astro-5-black) ![Tailwind](https://img.shields.io/badge/Tailwind-3-38bdf8) ![Deployed](https://img.shields.io/badge/Netlify-live-00ad9f)
+![Astro](https://img.shields.io/badge/Astro-5-black) ![Tailwind](https://img.shields.io/badge/Tailwind-3-38bdf8)
 
 ## Features
 
