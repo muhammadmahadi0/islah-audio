@@ -88,8 +88,10 @@ This file orients AI coding agents working in this repo. Read it before making c
    "Last live • location". Live tracks use `id: 'live'` / `'live-recording'`
    with `isLive` set for real broadcasts; `Track.location` carries the venue
    into MiniPlayer (title block + Up-next header, MapPin icon).
-9. **Netlify.** `netlify.toml` publishes `dist/`; SSR/API run as
-   functions via `@astrojs/netlify`. Never add manual `/api/*` redirects.
+9. **Netlify (master ONLY).** `netlify.toml` publishes `dist/`; SSR/API run as
+   functions via `@astrojs/netlify`, with `ignore = 'test "$BRANCH" != "master"'`
+   so beta/preview builds are skipped (beta deploys on Vercel instead).
+   Never add manual `/api/*` redirects.
 10. **Shareable links.** Every video is addressable at `/watch/[videoId]`
    (`src/pages/watch/[id].astro` fetches SSR metadata + OG tags through
    `lib/video.ts`, `views/WatchView.tsx` island auto-plays on open). Share via

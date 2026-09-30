@@ -147,10 +147,12 @@ but the player itself is created on demand at first play; lectures load at
 144p first so audio starts fast. The store drives play/pause/seek/volume, and UI components request seeks
 via the `islah:seek` window event (defined in `lib/yt-engine.ts`).
 
-## Deployment
+## Deployment (master → Netlify ONLY)
 
 Pushes to `master` auto-deploy on Netlify. `netlify.toml`
-publishes `dist/`; SSR/API routes run as functions via `@astrojs/netlify`.
+publishes `dist/`; SSR/API routes run as functions via `@astrojs/netlify`,
+with `ignore = 'test "$BRANCH" != "master"'` so beta never builds here
+(beta deploys on Vercel instead).
 Do not add manual `/api/*` redirects; they break routing.
 
 ## Contributing
