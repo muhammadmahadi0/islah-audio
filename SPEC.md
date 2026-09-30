@@ -203,6 +203,9 @@
   equalizer, play/pause,
   **× stop button** (halts audio + dismisses, keeps queue), expand chevron
 - Live tracks show a red LIVE badge; seek locked on live edge
+- Playback survives navigation: page changes (SPA) never stop audio or hide
+  the player; a full reload restores the mini-player paused with the queue
+  intact (tap to resume)
 
 ## Functionality Specification
 

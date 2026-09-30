@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface Track {
   id: string;
@@ -18,7 +19,9 @@ export interface Track {
 }
 
 interface PlayerState {
-  // State
+  // State (currentTrack/playlist/playlistIndex/volume persist to
+  // localStorage `islah-player` so the mini-player survives page loads;
+  // playback flags always rehydrate paused — browsers block autoplay)
   currentTrack: Track | null;
   isPlaying: boolean;
   isLoading: boolean;
@@ -44,7 +47,9 @@ interface PlayerState {
   stop: () => void;
 }
 
-export const usePlayerStore = create<PlayerState>((set, get) => ({
+export const usePlayerStore = create<PlayerState>()(
+  persist(
+    (set, get) => ({
   // Initial state
   currentTrack: null,
   isPlaying: false,
@@ -148,4 +153,27 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       duration: 0,
       playlistIndex: -1,
     }),
-}));
+    }),
+    {
+      name: 'islah-player',
+      // Survive full page loads (Astro MPA nav): keep the track + queue +
+      // volume so the mini-player stays visible on Search/Library/Boyan.
+      // Playback state itself never resumes automatically (browser autoplay
+      // policy) — rehydrate paused at 0, user taps to resume.
+      partialize: (s) => ({
+        currentTrack: s.currentTrack,
+        playlist: s.playlist,
+        playlistIndex: s.playlistIndex,
+        volume: s.volume,
+      }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<PlayerState>),
+        isPlaying: false,
+        isLoading: false,
+        currentTime: 0,
+        duration: 0,
+      }),
+    }
+  )
+);

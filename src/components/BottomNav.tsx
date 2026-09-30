@@ -13,7 +13,11 @@ const navItems = [
 function usePath() {
   const [path, setPath] = useState('/');
   useEffect(() => {
-    setPath(window.location.pathname);
+    const sync = () => setPath(window.location.pathname);
+    sync();
+    // SPA navigation (ClientRouter) swaps pages without remounting islands.
+    document.addEventListener('astro:page-load', sync);
+    return () => document.removeEventListener('astro:page-load', sync);
   }, []);
   return path;
 }

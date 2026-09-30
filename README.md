@@ -30,6 +30,10 @@ playlists, search, and a mobile-first design.
 - **Hamd-Naat** — hamd & naat from the IslahBD API with search + All/Audio/Video
   chips; audio items play + download as MP3, video items play as YouTube embeds
   with share links
+- **Persistent playback** — the mini-player stays visible and audio keeps
+  playing across Home / Search / Library / Boyan / Hamd-Naat (SPA navigation
+  + persisted player islands); a full reload restores the player paused with
+  the queue intact
 - **Search** — instant client-side search across the channel catalog
 - **Shareable links** — every lecture opens at `/watch/[videoId]` and auto-plays;
   share buttons (Home, Search, Library, player) open a dropdown

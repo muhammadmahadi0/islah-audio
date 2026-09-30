@@ -25,7 +25,14 @@ This file orients AI coding agents working in this repo. Read it before making c
    iframe (and its buffered stream) survives stop/replay and replay is
    instant. The single video frame renders artwork for stream/live tracks
    while the embed idles hidden. If the iframe ever detaches anyway, the
-   track effect rebinds a fresh player. `AudioPlayer.tsx` owns only
+   track effect rebinds a fresh player. Navigation never interrupts playback:
+   `Layout.astro` uses Astro's `<ClientRouter />` (SPA page swaps) +
+   `transition:persist` wrappers around both player islands, so the iframe /
+   `<audio>` nodes survive Home/Search/Library/Boyan/Hamd-Naat changes; the
+   player store persists track + queue + volume (`islah-player`) so even a
+   hard reload restores the mini-player paused (autoplay stays off —
+   browsers block it). Sidebar/BottomNav active states listen to
+   `astro:page-load` since islands aren't remounted on SPA nav. `AudioPlayer.tsx` owns only
    the `<audio>`/hls.js stream engine. Seeking from any UI goes through the
    `islah:seek` window `CustomEvent` (`detail` = seconds), ignored for live
    (`track.isLive`). `AudioPlayer.tsx` also holds the Screen Wake Lock while
