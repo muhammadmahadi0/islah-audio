@@ -1,17 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Home, Search, Library, Mic, Music, Radio, Droplets } from 'lucide-react';
+import { Home, Search, Library, Mic, Music, Radio, Droplets, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
 import { useChannelStore } from '@/store/channel-store';
 import { useDesignStore } from '@/store/design-store';
+import { useLanguageStore } from '@/store/language-store';
+import { t } from '@/lib/i18n';
 
 const navItems = [
-  { icon: Home, label: 'Home', href: '/' },
-  { icon: Search, label: 'Search', href: '/search' },
-  { icon: Library, label: 'Library', href: '/library' },
-  { icon: Mic, label: 'Boyan', href: '/boyan' },
-  { icon: Music, label: 'Hamd-Naat', href: '/hamdnaat' },
-];
+  { icon: Home, key: 'navHome', href: '/' },
+  { icon: Search, key: 'navSearch', href: '/search' },
+  { icon: Library, key: 'navLibrary', href: '/library' },
+  { icon: Mic, key: 'navBoyan', href: '/boyan' },
+  { icon: Music, key: 'navHamdNaat', href: '/hamdnaat' },
+] as const;
 
 function usePath() {
   const [path, setPath] = useState('/');
@@ -43,6 +45,8 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const pathname = usePath();
   const { channelId, setChannelId } = useChannelStore();
   const { mode: designMode, toggle: toggleDesign } = useDesignStore();
+  const { lang, setLang } = useLanguageStore();
+  const strings = t(lang);
   const [meta, setMeta] = useState<Record<string, ChannelMeta>>({});
   const [designWrap, setDesignWrap] = useState<{
     x: number;
@@ -168,7 +172,7 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
                 fillOpacity={isActive ? 0.2 : 0}
                 className="shrink-0"
               />
-              {item.label}
+              {strings[item.key]}
             </a>
           );
         })}
@@ -177,7 +181,7 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
       <hr className="border-white/10 my-3" />
 
       {/* Channels switcher (YouTube "Subscriptions" style) */}
-      <p className="px-3 pb-1 text-sm font-medium text-white">Channels</p>
+      <p className="px-3 pb-1 text-sm font-medium text-white">{strings.channels}</p>
       <div className="space-y-0.5">
         {CHANNELS.map((c) => {
           const m = meta[c.id];
@@ -223,10 +227,10 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
         </span>
         <span className="flex-1 min-w-0">
           <span className="block text-[13px] font-semibold text-white">
-            Liquid Glass
+            {strings.liquidGlass}
           </span>
           <span className="block text-[11px] text-mist-dark">
-            {designMode === 'liquid' ? 'iPhone-style frosted look' : 'Off — Material 3 solid look'}
+            {designMode === 'liquid' ? strings.liquidGlassOn : strings.liquidGlassOff}
           </span>
         </span>
         {/* Toggle pill — gold gradient when on, same as the Open-App button */}
@@ -245,13 +249,50 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
         </span>
       </button>
 
+      {/* Language switch (EN / বাংলা) — directly under Liquid Glass */}
+      <div className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 border border-transparent">
+        <span className="liquid-gold w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+          <Languages size={15} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[13px] font-semibold text-white">
+            {strings.language}
+          </span>
+          <span className="block text-[11px] text-mist-dark">
+            {strings.languageSub}
+          </span>
+        </span>
+        {/* Segmented EN / বাং pill — gold gradient on the active side */}
+        <span
+          role="group"
+          aria-label={strings.language}
+          className="relative flex shrink-0 rounded-full p-0.5 bg-white/10 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]"
+        >
+          {(['en', 'bn'] as const).map((l) => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              aria-pressed={lang === l}
+              className={cn(
+                'px-3 py-1 rounded-full text-[11px] font-bold transition-all',
+                lang === l
+                  ? 'text-[#1a1405] bg-[linear-gradient(135deg,#cba135_0%,#e8c96c_50%,#a07e28_100%)] shadow'
+                  : 'text-white/70 hover:text-white'
+              )}
+            >
+              {l === 'en' ? 'EN' : 'বাং'}
+            </button>
+          ))}
+        </span>
+      </div>
+
       <hr className="border-white/10 my-3" />
 
       <div className="flex-1" />
 
       {/* Footer */}
       <p className="px-3 text-[11px] leading-relaxed text-mist-dark">
-        Audio streaming from public YouTube lectures. For listening &amp; learning.
+        {strings.footer}
       </p>
       {designWrap && (
         <span

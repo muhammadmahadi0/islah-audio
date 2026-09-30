@@ -91,6 +91,11 @@ const {
             material = dandroid || (!dios && dmobile);
           }
           document.documentElement.classList.toggle('material', material);
+          // Persisted app language (islah-lang) — keeps <html lang> correct
+          // for screen readers; the React islands rehydrate the strings.
+          var lg = null;
+          try { lg = JSON.parse(localStorage.getItem('islah-lang') || 'null'); } catch (e3) {}
+          document.documentElement.lang = (lg && lg.state && lg.state.lang === 'bn') ? 'bn' : 'en';
         } catch (e) {}
       }
       applySavedModes();

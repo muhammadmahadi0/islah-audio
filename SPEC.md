@@ -21,7 +21,7 @@
   (tokens in `tailwind.config.js`, helpers in `src/styles/globals.css`)
 - **Icons**: Lucide React
 - **State Management**: Zustand (`player-store`; persisted `playlist-store`,
-  `channel-store`, `theme-store`, `design-store`)
+  `channel-store`, `theme-store`, `design-store`, `language-store`)
 - **Listing Data**: fully keyless InnerTube (no API key, no quota) —
   uploads, channel Playlists tab, playlist items, channel headers,
   single-video metadata — all via youtubei.js (Flow-style)
@@ -124,6 +124,12 @@
   for iOS + desktop, OFF
   for other mobile (Android etc.); first-visit default only. Choice persists
   (`islah-design`) and applies pre-paint via `Layout.astro`, so there is no flash.
+- **Language switch (EN / বাংলা)**: segmented row directly under the Liquid
+  Glass toggle (desktop + drawer) switching the app chrome between English
+  and Bangla — sidebar nav, Channels heading, toggle labels, footer, and the
+  mobile bottom nav (phase 1; video titles stay as-is from the APIs). Choice
+  persists (`islah-lang`), sets `<html lang>`, and applies pre-paint via
+  `Layout.astro`.
 - Footer note
 
 #### Home

@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Home, Search, Library, Mic, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguageStore } from '@/store/language-store';
+import { t, type I18nKey } from '@/lib/i18n';
 
-const navItems = [
-  { icon: Home, label: 'Home', href: '/' },
-  { icon: Search, label: 'Search', href: '/search' },
-  { icon: Mic, label: 'Boyan', href: '/boyan' },
-  { icon: Music, label: 'Hamd-Naat', href: '/hamdnaat' },
-  { icon: Library, label: 'Library', href: '/library' },
+const navItems: { icon: typeof Home; key: I18nKey; href: string }[] = [
+  { icon: Home, key: 'navHome', href: '/' },
+  { icon: Search, key: 'navSearch', href: '/search' },
+  { icon: Mic, key: 'navBoyan', href: '/boyan' },
+  { icon: Music, key: 'navHamdNaat', href: '/hamdnaat' },
+  { icon: Library, key: 'navLibrary', href: '/library' },
 ];
 
 function usePath() {
@@ -27,6 +29,8 @@ function usePath() {
  */
 export default function BottomNav() {
   const pathname = usePath();
+  const { lang } = useLanguageStore();
+  const strings = t(lang);
 
   return (
     <nav className="bottom-nav md:hidden fixed bottom-2.5 inset-x-4 z-50 rounded-full liquid-glass safe-bottom">
@@ -48,7 +52,7 @@ export default function BottomNav() {
               )}
             >
               <Icon size={20} strokeWidth={isActive ? 2.4 : 2} fill={isActive ? 'currentColor' : 'none'} fillOpacity={isActive ? 0.25 : 0} />
-              {item.label}
+              {strings[item.key]}
             </a>
           );
         })}

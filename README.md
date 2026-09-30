@@ -53,7 +53,11 @@ playlists, search, and a mobile-first design.
   off for other mobile) flattens the
    whole site to a Material 3 solid look. Every button/link blooms a
   water-drop ripple from the touch point (theme-aware ink, gold buttons get
-  dark ink; `prefers-reduced-motion` disables it)
+   dark ink; `prefers-reduced-motion` disables it)
+- **Language (EN / বাংলা)** — segmented switch directly under the Liquid
+  Glass toggle in the sidebar (desktop + mobile drawer, persisted) that
+  translates the app chrome — sidebar nav, Channels heading, toggle labels,
+  footer, and the mobile bottom nav (video titles stay as-is from the APIs)
 
 ## Tech Stack (BETA: Astro rebuild)
 
@@ -134,8 +138,10 @@ src/
 │   ├── playlist-store.ts   # user playlists, persisted to localStorage
 │   ├── channel-store.ts    # active channel, persisted
 │   ├── theme-store.ts      # light/dark theme, persisted
-│   └── design-store.ts     # liquid-glass / material mode, persisted
+│   ├── design-store.ts     # liquid-glass / material mode, persisted
+│   └── language-store.ts   # EN/বাংলা app language, persisted
 └── lib/
+    ├── i18n.ts             # chrome dictionary (sidebar + bottom nav)
     ├── innertube.ts        # ALL listing, fully keyless (uploads, playlists, meta, video info)
     ├── boyan.ts            # IslahBD MP3 catalog + Track mapping (boyan page)
     ├── hamdnaat.ts         # IslahBD hamd-naat catalog + Track mapping (hamdnaat page)
