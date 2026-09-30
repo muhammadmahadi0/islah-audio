@@ -110,10 +110,13 @@
 
 - Brand mark (gold `إ` on bronze) + "Islah Audio" + tagline
 - Nav: Home, Search, Library — active item gets a frosted glass highlight
+- **Collapsible**: the desktop hamburger slides the sidebar away (slide + fade,
+  content reclaims the space) and back; choice persists (`islah-sidebar-hidden`)
+  across navigations. Android opens the same sidebar as a slide-over drawer
+  via the top-bar hamburger button (panel glides in from the left, backdrop
+  fades; closes on backdrop tap or page change).
 - **Channels switcher**: all registered channels (`lib/channels.ts`) with live
   avatars; tapping switches Home, Search, and Library; choice persists.
-  Android opens the same sidebar as a slide-over drawer via the top-bar
-  hamburger button.
 - **Liquid Glass toggle**: direct sidebar row (desktop + drawer) switching the
   **Liquid Glass** design — on = iPhone-style frosted design,
   off = flat Material 3 solid surfaces (mobile bottom nav keeps a slight

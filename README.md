@@ -46,11 +46,14 @@ playlists, search, and a mobile-first design.
   the app owner's deep links), otherwise falls back to the
   Play Store / App Store for the visitor's device
 - **Modern UI** — golden theme with light/dark mode (floating toggle,
-  persisted), floating liquid-glass sidebar + top bar, mobile bottom nav pill,
+  persisted), floating liquid-glass sidebar (collapsible via the hamburger —
+  slides away on desktop, slide-over drawer on mobile) + top bar, mobile bottom nav pill,
    floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters + Newest/Most-viewed/Oldest sorts (global sorts auto-load the full catalog in the background).
   A sidebar **Liquid Glass** toggle (persisted; defaults on for iOS + desktop,
   off for other mobile) flattens the
-  whole site to a Material 3 solid look
+   whole site to a Material 3 solid look. Every button/link blooms a
+  water-drop ripple from the touch point (theme-aware ink, gold buttons get
+  dark ink; `prefers-reduced-motion` disables it)
 
 ## Tech Stack (BETA: Astro rebuild)
 

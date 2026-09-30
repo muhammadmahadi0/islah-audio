@@ -172,10 +172,10 @@ const {
       </main>
     </div>
 
-    <!-- Mobile slide-over drawer: nav + channel switcher -->
+    <!-- Mobile slide-over drawer: nav + channel switcher (slides in, see globals.css) -->
     <div id="mobile-drawer" class="fixed inset-0 z-50 hidden md:hidden">
-      <div id="drawer-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-      <div class="absolute left-2 top-2 bottom-2 w-72 max-w-[85vw] liquid-glass rounded-3xl overflow-hidden">
+      <div id="drawer-backdrop" class="drawer-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div id="drawer-panel" class="drawer-panel absolute left-2 top-2 bottom-2 w-72 max-w-[85vw] liquid-glass rounded-3xl overflow-hidden">
         <span aria-hidden="true" class="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent"></span>
         <Sidebar mobile={true} client:only="react" />
       </div>
@@ -196,62 +196,134 @@ const {
     </div>
 
     <script is:inline>
-      document.getElementById('menu-btn')?.addEventListener('click', () => {
-        document.body.classList.toggle('sb-hidden');
-      });
-      var drawer = document.getElementById('mobile-drawer');
-      var openDrawer = function (open) {
-        if (!drawer) return;
-        drawer.classList.toggle('hidden', !open);
-        document.body.classList.toggle('overflow-hidden', open);
-      };
-      document.getElementById('menu-btn-mobile')?.addEventListener('click', function () {
-        openDrawer(true);
-      });
-      document.getElementById('drawer-backdrop')?.addEventListener('click', function () {
-        openDrawer(false);
-      });
-      // Open IslahBD button: open the installed app, otherwise go to the
-      // right store for the device. Mirrors the app owner's own DeepLinkRedirect
-      // (islahbd.com `live/[token]` page): the app registers the `islahbd://`
-      // custom scheme with `open/<section>/<token>` paths, so `islahbd://open`
-      // (no content segments) just launches the app.
-      // Android uses a scheme intent (the OS opens the app if installed, else
-      // loads the Play Store fallback natively — there is deliberately NO
-      // manual JS timer, which would race installed users to the store).
-      // iOS fires the custom scheme and falls back to the App Store after 2s
-      // only if the page is still visible (opening the app backgrounds the
-      // page, which cancels the timer). Desktop opens the site in a new tab.
-      document.getElementById('islahbd-btn')?.addEventListener('click', function () {
-        var ua = navigator.userAgent || '';
-        var isAndroid = /Android/i.test(ua);
-        var isiOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        var playStore = 'https://play.google.com/store/apps/details?id=com.islahbd.app';
-        var appStore = 'https://apps.apple.com/us/app/islahbd/id6762509692';
-        if (isAndroid) {
-          window.location.replace('intent://open#Intent;scheme=islahbd;package=com.islahbd.app;S.browser_fallback_url=' + encodeURIComponent(playStore) + ';end');
-        } else if (isiOS) {
-          var opened = false;
-          var onVis = function () { if (document.hidden) opened = true; };
-          var onHide = function () { opened = true; };
-          document.addEventListener('visibilitychange', onVis);
-          window.addEventListener('pagehide', onHide);
-          window.addEventListener('blur', onHide);
-          window.location.href = 'islahbd://open';
-          setTimeout(function () {
-            document.removeEventListener('visibilitychange', onVis);
-            window.removeEventListener('pagehide', onHide);
-            window.removeEventListener('blur', onHide);
-            if (!opened && !document.hidden) window.location.replace(appStore);
-          }, 2000);
-        } else {
-          window.open('https://www.islahbd.com/', '_blank', 'noopener');
-        }
-      });
+      // Wired once per document (guard): SPA swaps re-execute this inline
+      // script, but document-level delegation survives swaps — so register
+      // exactly once and let every swapped header/sidebar use it.
+      if (!window.__islahLayoutWired) {
+        window.__islahLayoutWired = true;
+        var SB_KEY = 'islah-sidebar-hidden';
+        var applySidebar = function () {
+          try {
+            document.body.classList.toggle('sb-hidden', localStorage.getItem(SB_KEY) === '1');
+          } catch (e) {}
+        };
+        applySidebar();
+        var drawerTimer = null;
+        var openDrawer = function (open, instant) {
+          var drawer = document.getElementById('mobile-drawer');
+          if (!drawer) return;
+          if (drawerTimer) {
+            clearTimeout(drawerTimer);
+            drawerTimer = null;
+          }
+          if (open) {
+            drawer.classList.remove('hidden');
+            // Two frames: display applies first, then .open runs the slide.
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () {
+                drawer.classList.add('open');
+              });
+            });
+            document.body.classList.add('overflow-hidden');
+          } else {
+            drawer.classList.remove('open');
+            document.body.classList.remove('overflow-hidden');
+            if (instant) {
+              drawer.classList.add('hidden');
+            } else {
+              drawerTimer = setTimeout(function () {
+                drawer.classList.add('hidden');
+                drawerTimer = null;
+              }, 320);
+            }
+          }
+        };
+        // Hamburger (desktop): slide the sidebar away + remember the choice.
+        // Mobile hamburger: slide the drawer in. Backdrop tap closes it.
+        document.addEventListener('click', function (e) {
+          var t = e.target && e.target.closest ? e.target.closest('#menu-btn,#menu-btn-mobile,#drawer-backdrop') : null;
+          if (!t) return;
+          if (t.id === 'menu-btn') {
+            var hidden = document.body.classList.toggle('sb-hidden');
+            try {
+              localStorage.setItem(SB_KEY, hidden ? '1' : '0');
+            } catch (e2) {}
+          } else if (t.id === 'menu-btn-mobile') {
+            openDrawer(true);
+          } else {
+            openDrawer(false);
+          }
+        });
+        // Site-wide water-drop press effect: bloom a droplet from the touch
+        // point inside any button/link (CSS animates + fades it).
+        document.addEventListener('pointerdown', function (e) {
+          var t = e.target && e.target.closest ? e.target.closest('button,a') : null;
+          if (!t || t.hasAttribute('data-no-ripple')) return;
+          try {
+            var rect = t.getBoundingClientRect();
+            if (rect.width === 0 && rect.height === 0) return;
+            t.classList.add('ripple-host');
+            if (t.querySelectorAll('.ripple-ink').length > 2) return;
+            var size = Math.max(rect.width, rect.height) * 2.2;
+            var ink = document.createElement('span');
+            ink.className = 'ripple-ink';
+            ink.setAttribute('aria-hidden', 'true');
+            var cx = (typeof e.clientX === 'number' && e.clientX > 0 ? e.clientX : rect.left + rect.width / 2) - rect.left;
+            var cy = (typeof e.clientY === 'number' && e.clientY > 0 ? e.clientY : rect.top + rect.height / 2) - rect.top;
+            ink.style.width = ink.style.height = size + 'px';
+            ink.style.left = cx + 'px';
+            ink.style.top = cy + 'px';
+            t.appendChild(ink);
+            setTimeout(function () {
+              ink.remove();
+            }, 700);
+          } catch (err) {}
+        });
+        document.addEventListener('astro:after-swap', function () {
+          applySidebar();
+          openDrawer(false, true);
+        });
+        // Open IslahBD button (delegated — survives SPA swaps): open the
+        // installed app, otherwise go to the right store for the device.
+        // Mirrors the app owner's own DeepLinkRedirect (islahbd.com
+        // `live/[token]` page): the app registers the `islahbd://` custom
+        // scheme with `open/<section>/<token>` paths, so `islahbd://open`
+        // (no content segments) just launches the app.
+        // Android uses a scheme intent (the OS opens the app if installed,
+        // else loads the Play Store fallback natively — deliberately NO
+        // manual JS timer, which would race installed users to the store).
+        // iOS fires the custom scheme and falls back to the App Store after
+        // 2s only if the page is still visible (opening the app backgrounds
+        // the page, which cancels the timer). Desktop opens the site.
+        document.addEventListener('click', function (e) {
+          var ab = e.target && e.target.closest ? e.target.closest('#islahbd-btn') : null;
+          if (!ab) return;
+          var ua = navigator.userAgent || '';
+          var isAndroid = /Android/i.test(ua);
+          var isiOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          var playStore = 'https://play.google.com/store/apps/details?id=com.islahbd.app';
+          var appStore = 'https://apps.apple.com/us/app/islahbd/id6762509692';
+          if (isAndroid) {
+            window.location.replace('intent://open#Intent;scheme=islahbd;package=com.islahbd.app;S.browser_fallback_url=' + encodeURIComponent(playStore) + ';end');
+          } else if (isiOS) {
+            var opened = false;
+            var onVis = function () { if (document.hidden) opened = true; };
+            var onHide = function () { opened = true; };
+            document.addEventListener('visibilitychange', onVis);
+            window.addEventListener('pagehide', onHide);
+            window.addEventListener('blur', onHide);
+            window.location.href = 'islahbd://open';
+            setTimeout(function () {
+              document.removeEventListener('visibilitychange', onVis);
+              window.removeEventListener('pagehide', onHide);
+              window.removeEventListener('blur', onHide);
+              if (!opened && !document.hidden) window.location.replace(appStore);
+            }, 2000);
+          } else {
+            window.open('https://www.islahbd.com/', '_blank', 'noopener');
+          }
+        });
+      }
     </script>
   </body>
 </html>
-
-<style is:inline>
-  body.sb-hidden #sidebar-wrap { display: none; }
-</style>

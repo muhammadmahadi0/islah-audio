@@ -170,8 +170,15 @@ This file orients AI coding agents working in this repo. Read it before making c
   `html.material` overrides. Default is device-aware (`defaultDesignMode()`:
   liquid on iOS + desktop, material on other mobile) — the pre-paint script in
   `Layout.astro` mirrors it, keep both in sync. Animations are CSS-only
-  (`animate-fade-up`/`.shimmer`/`.eq-bar` in `globals.css` + tailwind config) —
-  do NOT reintroduce framer-motion. hls.js must stay dynamically imported in
+  (`animate-fade-up`/`.shimmer`/`.eq-bar`/`.ripple-ink` in `globals.css` + tailwind config) —
+  do NOT reintroduce framer-motion. Site-wide press feedback is the water-drop
+  ripple (delegated `pointerdown` in `Layout.astro` blooms `.ripple-ink` inside
+  any `button`/`a`; opt out with `data-no-ripple`; menus render fixed so host
+  `overflow:hidden` never clips them). Desktop sidebar collapse is a
+  max-width + slide transition on `#sidebar-wrap` (`body.sb-hidden`, persisted
+  `islah-sidebar-hidden`); the mobile drawer slides via `#mobile-drawer.open`.
+  Layout listeners must be document-delegated + guarded (`__islahLayoutWired`)
+  — direct `getElementById` bindings die on the next SPA swap. hls.js must stay dynamically imported in
   `AudioPlayer.tsx` (never a static import — it would re-bloat the initial
   bundle by ~500KB). New glass surfaces must degrade under it (use the
   helpers, keep sheens `pointer-events-none` direct children of `.liquid-glass`). Keep blur radii small and scrolling smooth: no

@@ -435,3 +435,111 @@ input[type='range']::-moz-range-thumb {
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Desktop sidebar slide (hamburger toggle): smooth slide + fade + collapse
+   instead of an abrupt display:none. The wrap's max-width transition reclaims
+   the content space as the sidebar glides out. Visibility flips at the end
+   so focus can't land inside a hidden sidebar. */
+@media (min-width: 768px) {
+  #sidebar-wrap {
+    transition:
+      max-width 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+      transform 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.28s ease,
+      padding 0.38s ease,
+      margin 0.38s ease;
+    max-width: 280px;
+    overflow: hidden;
+  }
+  body.sb-hidden #sidebar-wrap {
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-32px);
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    pointer-events: none;
+  }
+  body.sb-hidden #sidebar-wrap aside {
+    visibility: hidden;
+  }
+}
+
+/* Mobile drawer slide-over: panel glides in from the left, backdrop fades.
+   JS toggles .hidden (display) + .open (position) in two frames so the
+   transition actually runs instead of snapping. */
+#mobile-drawer .drawer-backdrop {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#mobile-drawer .drawer-panel {
+  transform: translateX(-105%);
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+}
+#mobile-drawer.open .drawer-backdrop {
+  opacity: 1;
+}
+#mobile-drawer.open .drawer-panel {
+  transform: translateX(0);
+}
+
+/* Site-wide water-drop (ripple) press effect for buttons + links.
+   JS adds .ripple-host on pointerdown and appends a .ripple-ink span at the
+   touch point; the ink blooms outward and fades like a droplet. Menus render
+   fixed/portal (see ShareButton), so host overflow:hidden never clips them. */
+button.ripple-host,
+a.ripple-host {
+  position: relative;
+  overflow: hidden;
+}
+.ripple-ink {
+  position: absolute;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0.55;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.18) 45%,
+    transparent 70%
+  );
+  animation: ripple-drop 0.65s ease-out forwards;
+  z-index: 1;
+}
+/* Dark ink on light surfaces + on the gold gradient buttons (dark text). */
+html.light .ripple-ink {
+  background: radial-gradient(
+    circle,
+    rgba(6, 13, 10, 0.18) 0%,
+    rgba(6, 13, 10, 0.08) 45%,
+    transparent 70%
+  );
+}
+.liquid-gold .ripple-ink,
+.islahbd-open-btn .ripple-ink {
+  background: radial-gradient(
+    circle,
+    rgba(26, 20, 5, 0.28) 0%,
+    rgba(26, 20, 5, 0.12) 45%,
+    transparent 70%
+  );
+}
+@keyframes ripple-drop {
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #sidebar-wrap,
+  #mobile-drawer .drawer-panel,
+  #mobile-drawer .drawer-backdrop {
+    transition: none;
+  }
+  .ripple-ink {
+    display: none;
+  }
+}
