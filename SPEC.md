@@ -169,6 +169,21 @@
   download button picks up the MP3 automatically
 - Sidebar nav + mobile bottom-nav item (Mic icon, `/boyan`)
 
+#### Hamd-Naat (IslahBD hamd & naat)
+
+- Catalog from the IslahBD API (`/api/hamdnaat`, proxied + 1h CDN cache;
+  whole list ~17KB, filtered client-side) — title, artist, lyricist,
+  composer, writing place/date, created date
+- Two shapes: `audio` items carry a direct MP3 (stream engine, downloadable,
+  like Boyan); `video` items carry a `youtubeId` (YouTube embed, shareable
+  via `/watch/[id]`, title links to it, Video/Audio badges per row)
+- Header card with counts, search (title/artist/lyricist/composer/place),
+  All/Audio/Video chips, liquid-glass rows with save-to-playlist (share on
+  video rows) and equalizer on the playing track
+- Plays through the correct engine as `hamdnaat-<id>` tracks; download
+  button picks up audio items automatically
+- Sidebar nav + mobile bottom-nav item (Music icon, `/hamdnaat`)
+
 #### Library (playlists only — no Queue tab)
 
 - **Playlists → From YouTube**: every channel's real YouTube playlists,
@@ -238,6 +253,7 @@
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube (first ~200) |
 | `GET /api/live` | Live status `{ isLive, title, speaker, location, listeners, streamUrl, recording }` (`recording` also carries `location`) |
 | `GET /api/boyan` | IslahBD MP3 catalog `{ audios, categories }` (1h CDN cache) |
+| `GET /api/hamdnaat` | IslahBD hamd-naat `{ items }` (audio MP3 + video youtubeId, 1h CDN cache) |
 | `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
 
@@ -290,3 +306,4 @@
 11. ✅ Responsive from mobile to desktop
 12. ✅ Every video opens via `/watch/[videoId]` and auto-plays; links unfurl with title + thumbnail
 13. ✅ Boyan page lists IslahBD MP3s with search + categories, plays + downloads them
+14. ✅ Hamd-Naat page lists IslahBD hamd/naat (audio MP3 + video embeds) with search + type filter

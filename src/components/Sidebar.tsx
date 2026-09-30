@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Search, Library, Mic, Radio, Droplets } from 'lucide-react';
+import { Home, Search, Library, Mic, Music, Radio, Droplets } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
 import { useChannelStore } from '@/store/channel-store';
@@ -10,6 +10,7 @@ const navItems = [
   { icon: Search, label: 'Search', href: '/search' },
   { icon: Library, label: 'Library', href: '/library' },
   { icon: Mic, label: 'Boyan', href: '/boyan' },
+  { icon: Music, label: 'Hamd-Naat', href: '/hamdnaat' },
 ];
 
 function usePath() {

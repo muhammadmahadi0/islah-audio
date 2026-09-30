@@ -85,16 +85,25 @@ This file orients AI coding agents working in this repo. Read it before making c
    1h CDN cache, no pagination/search upstream — filter client-side).
    `/boyan` page renders `views/BoyanView.tsx` (search, category chips,
    play, save-to-playlist). Tracks use `id: 'boyan-<id>'` with a direct
-   `audioUrl` and empty `videoId` (stream engine + download button pick them
+   `   audioUrl` and empty `videoId` (stream engine + download button pick them
    up automatically; share button correctly absent).
-7. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
+7. **Hamd-Naat (IslahBD hamd & naat).** Catalog in `lib/hamdnaat.ts` (types +
+   upstream fetch + `toHamdNaatTrack` mapping + date helper), served by
+   `/api/hamdnaat` (proxies `api.islahbd.com/api/nasheeds/`, 1h CDN cache,
+   no pagination/search upstream — filter client-side). `/hamdnaat` page
+   renders `views/HamdNaatView.tsx` (search, All/Audio/Video chips, play,
+   save-to-playlist, share on video rows). Tracks use `id: 'hamdnaat-<id>'`:
+   `audio` items carry a direct `audioUrl` (stream engine + download),
+   `video` items carry a `youtubeId` (embed + `/watch` share link). Nav is
+   Home/Search/Boyan/Hamd-Naat/Library — keep Sidebar + BottomNav in sync.
+8. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
    load fetches the first page, "more" chunks fetch 2 continuation pages
    (~200 videos) via `/api/channel/[id]/more/[token]`.
-8. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
+9. **Stopping playback** uses the `stop()` store action (clears `currentTrack`).
    `AudioPlayer` pauses + seeks to 0 on null track — never `stopVideo()`, which can
    fire ENDED and auto-advance the queue (the ENDED handler is guarded on
    `currentTrack` for the same reason).
-9. **Live (islahbd.com).** Status via `/api/live` (proxies
+10. **Live (islahbd.com).** Status via `/api/live` (proxies
    `api.islahbd.com/api/live/status/` → `LiveStatus` in `lib/live.ts`,
    includes `location` venue name for live + recording); HLS via `/api/hls`
    proxy fallback. Live button lives in the Home hero (`views/HomeView.tsx`);
@@ -102,13 +111,13 @@ This file orients AI coding agents working in this repo. Read it before making c
    "Last live • location". Live tracks use `id: 'live'` / `'live-recording'`
    with `isLive` set for real broadcasts; `Track.location` carries the venue
    into MiniPlayer (title block + Up-next header, MapPin icon).
-10. **Hosting (beta = Vercel ONLY, master = Netlify ONLY).** `astro.config.mjs`
+11. **Hosting (beta = Vercel ONLY, master = Netlify ONLY).** `astro.config.mjs`
    picks the adapter by env: `VERCEL` set → `@astrojs/vercel`, otherwise
    `@astrojs/netlify`. `netlify.toml` has `ignore = 'test "$BRANCH" != "master"'`
    so Netlify skips every non-master branch (incl. beta); Vercel's production
    branch is `beta` with other branches ignored. Never add manual `/api/*`
    redirects, and never re-add the Next.js plugin on either branch.
-11. **Shareable links.** Every video is addressable at `/watch/[videoId]`
+12. **Shareable links.** Every video is addressable at `/watch/[videoId]`
    (`src/pages/watch/[id].astro` fetches SSR metadata + OG tags through
    `lib/video.ts`, `views/WatchView.tsx` island auto-plays on open). Share via
    `lib/share.ts` (`components/ShareButton.tsx`: dropdown menu with
@@ -117,7 +126,7 @@ This file orients AI coding agents working in this repo. Read it before making c
    `shareNative()` + `copyLink()` buttons with a WhatsApp/Telegram/Facebook/X fallback menu
    via `shareTargets()`). Same rule as APIs: the video ID travels in the
    URL path, never a query string.
-12. **Open-IslahBD button (`#islahbd-btn` in `Layout.astro`).** The app
+13. **Open-IslahBD button (`#islahbd-btn` in `Layout.astro`).** The app
    registers the `islahbd://` custom scheme (`open/<section>/<token>` paths —
    same as the owner's DeepLinkRedirect). Fire `islahbd://open` on iOS /
    an `intent://open` scheme-intent on Android with `S.browser_fallback_url`

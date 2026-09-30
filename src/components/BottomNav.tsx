@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Home, Search, Library, Mic } from 'lucide-react';
+import { Home, Search, Library, Mic, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { icon: Home, label: 'Home', href: '/' },
   { icon: Search, label: 'Search', href: '/search' },
   { icon: Mic, label: 'Boyan', href: '/boyan' },
+  { icon: Music, label: 'Hamd-Naat', href: '/hamdnaat' },
   { icon: Library, label: 'Library', href: '/library' },
 ];
 
@@ -27,7 +28,7 @@ export default function BottomNav() {
     <nav className="bottom-nav md:hidden fixed bottom-2.5 inset-x-4 z-50 rounded-full liquid-glass safe-bottom">
       <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-14 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
-      <div className="relative grid grid-cols-4 px-3 py-1">
+      <div className="relative grid grid-cols-5 px-3 py-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
