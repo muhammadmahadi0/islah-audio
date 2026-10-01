@@ -151,11 +151,13 @@
 
 #### Home (buttons only)
 
-- Scholar banner FIRST (above the prayer timer): static elegant
-  cream/gold card (`components/ScholarBanner.tsx`, `.scholar-banner` in
-  `globals.css`) — cream #FDF8F0, gold border #C9A84C, 24px radius,
-  Playfair Display top lines in dark brown #4A3C2A, Cinzel title in rich
-  gold with embossed shadow. Pinned palette (stays cream in both themes).
+- Scholar banner FIRST (above the prayer timer): elegant serif card
+  (`components/ScholarBanner.tsx`, `.scholar-banner` + variants in
+  `globals.css`) that follows the site design — classic cream #FDF8F0 /
+  gold border #C9A84C / brown Playfair top text / embossed Cinzel gold
+  title in light theme; liquid-glass with glowing gold title in dark
+  theme; flat token solid in Material mode. Text translated (`scholar*`
+  keys in `lib/i18n.ts`).
 - Prayer countdown card next (above Explore): timer ported from the
   `pray-bd` project — Aladhan API (Hanafi method=1/school=1), IP-geolocated
   city (24h cache, Dhaka fallback), 1s countdown to next prayer, current /

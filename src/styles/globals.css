@@ -93,11 +93,12 @@ html.light body {
   background: rgb(var(--brand));
 }
 
-/* Glass panel helper */
+/* Glass panel helper — gold outline site-wide. */
 .glass {
   background: rgb(var(--glass) / 0.78);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(201, 168, 76, 0.35);
 }
 html.light .glass {
   background: rgb(var(--glass) / 0.85);
@@ -119,7 +120,8 @@ html.light .glass {
      look while staying smooth on mid-range phones. */
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  /* Gold outline on every glass section site-wide. */
+  border: 1px solid rgba(201, 168, 76, 0.45);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.45),
     inset 0 -1px 2px rgba(255, 255, 255, 0.08),
@@ -135,7 +137,7 @@ html.light .liquid-glass {
     rgba(255, 255, 255, 0.62) 62%,
     rgba(255, 255, 255, 0.4)
   );
-  border-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(201, 168, 76, 0.55);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.9),
     inset 0 -1px 2px rgba(6, 13, 10, 0.05),
@@ -160,17 +162,18 @@ html.light .liquid-glass {
   color: rgb(var(--mist-dark));
 }
 
-/* Frosted-glass chip button (inactive filter/tab/nav states) */
+/* Frosted-glass chip button (inactive filter/tab/nav states) —
+   gold outline site-wide. */
 .liquid-chip {
   background: rgb(var(--veil) / 0.06);
   backdrop-filter: blur(14px) saturate(160%);
   -webkit-backdrop-filter: blur(14px) saturate(160%);
-  border: 1px solid rgb(var(--veil) / 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.35);
   box-shadow: inset 0 1px 1px rgb(var(--veil) / 0.1);
 }
 .liquid-chip:hover {
   background: rgb(var(--veil) / 0.1);
-  border-color: rgb(var(--veil) / 0.22);
+  border-color: rgba(201, 168, 76, 0.6);
 }
 
 /* Gold primary buttons — unified Open-IslahBD style in every theme.
@@ -229,20 +232,20 @@ html.material .glass {
   background: rgb(var(--ink-900));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1px solid rgb(var(--veil) / 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.28);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 html.light.material .liquid-glass,
 html.light.material .glass {
   background: rgb(var(--ink-900));
-  border-color: rgba(6, 13, 10, 0.08);
+  border-color: rgba(201, 168, 76, 0.4);
   box-shadow: 0 2px 8px rgba(6, 13, 10, 0.12);
 }
 html.material .liquid-chip {
   background: rgb(var(--ink-700));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1px solid transparent;
+  border: 1px solid rgba(201, 168, 76, 0.28);
   box-shadow: none;
 }
 html.material .liquid-input {
@@ -303,13 +306,21 @@ html.material .liquid-glass.bottom-nav {
   background: rgb(var(--ink-900) / 0.82);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgb(var(--veil) / 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.28);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 html.light.material .liquid-glass.bottom-nav {
   background: rgb(var(--ink-900) / 0.82);
-  border-color: rgba(6, 13, 10, 0.08);
+  border-color: rgba(201, 168, 76, 0.4);
   box-shadow: 0 8px 24px rgba(6, 13, 10, 0.12);
+}
+
+/* Gold focus outline on every interactive element site-wide. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(201, 168, 76, 0.85);
+  outline-offset: 2px;
 }
 
 /* Scroll performance: skip rendering off-screen items entirely.
@@ -720,23 +731,20 @@ html.light .ripple-ink {
   }
 }
 
-/* Scholar banner (Home top) — user-specified elegant cream/gold card.
-   Exact palette per request (pinned, like brand surfaces — intentionally
-   NOT theme-tokenized): cream #FDF8F0, gold border #C9A84C, dark brown
-   #4A3C2A top text. Stays cream in both themes for the classic look. */
+/* Scholar banner (Home top) — elegant serif card with gold outline.
+   Layout/type here; palette per variant so it follows the site design:
+   classic cream in light theme, liquid-glass gold in dark theme, flat
+   solid in Material mode. Text comes translated from `scholar*` i18n keys
+   (uppercase is a no-op in Bengali, harmless). */
 .scholar-banner {
-  background: #fdf8f0;
-  border: 1px solid #c9a84c;
+  position: relative;
+  overflow: hidden;
   border-radius: 24px;
   text-align: center;
   padding: clamp(1.25rem, 4vw, 2.25rem) clamp(1rem, 4vw, 2.5rem);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 10px 30px rgba(74, 60, 42, 0.1);
 }
 .scholar-banner-top {
   font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  color: #4a3c2a;
   font-size: clamp(0.85rem, 2.6vw, 1.1rem);
   line-height: 1.6;
   margin: 0;
@@ -745,14 +753,51 @@ html.light .ripple-ink {
   font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
   font-weight: 800;
   text-transform: uppercase;
-  color: #96700f;
   font-size: clamp(1.5rem, 6vw, 2.75rem);
   letter-spacing: 0.04em;
   line-height: 1.2;
   margin: 0.65rem 0 0;
-  /* slight embossed effect on cream */
+}
+/* Light theme — exact classic spec: cream card, thin gold border,
+   dark-brown top text, embossed rich-gold title. */
+.scholar-banner-cream {
+  background: #fdf8f0;
+  border: 1px solid #c9a84c;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 10px 30px rgba(74, 60, 42, 0.1);
+}
+.scholar-banner-cream .scholar-banner-top {
+  color: #4a3c2a;
+}
+.scholar-banner-cream .scholar-banner-title {
+  color: #96700f;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9),
     0 -1px 1px rgba(74, 60, 42, 0.25),
     0 2px 8px rgba(201, 168, 76, 0.35);
+}
+/* Dark theme — liquid-glass card (border + blur from the helper),
+   mist top text, glowing gold title. */
+.scholar-banner-dark .scholar-banner-top {
+  color: rgb(var(--mist));
+}
+.scholar-banner-dark .scholar-banner-title {
+  color: rgb(var(--brand-light));
+  text-shadow:
+    0 0 18px rgba(201, 168, 76, 0.45),
+    0 2px 6px rgba(0, 0, 0, 0.5);
+}
+/* Material mode — flat solid card in theme tokens (works light + dark). */
+.scholar-banner-flat {
+  background: rgb(var(--ink-900));
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.scholar-banner-flat .scholar-banner-top {
+  color: rgb(var(--white));
+}
+.scholar-banner-flat .scholar-banner-title {
+  color: rgb(var(--brand));
+  text-shadow: none;
 }

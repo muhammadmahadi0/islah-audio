@@ -156,9 +156,10 @@ This file orients AI coding agents working in this repo. Read it before making c
    guard). IslahBD APIs are CDN-cached 5 min, channel pages 10 min —
    keep those windows aligned with the poll intervals when touching them.
 7d. **Home feature hub + channel buttons.** `HomeView` renders the scholar
-   banner FIRST (`components/ScholarBanner.tsx`, `.scholar-banner` in
-   `globals.css` — pinned cream/gold palette per design request, exempt
-   from theme tokens; Cinzel + Playfair Display loaded in `Layout.astro`),
+   banner FIRST (`components/ScholarBanner.tsx`, `.scholar-banner` +
+   `-cream`/`-dark`/`-flat` variants in `globals.css` — cream in light,
+   liquid-glass gold in dark, flat token solid in Material; translated via
+   `scholar*` keys; Cinzel + Playfair Display loaded in `Layout.astro`),
    then the prayer
    countdown card FIRST (`components/PrayerTimer.tsx`, logic in
    `lib/prayer.ts` — ported from `pray-bd`: Aladhan Hanafi times, IP
@@ -227,6 +228,9 @@ This file orients AI coding agents working in this repo. Read it before making c
   `tailwind.config.js`; shared helpers (`.glass`, `.liquid-glass`, `.liquid-chip`,
   `.liquid-input`, `.liquid-gold`, `.islahbd-open-btn`, `.shimmer`, `.eq-bar`, `.clamp-2`,
   `.safe-bottom`) in `src/styles/globals.css`. Keep the golden theme.
+  Gold outline site-wide: `.liquid-glass`, `.glass`, and `.liquid-chip`
+  all carry a gold (`#C9A84C`-tinted) border in every theme incl. Material,
+  and every `button`/`a`/`input` gets a gold `:focus-visible` outline.
   The whole site is liquid-glass iPhone style: floating top bar, sidebar pill,
   chips pill, cards, inputs, and both player sheets all use the glass helpers
   (with specular edge + gloss spans); body has a fixed ambient aura + blobs
