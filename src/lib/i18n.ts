@@ -204,7 +204,7 @@ const dict = {
     featShortsSub: 'শর্ট ক্লিপ',
     scholarLine1: 'তারজুমান-এ-আকাবির আরিফবিল্লাহ হযরত মাওলানা শাহ আব্দুল মতিন',
     scholarLine2: 'বিন হুসাইন সাহেবের খলিফা হযরত মাওলানা',
-    scholarTitle: 'তায়েব আশরাফ সাহেব',
+    scholarTitle: 'তৈয়্যেব আশরাফ সাহেব',
     prayerTitle: 'নামাজের সময়',
     nextPrayerLabel: 'পরবর্তী নামাজ',
     prayerFajr: 'ফজর',
