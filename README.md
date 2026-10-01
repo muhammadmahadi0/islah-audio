@@ -56,16 +56,17 @@ playlists, search, and a mobile-first design.
   (Home / Live / Boyan / More — Live plays the broadcast or last recording,
   More opens a card with Search, Library, Hamd-Naat, Shorts),
    floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters + Newest/Most-viewed/Oldest sorts (global sorts auto-load the full catalog in the background).
-  A sidebar **Liquid Glass** toggle (persisted; defaults on for iOS + desktop,
-  off for other mobile) flattens the
-   whole site to a Material 3 solid look. Every button/link blooms a
+  A sidebar **Site Settings** dropdown (animated gear header, persisted;
+  Liquid Glass defaults on for iOS + desktop, off for other mobile) holds the
+  Liquid Glass toggle (flattens the whole site to a Material 3 solid look),
+  Theme and Language rows below. Every button/link blooms a
   water-drop ripple from the touch point (theme-aware ink, gold buttons get
    dark ink; `prefers-reduced-motion` disables it)
-- **Language (EN / বাংলা)** — segmented switch in the sidebar settings
-  cluster (persisted) that translates the whole site chrome — header, all
+- **Language (EN / বাংলা)** — segmented switch inside Site Settings
+  (persisted) that translates the whole site chrome — header, all
   views, player + queue, menus, counts, and dates (video titles stay as-is
   from the APIs)
-- **Theme (Dark / Light)** — segmented switch in the same sidebar cluster
+- **Theme (Dark / Light)** — segmented switch inside Site Settings
   with the tap-bloom wrap effect (the old floating toggle is gone)
 
 ## Tech Stack (BETA: Astro rebuild)

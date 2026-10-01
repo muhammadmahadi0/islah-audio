@@ -122,35 +122,38 @@
   fades; closes on backdrop tap or page change).
 - **Channels switcher**: all registered channels (`lib/channels.ts`) with live
   avatars; tapping switches Home, Search, and Library; choice persists.
-- **Liquid Glass toggle**: direct sidebar row (desktop + drawer) switching the
-  **Liquid Glass** design — on = iPhone-style frosted design,
-  off = flat Material 3 solid surfaces (mobile bottom nav keeps a slight
-  translucent blur, without the liquid-glass gradient/sheen). Defaults ON
-  for iOS + desktop, OFF
-  for other mobile (Android etc.); first-visit default only. Choice persists
-  (`islah-design`) and applies pre-paint via `Layout.astro`, so there is no flash.
-- **Language switch (EN / বাংলা)**: segmented row in the sidebar settings
-  cluster switching the WHOLE site chrome between English and Bangla —
-  sidebar + bottom nav, top-bar header (search placeholder, aria labels,
-  Open-IslahBD label — applied live via the `islah:lang` event since the
-  header is SSR, not a React island), every view (Home hero/buttons/chips,
-  Search, Boyan, Hamd-Naat, Library, Watch), the player (mini + expanded +
-  queue), and all menus (share, save-to-playlist). View counts, relative
-  dates, and absolute dates localize too (`fmtViews`/`fmtPublished`/`fmtDate`
-  in `lib/i18n.ts`). Video titles/descriptions stay as-is (API data, not
-  chrome). Choice persists (`islah-lang`), sets `<html lang>`, and applies
-  pre-paint via `Layout.astro`.
-- **Theme switch (Dark / Light)**: segmented row in the sidebar settings
-  cluster (the old floating toggle is gone) with the same tap-bloom wrap
-  effect; choice persists (`islah-theme`).
+- **Site Settings dropdown**: collapsible sidebar section (desktop + drawer)
+  headed by an animated gear button (gear rotates 135° + chevron flips on
+  open, grid-rows expand animation). Holds the Liquid Glass toggle, the
+  Theme switch, and the Language switch:
+  - Liquid Glass — on = iPhone-style frosted design, off = flat Material 3
+    solid surfaces (mobile bottom nav keeps a slight translucent blur,
+    without the liquid-glass gradient/sheen). Defaults ON for iOS +
+    desktop, OFF for other mobile (Android etc.); first-visit default only.
+    Choice persists (`islah-design`) and applies pre-paint via
+    `Layout.astro`, so there is no flash.
+  - Language (EN / বাংলা) — segmented row switching the WHOLE site chrome
+    between English and Bangla — sidebar + bottom nav, top-bar header
+    (search placeholder, aria labels, Open-IslahBD label — applied live via
+    the `islah:lang` event since the header is SSR, not a React island),
+    every view (Home hero/buttons/chips, Search, Boyan, Hamd-Naat, Library,
+    Watch), the player (mini + expanded + queue), and all menus (share,
+    save-to-playlist). View counts, relative dates, and absolute dates
+    localize too (`fmtViews`/`fmtPublished`/`fmtDate` in `lib/i18n.ts`).
+    Video titles/descriptions stay as-is (API data, not chrome). Choice
+    persists (`islah-lang`), sets `<html lang>`, and applies pre-paint via
+    `Layout.astro`.
+  - Theme (Dark / Light) — segmented row (the old floating toggle is gone)
+    with the same tap-bloom wrap effect; choice persists (`islah-theme`).
 - Footer note
 
 #### Home
 
 - Hero: channel art (gold ring), name, video count,
-  Play-all / Shuffle / **LIVE** buttons (single-line labels), "Live now"
-  banner (title • location • listeners) when on air, "Last live • location"
-  line when offline with a recording
+  Play-all / Shuffle buttons (single-line labels) + **LIVE** button on
+  desktop only (`hidden md:flex` — mobile uses the bottom-nav Live tab),
+  "Live now" banner (title • location • listeners) when on air,
+  "Last live • location" line when offline with a recording
 - Filters: All / Bayans (>5 min) / Shorts (≤5 min) + sorts Newest / Most viewed / Oldest
   (global sorts background-index the full catalog, so they rank every video —
   Newest is native API order and needs no extra fetch)

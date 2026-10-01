@@ -199,7 +199,10 @@ This file orients AI coding agents working in this repo. Read it before making c
   The whole site is liquid-glass iPhone style: floating top bar, sidebar pill,
   chips pill, cards, inputs, and both player sheets all use the glass helpers
   (with specular edge + gloss spans); body has a fixed ambient aura + blobs
-  behind content. The sidebar Liquid Glass toggle row switches to flat Material 3
+  behind content. The Site Settings dropdown in the sidebar holds the Liquid
+  Glass toggle + Theme + Language rows (gear header rotates 135° + chevron
+  flips on open, grid-rows expand). The Liquid Glass row switches to flat
+  Material 3
   (`design-store.ts`, persist key `islah-design`, `material` class on `<html>`):
   glass → solid tonal surfaces, blurs/sheen spans/ambient blobs off via the
   `html.material` overrides. Default is device-aware (`defaultDesignMode()`:

@@ -589,7 +589,7 @@ export default function HomePage() {
                   onClick={handleLive}
                   disabled={!live || (!live.isLive && !live.recording)}
                   className={cn(
-                    'h-9 px-4 rounded-full flex items-center gap-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-all disabled:opacity-40',
+                    'h-9 px-4 rounded-full hidden md:flex items-center gap-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-all disabled:opacity-40',
                     live?.isLive
                       ? 'bg-black/60 text-white ring-1 ring-red-500 hover:bg-black/70 active:scale-95'
                       : 'bg-white/10 text-white hover:bg-white/15 active:scale-95'

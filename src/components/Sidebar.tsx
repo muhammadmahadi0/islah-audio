@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Home, Search, Library, Mic, Music, Zap, Radio, Droplets, Languages } from 'lucide-react';
+import { Home, Search, Library, Mic, Music, Zap, Radio, Droplets, Languages, Settings, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
 import { useChannelStore } from '@/store/channel-store';
@@ -50,6 +50,7 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const { lang, setLang } = useLanguageStore();
   const strings = t(lang);
   const [meta, setMeta] = useState<Record<string, ChannelMeta>>({});
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [designWrap, setDesignWrap] = useState<{
     x: number;
     y: number;
@@ -215,80 +216,132 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
 
       <hr className="border-white/10 my-3" />
 
-      {/* Liquid Glass toggle (no Settings wrapper) */}
-      <button
-        onClick={handleDesignToggle}
-        data-no-ripple
-        role="switch"
-        aria-checked={designMode === 'liquid'}
-        aria-label="Liquid Glass design"
-        className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-white/[0.07] border border-transparent transition-all"
+      {/* Site Settings dropdown — Liquid Glass + Theme + Language live here */}
+      <div
+        className={cn(
+          'rounded-2xl border transition-all overflow-hidden',
+          settingsOpen
+            ? 'liquid-chip ring-1 ring-white/25 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)]'
+            : 'border-transparent'
+        )}
       >
-        <span className="liquid-gold w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
-          <Droplets size={15} />
-        </span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-[13px] font-semibold text-white">
-            {strings.liquidGlass}
-          </span>
-          <span className="block text-[11px] text-mist-dark">
-            {designMode === 'liquid' ? strings.liquidGlassOn : strings.liquidGlassOff}
-          </span>
-        </span>
-        {/* Toggle pill — gold gradient when on, same as the Open-App button */}
-        <span
-          className={cn(
-            'relative w-11 h-6 rounded-full transition-colors shrink-0 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]',
-            designMode === 'liquid' ? 'bg-[linear-gradient(135deg,#cba135_0%,#e8c96c_50%,#a07e28_100%)]' : 'bg-white/10'
-          )}
+        <button
+          onClick={() => setSettingsOpen((v) => !v)}
+          aria-expanded={settingsOpen}
+          aria-label={strings.siteSettings}
+          className="w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left hover:bg-white/[0.07] transition-all"
         >
-          <span
+          <span className="liquid-gold w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+            <Settings
+              size={15}
+              className={cn(
+                'transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+                settingsOpen ? 'rotate-[135deg]' : 'rotate-0'
+              )}
+            />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[13px] font-semibold text-white">
+              {strings.siteSettings}
+            </span>
+            <span className="block text-[11px] text-mist-dark">
+              {strings.siteSettingsSub}
+            </span>
+          </span>
+          <ChevronDown
+            size={17}
             className={cn(
-              'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all',
-              designMode === 'liquid' ? 'left-[22px]' : 'left-0.5'
+              'text-mist-dark transition-transform duration-300 shrink-0',
+              settingsOpen && 'rotate-180'
             )}
           />
-        </span>
-      </button>
-
-      {/* Theme (dark / light) — sidebar row under Liquid Glass */}
-      <ThemeToggle variant="sidebar" />
-
-      {/* Language switch (EN / বাংলা) */}
-      <div className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 border border-transparent">
-        <span className="liquid-gold w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
-          <Languages size={15} />
-        </span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-[13px] font-semibold text-white">
-            {strings.language}
-          </span>
-          <span className="block text-[11px] text-mist-dark">
-            {strings.languageSub}
-          </span>
-        </span>
-        {/* Segmented EN / বাং pill — gold gradient on the active side */}
-        <span
-          role="group"
-          aria-label={strings.language}
-          className="relative flex shrink-0 rounded-full p-0.5 bg-white/10 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]"
+        </button>
+        <div
+          className={cn(
+            'grid transition-all duration-300 ease-out',
+            settingsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          )}
         >
-          {(['en', 'bn'] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              aria-pressed={lang === l}
-              className={cn(
-                'px-3 py-1 rounded-full text-[11px] font-bold transition-all',
-                lang === l
-                  ? 'text-[#1a1405] bg-[linear-gradient(135deg,#cba135_0%,#e8c96c_50%,#a07e28_100%)] shadow'
-                  : 'text-white/70 hover:text-white'
-              )}
-            >
-              {l === 'en' ? 'EN' : 'বাং'}
-            </button>
-          ))}
-        </span>
+          <div className="overflow-hidden">
+            <div className="px-1 pb-2 pt-1 space-y-0.5">
+              {/* Liquid Glass toggle */}
+              <button
+                onClick={handleDesignToggle}
+                data-no-ripple
+                role="switch"
+                aria-checked={designMode === 'liquid'}
+                aria-label="Liquid Glass design"
+                className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-white/[0.07] border border-transparent transition-all"
+              >
+                <span className="liquid-gold w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+                  <Droplets size={15} />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[13px] font-semibold text-white">
+                    {strings.liquidGlass}
+                  </span>
+                  <span className="block text-[11px] text-mist-dark">
+                    {designMode === 'liquid' ? strings.liquidGlassOn : strings.liquidGlassOff}
+                  </span>
+                </span>
+                {/* Toggle pill — gold gradient when on, same as the Open-App button */}
+                <span
+                  className={cn(
+                    'relative w-11 h-6 rounded-full transition-colors shrink-0 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]',
+                    designMode === 'liquid' ? 'bg-[linear-gradient(135deg,#cba135_0%,#e8c96c_50%,#a07e28_100%)]' : 'bg-white/10'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all',
+                      designMode === 'liquid' ? 'left-[22px]' : 'left-0.5'
+                    )}
+                  />
+                </span>
+              </button>
+
+              {/* Theme (dark / light) — sidebar row under Liquid Glass */}
+              <ThemeToggle variant="sidebar" />
+
+              {/* Language switch (EN / বাংলা) */}
+              <div className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 border border-transparent">
+                <span className="liquid-gold w-8 h-8 rounded-xl flex items-center justify-center shrink-0">
+                  <Languages size={15} />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[13px] font-semibold text-white">
+                    {strings.language}
+                  </span>
+                  <span className="block text-[11px] text-mist-dark">
+                    {strings.languageSub}
+                  </span>
+                </span>
+                {/* Segmented EN / বাং pill — gold gradient on the active side */}
+                <span
+                  role="group"
+                  aria-label={strings.language}
+                  className="relative flex shrink-0 rounded-full p-0.5 bg-white/10 ring-1 ring-white/25 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]"
+                >
+                  {(['en', 'bn'] as const).map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setLang(l)}
+                      aria-pressed={lang === l}
+                      className={cn(
+                        'px-3 py-1 rounded-full text-[11px] font-bold transition-all',
+                        lang === l
+                          ? 'text-[#1a1405] bg-[linear-gradient(135deg,#cba135_0%,#e8c96c_50%,#a07e28_100%)] shadow'
+                          : 'text-white/70 hover:text-white'
+                      )}
+                    >
+                      {l === 'en' ? 'EN' : 'বাং'}
+                    </button>
+                  ))}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <hr className="border-white/10 my-3" />
