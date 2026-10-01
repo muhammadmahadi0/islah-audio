@@ -42,7 +42,8 @@
 ### Color Palette (Golden — dark default, light available)
 
 - **Background**: ink `#060D0A` / `#0A1511` / `#0E1F18`
-  (light: warm paper `#F4F6F3` → white surfaces)
+  (light: warm paper `#F4F6F3` → golden-cream `#FDF8F0` section surfaces
+  with `#C9A84C` gold borders, matching the scholar banner)
 - **Accent Primary**: gold `#C9A227`, highlight `#E7C55A`, deep `#9A7B1A`
   (light: deeper golds `#96700F`/`#B58D1A` for contrast)
 - **Live**: red `#EF4444` with pulsing dot

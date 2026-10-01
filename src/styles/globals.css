@@ -101,8 +101,9 @@ html.light body {
   border: 1px solid rgba(201, 168, 76, 0.35);
 }
 html.light .glass {
-  background: rgb(var(--glass) / 0.85);
-  box-shadow: 0 8px 32px rgba(6, 13, 10, 0.1);
+  background: #fdf8f0;
+  border: 1px solid #c9a84c;
+  box-shadow: 0 10px 30px rgba(74, 60, 42, 0.1);
 }
 
 /* iPhone liquid-glass panel (floating bars) — iOS 26 style:
@@ -130,18 +131,13 @@ html.light .glass {
     0 2px 8px rgba(0, 0, 0, 0.25);
 }
 html.light .liquid-glass {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.8),
-    rgba(255, 255, 255, 0.45) 38%,
-    rgba(255, 255, 255, 0.62) 62%,
-    rgba(255, 255, 255, 0.4)
-  );
-  border-color: rgba(201, 168, 76, 0.55);
+  /* Same golden-cream background as the light-mode scholar banner. */
+  background: #fdf8f0;
+  border-color: #c9a84c;
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.9),
-    inset 0 -1px 2px rgba(6, 13, 10, 0.05),
-    0 16px 48px rgba(6, 13, 10, 0.16);
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px rgba(74, 60, 42, 0.06),
+    0 10px 30px rgba(74, 60, 42, 0.1);
 }
 
 /* Frosted-glass form fields: translucent + blurred, gold focus ring */
@@ -237,9 +233,9 @@ html.material .glass {
 }
 html.light.material .liquid-glass,
 html.light.material .glass {
-  background: rgb(var(--ink-900));
-  border-color: rgba(201, 168, 76, 0.4);
-  box-shadow: 0 2px 8px rgba(6, 13, 10, 0.12);
+  background: #fdf8f0;
+  border-color: #c9a84c;
+  box-shadow: 0 2px 8px rgba(74, 60, 42, 0.12);
 }
 html.material .liquid-chip {
   background: rgb(var(--ink-700));
@@ -310,9 +306,9 @@ html.material .liquid-glass.bottom-nav {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 html.light.material .liquid-glass.bottom-nav {
-  background: rgb(var(--ink-900) / 0.82);
-  border-color: rgba(201, 168, 76, 0.4);
-  box-shadow: 0 8px 24px rgba(6, 13, 10, 0.12);
+  background: rgba(253, 248, 240, 0.9);
+  border-color: #c9a84c;
+  box-shadow: 0 8px 24px rgba(74, 60, 42, 0.14);
 }
 
 /* Gold focus outline on every interactive element site-wide. */
