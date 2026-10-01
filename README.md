@@ -11,6 +11,9 @@ playlists, search, and a mobile-first design.
 - **Lecture catalog** — browses the latest uploads from the channel with thumbnails,
   durations, and view counts; new uploads appear automatically (silent
   background refresh, no reload needed)
+- **Home feature hub** — card-style grid below the hero with one button per
+  feature (Live, Search, Library, Boyan, Hamd-Naat, Shorts) plus the two
+  channel buttons right underneath for one-tap channel switching
 - **Audio playback** — hidden YouTube embed player wired to a global player store
   (play/pause, next/previous, seek, volume, autoplay-next); the screen stays on
   while playing via the Wake Lock API; MP3 recordings can be downloaded from

@@ -156,6 +156,14 @@
   desktop only (`hidden md:flex` — mobile uses the bottom-nav Live tab),
   "Live now" banner (title • location • listeners) when on air,
   "Last live • location" line when offline with a recording
+- Feature hub: card-style grid below the hero — one liquid-glass card per
+  feature (Live action + Search / Library / Boyan / Hamd-Naat / Shorts
+  links), each with icon, title, and subtitle (`featuresTitle`/`feat*Sub`
+  in `lib/i18n.ts`); Live card glows red + pulses when on air, disabled
+  when neither live nor recording is available
+- Channel buttons: the two channels (`CHANNELS` in `lib/channels.ts`) as
+  large cards directly below the hub — avatar, name, handle, active gold
+  dot; tapping switches `channel-store` and the catalog refetches
 - Filters: All / Bayans (>5 min) / Shorts (≤5 min) + sorts Newest / Most viewed / Oldest
   (global sorts background-index the full catalog, so they rank every video —
   Newest is native API order and needs no extra fetch)

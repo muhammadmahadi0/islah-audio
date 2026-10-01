@@ -148,6 +148,15 @@ This file orients AI coding agents working in this repo. Read it before making c
    tab-visible + `astro:page-load`, idempotent merge keyed by id, in-flight
    guard). IslahBD APIs are CDN-cached 5 min, channel pages 10 min —
    keep those windows aligned with the poll intervals when touching them.
+7d. **Home feature hub + channel buttons.** `HomeView` renders a
+   card-style grid below the hero — one liquid-glass card per feature
+   (Live action + Search/Library/Boyan/Hamd-Naat/Shorts links) with icon +
+   title + subtitle from `lib/i18n.ts` (`featuresTitle`/`feat*Sub`);
+   directly below, the two `CHANNELS` as large switch buttons (avatar via
+   `/api/channel/[id]/meta`, name, handle, active gold dot). Switching
+   sets `channel-store` and the catalog refetches via the existing effect.
+   Keep hub cards + channel buttons in sync with Sidebar/BottomNav items
+   when features are added/removed.
 8. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
    load fetches the first page, "more" chunks fetch 2 continuation pages
    (~200 videos) via `/api/channel/[id]/more/[token]`. Global sorts in
