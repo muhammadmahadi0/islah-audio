@@ -271,7 +271,11 @@
 - Centered dark-green "Family" title (theme foreground in dark mode),
   welcome card (heart icon, Bangla welcome + gold heading, star divider,
   Shaykh intro lines, gold uppercase name, Damat Barakatuhum, gold Learn
-  More anchor to the mission), mission card (book icon, title, subtitle,
+  More button), **Learn More expander** (inline grid-rows expand below the
+  welcome card — full Hazrat biography from the "হযরতের পরিচিতি" modal on
+  `islahbd.github.io/Islah`: intro, family background, education, career,
+  current position & services; `lib/family-profile.ts`, headings
+  translated, body kept verbatim Bengali like API data), mission card (book icon, title, subtitle,
   arrow), Applications grid (Bay'ah — blue icon, Khanqah stay — purple
   icon, each with right arrow), Connect grid (IslahBD + Markazul website
   cards) and the social row (YouTube / Facebook / Telegram / WhatsApp with

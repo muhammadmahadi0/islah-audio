@@ -42,8 +42,8 @@ playlists, search, and a mobile-first design.
   chips; audio items play + download as MP3, video items play as YouTube embeds
   with share links
 - **More hub** — `/more` holds every section in one place: the home-page
-  buttons plus the new Islamic buttons — Family (full page: welcome,
-  mission, applications, connect, socials), Amal, Dua, Islamic calendar,
+  buttons plus the new Islamic buttons — Family (full page: welcome with
+  expandable Hazrat biography, mission, applications, connect, socials), Amal, Dua, Islamic calendar,
   Wazifa, Durood (placeholder pages for now, real functions come later)
 - **Auto-update** — every section picks up newly published content by itself
   (silent polling + tab-visible refresh; no reload, scroll/filter/playback kept)

@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   BookOpen,
+  ChevronDown,
   ChevronRight,
   Facebook,
   FileText,
@@ -13,9 +14,11 @@ import {
   Star,
   Youtube,
 } from 'lucide-react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useLanguageStore } from '@/store/language-store';
 import { t } from '@/lib/i18n';
+import { FAMILY_PROFILE } from '@/lib/family-profile';
 
 const SOCIALS = [
   { icon: Youtube, label: 'YouTube', href: 'https://www.youtube.com/@islahbd', className: 'text-red-500' },
@@ -33,6 +36,7 @@ const SOCIALS = [
 export default function FamilyView() {
   const { lang } = useLanguageStore();
   const s = t(lang);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <main className="pb-44 md:pb-36">
@@ -71,14 +75,59 @@ export default function FamilyView() {
             {s.familyName}
           </p>
           <p className="mt-1 text-xs text-mist-dark">{s.familyDamat}</p>
-          <a
-            href="#family-mission"
+          <button
+            onClick={() => setProfileOpen((v) => !v)}
+            aria-expanded={profileOpen}
             className="liquid-gold mt-5 inline-flex items-center gap-2 px-7 py-3 rounded-full text-sm font-bold hover:scale-[1.03] active:scale-95 transition-all"
           >
-            {s.familyLearnMore}
-            <ArrowRight size={16} />
-          </a>
+            {profileOpen ? s.familyShowLess : s.familyLearnMore}
+            {profileOpen ? (
+              <ChevronDown size={16} className="rotate-180 transition-transform" />
+            ) : (
+              <ArrowRight size={16} />
+            )}
+          </button>
         </section>
+
+        {/* ---------- Hazrat's Profile (Learn More expander) ----------
+            Full biography from the "হযরতের পরিচিতি" modal on
+            islahbd.github.io/Islah — expands inline below the welcome card. */}
+        <div
+          className={cn(
+            'grid transition-all duration-300 ease-out',
+            profileOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          )}
+        >
+          <div className="overflow-hidden">
+            <section
+              aria-label={s.familyProfile}
+              className="relative liquid-glass rounded-[28px] p-6 md:p-8 mt-3 text-left overflow-hidden"
+            >
+              <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold text-center">
+                {s.familyProfile}
+              </p>
+              <p className="mt-2 text-center font-display text-lg md:text-xl font-extrabold text-white leading-snug">
+                {s.familyName}
+              </p>
+              <p className="mt-1 text-center text-xs text-mist-dark">{s.familyDamat}</p>
+              <div className="mt-4 space-y-5">
+                {FAMILY_PROFILE.map((section) => (
+                  <div key={section.headingKey}>
+                    <p className="text-sm md:text-[15px] font-bold text-gold">
+                      {s[section.headingKey]}:
+                    </p>
+                    {section.paragraphs.map((p, i) => (
+                      <p key={i} className="mt-1.5 text-[13px] md:text-sm leading-relaxed text-mist">
+                        {p}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
 
         {/* ---------- Mission card ---------- */}
         <section

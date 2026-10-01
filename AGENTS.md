@@ -125,7 +125,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    Islamic buttons (Family / Amal / Dua / Calendar / Wazifa / Durood →
    `/family`, `/amal`, `/dua`, `/calendar`, `/wazifa`, `/durood`). Family
    is the full page (`FamilyView`: translated welcome/mission/applications/
-   connect/social via `family*` keys, `.family-title` green in light).
+   connect/social via `family*` keys, `.family-title` green in light; Learn
+   More expands the full Hazrat biography inline from
+   `lib/family-profile.ts` — source is the "হযরতের পরিচিতি" modal on
+   `islahbd.github.io/Islah`, body kept verbatim Bengali, headings via
+   i18n).
    The other five Islamic pages are
    placeholders for now (shared `FeatureComingView`: icon + title +
    Coming-soon badge, back-to-More link) — buttons + routes exist, real
