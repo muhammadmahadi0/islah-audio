@@ -65,7 +65,7 @@ playlists, search, and a mobile-first design.
   timers on Android, hidden-iframe + guarded fallback on iOS — timers cancel
   the moment the app opens, so installed users never land on a store page)
 - **Modern UI** — golden theme with dark/light mode (sidebar Theme row,
-  persisted), floating liquid-glass sidebar (collapsible via the hamburger —
+  persisted; first visit follows the system theme), floating liquid-glass sidebar (collapsible via the hamburger —
   slides away on desktop, slide-over drawer on mobile) + top bar, mobile bottom nav pill
   (Home / Live / Boyan / Family / More — Live plays the broadcast or last recording,
   Family opens the Islah family hub, More links to the `/more` hub page),

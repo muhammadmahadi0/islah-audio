@@ -74,7 +74,15 @@ const {
       function applySavedModes() {
         try {
           var s = localStorage.getItem('islah-theme');
-          document.documentElement.classList.toggle('light', !!(s && JSON.parse(s).state.theme === 'light'));
+          var themeMode = null;
+          try { themeMode = s && JSON.parse(s).state.theme; } catch (e1) {}
+          if (themeMode !== 'light' && themeMode !== 'dark') {
+            // No saved choice (first visit): follow the system theme.
+            try {
+              themeMode = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            } catch (e0) { themeMode = 'dark'; }
+          }
+          document.documentElement.classList.toggle('light', themeMode === 'light');
           var dm = null;
           try { dm = JSON.parse(localStorage.getItem('islah-design') || 'null'); } catch (e2) {}
           var material = false;

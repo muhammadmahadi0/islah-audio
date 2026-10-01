@@ -273,7 +273,9 @@ This file orients AI coding agents working in this repo. Read it before making c
   `menu-btn-mobile`, `islahbd-btn`, `islahbd-btn-label`) reading the
   persisted choice on load + `astro:after-swap`, and live on `islah:lang` +
   `astro:page-load`. `Layout.astro` pre-paint sets `<html lang>` from the
-  persisted choice (first load + `astro:after-swap`). The theme toggle is a
+  persisted choice (first load + `astro:after-swap`). First visit with no
+  saved theme follows the OS scheme (`prefers-color-scheme` in
+  `defaultTheme()` / pre-paint — keep both in sync). The theme toggle is a
   sidebar row (`ThemeToggle variant="sidebar"`, explicit `setTheme` —
   no floating variant is rendered anywhere). Animations are CSS-only
   (`animate-fade-up`/`.shimmer`/`.eq-bar`/`.ripple-ink` in `globals.css` + tailwind config) —

@@ -39,7 +39,7 @@
 
 ## UI/UX Specification
 
-### Color Palette (Golden — dark default, light available)
+### Color Palette (Golden — system theme on first visit, light available)
 
 - **Background**: ink `#060D0A` / `#0A1511` / `#0E1F18`
   (light: warm paper `#F4F6F3` → golden-cream `#FDF8F0` section surfaces
@@ -51,6 +51,8 @@
   (light: ink text + slate secondary)
 - All tokens resolve through CSS variables (`globals.css`); `white` remaps to
   theme foreground. A sidebar Theme row (persisted `islah-theme`) switches themes.
+  First visit follows the OS color scheme (`prefers-color-scheme`); afterwards
+  the saved choice wins.
 
 ### Typography
 
