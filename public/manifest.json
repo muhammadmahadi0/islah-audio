@@ -1,6 +1,6 @@
 {
-  "name": "Islah Audio",
-  "short_name": "Islah Audio",
+  "name": "IslahBD Web",
+  "short_name": "IslahBD Web",
   "description": "Stream Islamic audio content from YouTube",
   "start_url": "/",
   "display": "standalone",

@@ -1,11 +1,11 @@
-# Islah Audio — Product Specification
+# IslahBD Web — Product Specification
 
 > Living document. Update this file (plus `AGENTS.md` and `README.md`) with
 > every behavior, architecture, or API change.
 
 ## Project Overview
 
-- **Project Name**: Islah Audio
+- **Project Name**: IslahBD Web
 - **Type**: Web Application (Audio Streaming)
 - **Core Functionality**: Listen to Islamic lectures (bayans, waz, nasheeds) from
   the YouTube channels `@islahbd` and `@IslahiGhazal`, plus user playlists and

@@ -1,4 +1,4 @@
-# AGENTS.md — AI Coding Agent Guide for Islah Audio
+# AGENTS.md — AI Coding Agent Guide for IslahBD Web
 
 This file orients AI coding agents working in this repo. Read it before making changes.
 

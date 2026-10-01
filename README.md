@@ -1,4 +1,4 @@
-# Islah Audio
+# IslahBD Web
 
 A modern, YouTube-style web app for listening to Islamic lectures (bayans, waz, nasheeds)
 from the [Islah YouTube channel](https://www.youtube.com/@islahbd). Audio-only experience with
@@ -97,8 +97,8 @@ playlists, search, and a mobile-first design.
 ### Setup
 
 ```bash
-git clone https://github.com/muhammadmahadi0/islah-audio.git
-cd islah-audio
+git clone https://github.com/muhammadmahadi0/islahbd-web.git
+cd islahbd-web
 bun install
 bun run dev                  # http://localhost:4321
 ```
