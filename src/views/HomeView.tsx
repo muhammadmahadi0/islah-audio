@@ -127,10 +127,10 @@ export default function HomePage() {
               onClick={handleLive}
               disabled={!live || (!live.isLive && !live.recording)}
               className={cn(
-                'relative liquid-glass rounded-3xl p-3.5 md:p-4 text-left transition-all overflow-hidden',
+                'relative liquid-glass rounded-3xl p-3.5 md:p-4 text-center transition-all overflow-hidden',
                 'hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]',
                 'disabled:opacity-40 disabled:hover:scale-100',
-                'flex flex-col gap-2.5 min-h-[118px]'
+                'flex flex-col items-center gap-2.5 min-h-[118px]'
               )}
               style={
                 live?.isLive
@@ -154,7 +154,7 @@ export default function HomePage() {
                   <Radio size={18} />
                 )}
               </span>
-              <span className="min-w-0">
+              <span className="min-w-0 w-full text-center">
                 <span className="block text-sm font-bold text-white truncate">
                   {live?.isLive
                     ? (isLiveTrackActive && isPlaying ? s.listening : s.live)
@@ -178,16 +178,16 @@ export default function HomePage() {
                   key={f.href}
                   href={f.href}
                   className={cn(
-                    'relative liquid-glass rounded-3xl p-3.5 md:p-4 transition-all overflow-hidden',
+                    'relative liquid-glass rounded-3xl p-3.5 md:p-4 text-center transition-all overflow-hidden',
                     'hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]',
-                    'flex flex-col gap-2.5 min-h-[118px]'
+                    'flex flex-col items-center gap-2.5 min-h-[118px]'
                   )}
                 >
                   <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                   <span className="liquid-gold w-10 h-10 rounded-2xl flex items-center justify-center shrink-0">
                     <Icon size={18} />
                   </span>
-                  <span className="min-w-0">
+                  <span className="min-w-0 w-full text-center">
                     <span className="block text-sm font-bold text-white truncate">
                       {s[f.titleKey]}
                     </span>
