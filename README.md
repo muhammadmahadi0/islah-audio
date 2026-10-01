@@ -8,7 +8,8 @@ playlists, search, and a mobile-first design.
 
 ## Features
 
-- **Home feature hub** — prayer countdown card first (Aladhan Hanafi times,
+- **Home feature hub** — elegant scholar banner first (cream/gold card),
+  then the prayer countdown card (Aladhan Hanafi times,
   auto-detected city, live 1s countdown, Hijri date — ported from pray-bd),
   then one card per feature (Live, Search, Library, Boyan, Hamd-Naat,
   Shorts) plus the two channel buttons underneath, each opening that

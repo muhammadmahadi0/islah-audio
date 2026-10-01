@@ -155,7 +155,11 @@ This file orients AI coding agents working in this repo. Read it before making c
    tab-visible + `astro:page-load`, idempotent merge keyed by id, in-flight
    guard). IslahBD APIs are CDN-cached 5 min, channel pages 10 min —
    keep those windows aligned with the poll intervals when touching them.
-7d. **Home feature hub + channel buttons.** `HomeView` renders the prayer
+7d. **Home feature hub + channel buttons.** `HomeView` renders the scholar
+   banner FIRST (`components/ScholarBanner.tsx`, `.scholar-banner` in
+   `globals.css` — pinned cream/gold palette per design request, exempt
+   from theme tokens; Cinzel + Playfair Display loaded in `Layout.astro`),
+   then the prayer
    countdown card FIRST (`components/PrayerTimer.tsx`, logic in
    `lib/prayer.ts` — ported from `pray-bd`: Aladhan Hanafi times, IP
    geolocation, 1s countdown, special morning periods, −1-day Hijri fix;

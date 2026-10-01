@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
 import PrayerTimer from '@/components/PrayerTimer';
+import ScholarBanner from '@/components/ScholarBanner';
 import { useChannelStore } from '@/store/channel-store';
 import { useLanguageStore } from '@/store/language-store';
 import { t } from '@/lib/i18n';
@@ -117,8 +118,13 @@ export default function HomePage() {
   return (
     <main className="pb-44 md:pb-36">
       <div className="mx-auto max-w-[1600px] px-4 md:px-6 pt-2 md:pt-3">
+        {/* ---------- Scholar banner (above prayer timer) ---------- */}
+        <ScholarBanner />
+
         {/* ---------- Prayer countdown (before Explore) ---------- */}
-        <PrayerTimer />
+        <div className="mt-3 md:mt-4">
+          <PrayerTimer />
+        </div>
 
         {/* ---------- Feature hub: one card per feature ---------- */}
         <section aria-label={s.featuresTitle} className="mt-3 md:mt-4 animate-fade-up">
