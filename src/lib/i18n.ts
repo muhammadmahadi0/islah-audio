@@ -14,6 +14,9 @@ const dict = {
     navLibrary: 'Library',
     navBoyan: 'Boyan',
     navHamdNaat: 'Hamd-Naat',
+    navShorts: 'Shorts',
+    navMore: 'More',
+    moreTitle: 'More',
     channels: 'Channels',
     liquidGlass: 'Liquid Glass',
     liquidGlassOn: 'iPhone-style frosted look',
@@ -71,6 +74,10 @@ const dict = {
     hamdLoadFail: 'Couldn’t load Hamd-Naat',
     noHamd: 'No hamd-naat found',
     tryKeywordsType: 'Try different keywords or type',
+    shortsTitle: 'Shorts',
+    searchShortsPh: 'Search shorts…',
+    shortsLoadFail: 'Couldn’t load Shorts',
+    noShorts: 'No shorts found',
     libEyebrow: 'Collection',
     libTitle: 'Your Library',
     fromYoutube: 'From YouTube',
@@ -158,6 +165,9 @@ const dict = {
     navLibrary: 'লাইব্রেরি',
     navBoyan: 'বয়ান',
     navHamdNaat: 'হামদ-নাত',
+    navShorts: 'শর্টস',
+    navMore: 'আরও',
+    moreTitle: 'আরও',
     channels: 'চ্যানেলসমূহ',
     liquidGlass: 'লিকুইড গ্লাস',
     liquidGlassOn: 'আইফোন-স্টাইল ফ্রস্টেড লুক',
@@ -215,6 +225,10 @@ const dict = {
     hamdLoadFail: 'হামদ-নাত লোড করা যায়নি',
     noHamd: 'কোনো হামদ-নাত পাওয়া যায়নি',
     tryKeywordsType: 'অন্য শব্দ বা ধরন চেষ্টা করুন',
+    shortsTitle: 'শর্টস',
+    searchShortsPh: 'শর্টস খুঁজুন…',
+    shortsLoadFail: 'শর্টস লোড করা যায়নি',
+    noShorts: 'কোনো শর্টস পাওয়া যায়নি',
     libEyebrow: 'সংগ্রহ',
     libTitle: 'আপনার লাইব্রেরি',
     fromYoutube: 'ইউটিউব থেকে',
@@ -368,6 +382,11 @@ export function boyanSub(lang: AppLang, n: number): string {
 export function hamdSub(lang: AppLang, n: number, audio: number, video: number): string {
   if (lang === 'bn') return `${n}টি ট্র্যাক • ${audio} অডিও • ${video} ভিডিও`;
   return `${n} track${n === 1 ? '' : 's'} • ${audio} audio • ${video} video`;
+}
+
+export function shortsSub(lang: AppLang, n: number, audio: number, video: number): string {
+  if (lang === 'bn') return `${n}টি ক্লিপ • ${audio} অডিও • ${video} ভিডিও`;
+  return `${n} clip${n === 1 ? '' : 's'} • ${audio} audio • ${video} video`;
 }
 
 export function listenersWatching(lang: AppLang, n: number): string {

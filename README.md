@@ -30,6 +30,9 @@ playlists, search, and a mobile-first design.
 - **Hamd-Naat** — hamd & naat from the IslahBD API with search + All/Audio/Video
   chips; audio items play + download as MP3, video items play as YouTube embeds
   with share links
+- **Shorts** — short clips from the IslahBD API with search + All/Audio/Video
+  chips; audio items play + download as MP3, video items play as YouTube embeds
+  with share links
 - **Persistent playback** — the mini-player stays visible and audio keeps
   playing across Home / Search / Library / Boyan / Hamd-Naat (SPA navigation
   + persisted player islands); a full reload restores the player paused with
@@ -49,7 +52,9 @@ playlists, search, and a mobile-first design.
   the moment the app opens, so installed users never land on a store page)
 - **Modern UI** — golden theme with dark/light mode (sidebar Theme row,
   persisted), floating liquid-glass sidebar (collapsible via the hamburger —
-  slides away on desktop, slide-over drawer on mobile) + top bar, mobile bottom nav pill,
+  slides away on desktop, slide-over drawer on mobile) + top bar, mobile bottom nav pill
+  (Home / Live / Boyan / More — Live plays the broadcast or last recording,
+  More opens a card with Search, Library, Hamd-Naat, Shorts),
    floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters + Newest/Most-viewed/Oldest sorts (global sorts auto-load the full catalog in the background).
   A sidebar **Liquid Glass** toggle (persisted; defaults on for iOS + desktop,
   off for other mobile) flattens the
@@ -109,6 +114,7 @@ bun run preview # preview built output
 | `GET /api/live` | islahbd.com live status as `{ isLive, title, speaker, location, listeners, streamUrl, recording }` |
 | `GET /api/boyan` | IslahBD MP3 catalog `{ audios, categories }` (1h CDN cache) |
 | `GET /api/hamdnaat` | IslahBD hamd-naat `{ items }` (audio MP3 + video youtubeId, 1h CDN cache) |
+| `GET /api/shorts` | IslahBD short clips `{ clips }` (audio MP3 + video youtubeId, 1h CDN cache) |
 | `GET /api/hls/[...url]` | HLS manifest/media proxy with open CORS (fallback when the live CDN blocks cross-origin fetch) |
 | `GET /api/stream/[id]` | Video metadata + official watch/embed URLs (playback is client-side) |
 
@@ -133,9 +139,10 @@ src/
 │   ├── watch/[id].astro      # Shareable watch page (SSR metadata + OG tags)
 │   ├── boyan.astro           # Boyan shell (BoyanView island)
 │   ├── hamdnaat.astro        # Hamd-Naat shell (HamdNaatView island)
-│   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream, boyan, hamdnaat
+│   ├── shorts.astro          # Shorts shell (ShortsView island)
+│   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream, boyan, hamdnaat, shorts
 ├── layouts/Layout.astro      # html shell, liquid-glass top bar, islands
-├── views/                    # React islands: Home/Search/Library/Watch/Boyan/HamdNaat
+├── views/                    # React islands: Home/Search/Library/Watch/Boyan/HamdNaat/Shorts
 ├── components/               # player, nav, sidebar, theme toggle, playlist menu, share button
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)
@@ -145,7 +152,7 @@ src/
 │   ├── design-store.ts     # liquid-glass / material mode, persisted
 │   └── language-store.ts   # EN/বাংলা app language, persisted
 └── lib/
-    ├── i18n.ts             # chrome dictionary (sidebar + bottom nav)
+    ├── i18n.ts             # whole-site EN/BN chrome dictionary + helpers
     ├── innertube.ts        # ALL listing, fully keyless (uploads, playlists, meta, video info)
     ├── boyan.ts            # IslahBD MP3 catalog + Track mapping (boyan page)
     ├── hamdnaat.ts         # IslahBD hamd-naat catalog + Track mapping (hamdnaat page)

@@ -109,8 +109,10 @@ This file orients AI coding agents working in this repo. Read it before making c
    `channel-store.ts` (persist key `islah-channel`). Home/Search/Library all
    follow the active channel (Boyan is channel-independent). Sidebar shows
    the switcher; Android opens the sidebar as a drawer (`#mobile-drawer`
-   in the layout). Nav is Home/Search/Boyan/Library — BottomNav mirrors it
-   (4-col grid, keep both in sync).
+   in the layout). Sidebar nav is Home/Search/Library/Boyan/Hamd-Naat/Shorts.
+   BottomNav is a SEPARATE 4-slot bar (Home / Live-action / Boyan / More-card
+   with Search/Library/Hamd-Naat/Shorts) — do not mirror the sidebar there;
+   keep both lists' i18n keys (`nav*` in `lib/i18n.ts`) in sync.
 6. **Boyan (IslahBD MP3s).** Catalog in `lib/boyan.ts` (types + upstream
    fetch + `toBoyanTrack` mapping + duration/date helpers), served by
    `/api/boyan` (proxies `api.islahbd.com/api/audios/` + `/api/categories/`,
@@ -127,7 +129,17 @@ This file orients AI coding agents working in this repo. Read it before making c
    save-to-playlist, share on video rows). Tracks use `id: 'hamdnaat-<id>'`:
    `audio` items carry a direct `audioUrl` (stream engine + download),
    `video` items carry a `youtubeId` (embed + `/watch` share link). Nav is
-   Home/Search/Boyan/Hamd-Naat/Library — keep Sidebar + BottomNav in sync.
+   Home/Search/Boyan/Hamd-Naat/Library/Shorts — keep Sidebar in sync
+   (BottomNav has its own 4-slot layout, see §5).
+7b. **Shorts (IslahBD short clips).** Catalog in `lib/shorts.ts` (types +
+   upstream fetch + `toShortTrack` mapping + date helper), served by
+   `/api/shorts` (proxies `api.islahbd.com/api/clips/`, 1h CDN cache,
+   no pagination/search upstream — filter client-side). `/shorts` page
+   renders `views/ShortsView.tsx` (search, All/Audio/Video chips, play,
+   save-to-playlist, share on video rows). Tracks use `id: 'short-<id>'`:
+   `audio` items carry a direct `audioUrl` (stream engine + download),
+   `video` items carry a `youtubeId` (embed + `/watch` share link). Sidebar
+   nav item (Zap icon); also inside the mobile More card.
 8. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
    load fetches the first page, "more" chunks fetch 2 continuation pages
    (~200 videos) via `/api/channel/[id]/more/[token]`. Global sorts in

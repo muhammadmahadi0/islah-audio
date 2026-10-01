@@ -74,7 +74,7 @@
   guarded 1.8s fallback. Every fallback timer is cancelled the moment the
   page hides/blurs (i.e. the app actually opened), so installed users are
   never raced to the store. The button always reads
-  "Open IslahBD". No search icon on mobile — search lives in the bottom nav. All primary buttons site-wide (Play all, filters, play
+  "Open IslahBD". No search icon on mobile — search lives in the More card. All primary buttons site-wide (Play all, filters, play
   FABs, Create, Try again, toggles) share this exact gold-gradient
   `.liquid-gold` style; secondary actions stay frosted glass.
 
@@ -82,7 +82,8 @@
 - **Desktop (≥768px)**: floating liquid-glass sidebar pill + scrollable content;
   floating liquid-glass mini-player card bottom-right, clear of the sidebar.
 - **Mobile**: floating liquid-glass mini-player above a liquid-glass bottom nav
-  pill (Home / Search / Library); floating top bar + chips bar are glass pills.
+  pill (Home / Live / Boyan / More — More opens a card with Search, Library,
+  Hamd-Naat, Shorts); floating top bar + chips bar are glass pills.
 - **Expanded player**: full-screen liquid-glass (iPhone-style), blurred-artwork backdrop, big art,
   seek slider (locked on live), prev/play/next. Same stacked flow on all
   screens; on desktop (≥768px) the sheet stretches wider (3xl/4xl) with the
@@ -112,7 +113,8 @@
 #### Sidebar (desktop) + drawer (Android)
 
 - Brand mark (gold `إ` on bronze) + "Islah Audio" + tagline
-- Nav: Home, Search, Library — active item gets a frosted glass highlight
+- Nav: Home, Search, Library, Boyan, Hamd-Naat, Shorts — active item gets a
+  frosted glass highlight
 - **Collapsible**: the desktop hamburger slides the sidebar away (slide + fade,
   content reclaims the space) and back; choice persists (`islah-sidebar-hidden`)
   across navigations. Android opens the same sidebar as a slide-over drawer
@@ -189,7 +191,7 @@
 - Plays through the stream engine as `boyan-<id>` tracks (no videoId, so no
   share button) with artwork fallback; durations fill in from the element;
   download button picks up the MP3 automatically
-- Sidebar nav + mobile bottom-nav item (Mic icon, `/boyan`)
+- Sidebar nav item (Mic icon, `/boyan`); bottom-nav has a direct Boyan tab
 
 #### Hamd-Naat (IslahBD hamd & naat)
 
@@ -204,7 +206,34 @@
   video rows) and equalizer on the playing track
 - Plays through the correct engine as `hamdnaat-<id>` tracks; download
   button picks up audio items automatically
-- Sidebar nav + mobile bottom-nav item (Music icon, `/hamdnaat`)
+- Sidebar nav item (Music icon, `/hamdnaat`); also inside the mobile More card
+
+#### Shorts (IslahBD short clips)
+
+- Catalog from the IslahBD API (`/api/shorts`, proxied + 1h CDN cache;
+  whole list filtered client-side) — title, created date
+- Two shapes: `audio` items carry a direct MP3 (stream engine, downloadable,
+  like Boyan); `video` items carry a `youtubeId` (YouTube embed, shareable
+  via `/watch/[id]`, title links to it, Video/Audio badges per row)
+- Header card with counts, search (title), All/Audio/Video chips,
+  liquid-glass rows with save-to-playlist (share on video rows) and
+  equalizer on the playing track
+- Plays through the correct engine as `short-<id>` tracks; download
+  button picks up audio items automatically
+- Sidebar nav item (Zap icon, `/shorts`); also inside the mobile More card
+
+#### Mobile bottom nav (Home / Live / Boyan / More)
+
+- 4-item floating pill: Home link, Live action button, Boyan link, More toggle
+- The **Live** button plays the islahbd.com live broadcast when on air
+  (red pulsing icon + glow) or the last recording when offline; tapping
+  while a live track is active toggles play/pause. Status polled from
+  `/api/live` (60s), same source as the Home hero
+- **More** opens a floating liquid-glass card above the bar with the
+  remaining sections (Search, Library, Hamd-Naat, Shorts) in a 2-col grid;
+  closes on backdrop tap, item tap, or page change; highlights when the
+  current page lives inside it. Search lives here on mobile (plus the
+  sidebar + desktop top bar)
 
 #### Library (playlists only — no Queue tab)
 
@@ -284,6 +313,7 @@
 | `GET /api/live` | Live status `{ isLive, title, speaker, location, listeners, streamUrl, recording }` (`recording` also carries `location`) |
 | `GET /api/boyan` | IslahBD MP3 catalog `{ audios, categories }` (1h CDN cache) |
 | `GET /api/hamdnaat` | IslahBD hamd-naat `{ items }` (audio MP3 + video youtubeId, 1h CDN cache) |
+| `GET /api/shorts` | IslahBD short clips `{ clips }` (audio MP3 + video youtubeId, 1h CDN cache) |
 | `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
 

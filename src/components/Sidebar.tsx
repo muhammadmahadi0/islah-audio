@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Home, Search, Library, Mic, Music, Radio, Droplets, Languages } from 'lucide-react';
+import { Home, Search, Library, Mic, Music, Zap, Radio, Droplets, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
 import { useChannelStore } from '@/store/channel-store';
@@ -14,6 +14,7 @@ const navItems = [
   { icon: Library, key: 'navLibrary', href: '/library' },
   { icon: Mic, key: 'navBoyan', href: '/boyan' },
   { icon: Music, key: 'navHamdNaat', href: '/hamdnaat' },
+  { icon: Zap, key: 'navShorts', href: '/shorts' },
 ] as const;
 
 function usePath() {
