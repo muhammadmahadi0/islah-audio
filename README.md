@@ -8,12 +8,12 @@ playlists, search, and a mobile-first design.
 
 ## Features
 
-- **Lecture catalog** — browses the latest uploads from the channel with thumbnails,
-  durations, and view counts; new uploads appear automatically (silent
-  background refresh, no reload needed)
-- **Home feature hub** — card-style grid below the hero with one button per
-  feature (Live, Search, Library, Boyan, Hamd-Naat, Shorts) plus the two
-  channel buttons right underneath for one-tap channel switching
+- **Home feature hub** — buttons-only home: one card per feature (Live,
+  Search, Library, Boyan, Hamd-Naat, Shorts) plus the two channel buttons
+  underneath, each opening that channel's own full page
+- **Channel pages** — `/channel/[id]` shows the full listing (hero, filters,
+  sorts, grid, Show-more) for each channel; new uploads appear automatically
+  (silent background refresh, no reload needed)
 - **Audio playback** — hidden YouTube embed player wired to a global player store
   (play/pause, next/previous, seek, volume, autoplay-next); the screen stays on
   while playing via the Wake Lock API; MP3 recordings can be downloaded from
@@ -140,7 +140,8 @@ Check the `source` field in API responses to confirm which path served.
 ```
 src/
 ├── pages/
-│   ├── index.astro           # Home shell (HomeView island)
+│   ├── index.astro           # Home shell, buttons only (HomeView island)
+│   ├── channel/[id].astro    # Full channel page (ChannelView island)
 │   ├── search.astro          # Search shell (?q= → SearchView island)
 │   ├── library.astro         # Library shell (server playlists → island)
 │   ├── watch/[id].astro      # Shareable watch page (SSR metadata + OG tags)
@@ -149,7 +150,7 @@ src/
 │   ├── shorts.astro          # Shorts shell (ShortsView island)
 │   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream, boyan, hamdnaat, shorts
 ├── layouts/Layout.astro      # html shell, liquid-glass top bar, islands
-├── views/                    # React islands: Home/Search/Library/Watch/Boyan/HamdNaat/Shorts
+├── views/                    # React islands: Home/Channel/Search/Library/Watch/Boyan/HamdNaat/Shorts
 ├── components/               # player, nav, sidebar, theme toggle, playlist menu, share button
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)

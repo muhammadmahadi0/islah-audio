@@ -1,0 +1,18 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ChannelView from '../../views/ChannelView';
+import { CHANNELS } from '../../lib/channels';
+
+const { id } = Astro.params;
+const channel = CHANNELS.find((c) => c.id === id);
+
+if (!channel) {
+  return Astro.redirect('/', 404);
+}
+
+const title = `${channel.name} — Islah Audio`;
+---
+
+<Layout title={title}>
+  <ChannelView client:only="react" channelId={channel.id} />
+</Layout>

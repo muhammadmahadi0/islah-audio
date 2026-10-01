@@ -106,12 +106,19 @@ This file orients AI coding agents working in this repo. Read it before making c
    The Sidebar switcher reads `/api/channel/[id]/meta` (name + avatar only),
    never the full listing.
 5. **Channels.** Registry in `lib/channels.ts`, active channel in
-   `channel-store.ts` (persist key `islah-channel`). Home/Search/Library all
-   follow the active channel (Boyan is channel-independent). Sidebar shows
-   the switcher; Android opens the sidebar as a drawer (`#mobile-drawer`
-   in the layout). Sidebar nav is Home/Search/Library/Boyan/Hamd-Naat/Shorts.
-   BottomNav is a SEPARATE 4-slot bar (Home / Live-action / Boyan / More-card
-   with Search/Library/Hamd-Naat/Shorts) — do not mirror the sidebar there;
+   `channel-store.ts` (persist key `islah-channel`). Each channel has its
+   OWN page at `/channel/[id]` (`src/pages/channel/[id].astro` +
+   `views/ChannelView.tsx` — the full listing: hero, filters/sorts, grid,
+   Show-more; unknown IDs 404 to Home). Home (`views/HomeView.tsx`) is
+   buttons-only: feature cards + the two channel buttons (`/channel/[id]`
+   links that also set the store). The channel PAGE syncs the store from
+   the URL so Search/Library follow; the sidebar switcher navigates to
+   `/channel/[id]` when already on a channel page (SPA `navigate()`,
+   playback uninterrupted). Sidebar shows the switcher; Android opens the
+   sidebar as a drawer (`#mobile-drawer` in the layout). Sidebar nav is
+   Home/Search/Library/Boyan/Hamd-Naat/Shorts. BottomNav is a SEPARATE
+   4-slot bar (Home / Live-action / Boyan / More-card with
+   Search/Library/Hamd-Naat/Shorts) — do not mirror the sidebar there;
    keep both lists' i18n keys (`nav*` in `lib/i18n.ts`) in sync.
 6. **Boyan (IslahBD MP3s).** Catalog in `lib/boyan.ts` (types + upstream
    fetch + `toBoyanTrack` mapping + duration/date helpers), served by

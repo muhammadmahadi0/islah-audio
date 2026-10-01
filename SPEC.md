@@ -149,28 +149,28 @@
     with the same tap-bloom wrap effect; choice persists (`islah-theme`).
 - Footer note
 
-#### Home
+#### Home (buttons only)
 
-- Hero: channel art (gold ring), name, video count,
-  Play-all / Shuffle buttons (single-line labels) + **LIVE** button on
-  desktop only (`hidden md:flex` — mobile uses the bottom-nav Live tab),
-  "Live now" banner (title • location • listeners) when on air,
-  "Last live • location" line when offline with a recording
-- Feature hub: card-style grid below the hero — one liquid-glass card per
-  feature (Live action + Search / Library / Boyan / Hamd-Naat / Shorts
-  links), each with icon, title, and subtitle (`featuresTitle`/`feat*Sub`
-  in `lib/i18n.ts`); Live card glows red + pulses when on air, disabled
-  when neither live nor recording is available
+- Home is a hub — NO video listing here. Feature cards only: one
+  liquid-glass card per feature (Live action + Search / Library / Boyan /
+  Hamd-Naat / Shorts links), each with icon, title, and subtitle
+  (`featuresTitle`/`feat*Sub` in `lib/i18n.ts`); Live card glows red +
+  pulses when on air, disabled when neither live nor recording is available
 - Channel buttons: the two channels (`CHANNELS` in `lib/channels.ts`) as
-  large cards directly below the hub — avatar, name, handle, active gold
-  dot; tapping switches `channel-store` and the catalog refetches
-- Filters: All / Bayans (>5 min) / Shorts (≤5 min) + sorts Newest / Most viewed / Oldest
-  (global sorts background-index the full catalog, so they rank every video —
-  Newest is native API order and needs no extra fetch)
-- Cards: rounded-2xl, hover lift + play overlay, duration badge,
-  "Playing" badge + equalizer on current track, **+** save-to-playlist button,
-  share button (copies the `/watch/[id]` link); tapping the title opens the
-  shareable watch page
+  large cards below the hub — avatar, name, handle, active gold dot;
+  tapping sets `channel-store` AND navigates to that channel's own page
+
+#### Channel (`/channel/[id]` — the full channel listing)
+
+- Own page per channel (unknown IDs 404 back to Home): liquid-glass hero
+  (channel art, name, handle, video count, "Live now" banner when on air,
+  Play-all / Shuffle buttons + desktop-only **LIVE** button), filter chips
+  (All / Bayans / Shorts) + sorts (Newest / Most viewed / Oldest, global —
+  background-index the full catalog), video grid with thumbnails,
+  durations, views, save-to-playlist + share, and Show-more paging
+- The URL owns the channel: opening `/channel/[id]` syncs `channel-store`
+  so Search/Library follow along; the sidebar switcher navigates here when
+  already on a channel page
 
 #### Search
 

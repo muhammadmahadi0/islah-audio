@@ -122,6 +122,15 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const switchChannel = (id: string) => {
     setChannelId(id);
     if (mobile) closeMobileDrawer();
+    // On a channel page the URL owns the channel — navigate so the new
+    // channel's listing loads (SPA navigation, playback uninterrupted).
+    if (pathname.startsWith('/channel/')) {
+      import('astro:transitions/client')
+        .then(({ navigate }) => navigate(`/channel/${id}`))
+        .catch(() => {
+          window.location.href = `/channel/${id}`;
+        });
+    }
   };
 
   return (
