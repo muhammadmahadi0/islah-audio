@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import {
   Music,
@@ -15,6 +15,7 @@ import { t, type I18nKey, resultsCount, tracksCount, hamdSub } from '@/lib/i18n'
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import ShareButton from '@/components/ShareButton';
 import { fetchJson } from '@/lib/fetch-timeout';
+import { setupAutoRefresh, mergeNewestFirst, ISLAHBD_REFRESH_MS } from '@/lib/auto-refresh';
 import {
   toHamdNaatTrack,
   formatHamdNaatDate,
@@ -181,6 +182,30 @@ export default function HamdNaatView() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Auto-update: silent background refresh (poll + tab-visible + page-load)
+  // merges newly published tracks at the top — no skeleton, no lost scroll,
+  // filter, or playback.
+  const refreshingRef = useRef(false);
+  const refreshSilently = useCallback(async () => {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
+    try {
+      const data = await fetchJson('/api/hamdnaat', 25000);
+      if (data.success && Array.isArray(data.items)) {
+        setItems((prev: HamdNaatItem[]) => {
+          if (prev.length === 0) return data.items;
+          return mergeNewestFirst(prev, data.items, (a: HamdNaatItem) => a.id);
+        });
+      }
+    } catch {
+      // Silent — keep showing the cached list.
+    } finally {
+      refreshingRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => setupAutoRefresh(refreshSilently, ISLAHBD_REFRESH_MS), [refreshSilently]);
 
   const results = useMemo(() => {
     const q = submittedQuery.trim().toLowerCase();

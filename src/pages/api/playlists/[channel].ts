@@ -7,7 +7,8 @@ const CHANNEL_ID = /^UC[a-zA-Z0-9_-]{22}$/;
 
 /**
  * A channel's public playlists — fully keyless via the InnerTube
- * Playlists tab. CDN-cached for 6h (playlists change rarely).
+ * Playlists tab. CDN-cached for 1h (clients also revalidate in the
+ * background, so new playlists surface without a reload).
  */
 
 export const GET: APIRoute = async ({ params }) => {
@@ -29,7 +30,7 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response(JSON.stringify({ success: true, playlists, source: 'innertube' }), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, s-maxage=21600, stale-while-revalidate=86400',
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
       },
     });
   } catch (error) {

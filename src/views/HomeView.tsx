@@ -31,6 +31,7 @@ import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import ShareButton from '@/components/ShareButton';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 import { fetchJson } from '@/lib/fetch-timeout';
+import { setupAutoRefresh, mergeNewestFirst, CHANNEL_REFRESH_MS } from '@/lib/auto-refresh';
 
 
 
@@ -321,6 +322,33 @@ export default function HomePage() {
   useEffect(() => {
     fetchVideos();
   }, [fetchVideos]);
+
+  // Auto-update: silent background refresh (poll + tab-visible + page-load)
+  // merges newly uploaded videos at the top — no skeleton, no lost scroll,
+  // sort, filter, or playback. Pagination tokens are left untouched (the
+  // Show-more/indexer paths already dedupe by videoId).
+  const homeRefreshingRef = useRef(false);
+  const refreshHomeSilently = useCallback(async () => {
+    if (homeRefreshingRef.current || !loadedChannel) return;
+    homeRefreshingRef.current = true;
+    try {
+      const data = await fetchJson(`/api/channel/${channelId}`, 20000);
+      if (data.success && Array.isArray(data.videos)) {
+        setVideos((prev) => {
+          if (prev.length === 0) return data.videos;
+          return mergeNewestFirst(prev, data.videos, (v: VideoItem) => v.videoId || v.id || '');
+        });
+        if (data.channel?.name) setChannelName(data.channel.name);
+        if (data.channel?.avatar) setChannelAvatar(data.channel.avatar);
+      }
+    } catch {
+      // Silent — keep showing the cached list.
+    } finally {
+      homeRefreshingRef.current = false;
+    }
+  }, [channelId, loadedChannel]);
+
+  useEffect(() => setupAutoRefresh(refreshHomeSilently, CHANNEL_REFRESH_MS), [refreshHomeSilently]);
 
   // Global sorts (Most viewed / Oldest) must rank the WHOLE catalog, not just
   // the loaded page — background-index remaining chunks (deduped progressive

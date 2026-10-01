@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import {
   Zap,
@@ -14,6 +14,7 @@ import { t, type I18nKey, resultsCount, tracksCount, shortsSub } from '@/lib/i18
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import ShareButton from '@/components/ShareButton';
 import { fetchJson } from '@/lib/fetch-timeout';
+import { setupAutoRefresh, mergeNewestFirst, ISLAHBD_REFRESH_MS } from '@/lib/auto-refresh';
 import {
   toShortTrack,
   formatShortDate,
@@ -176,6 +177,30 @@ export default function ShortsView() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Auto-update: silent background refresh (poll + tab-visible + page-load)
+  // merges newly published clips at the top — no skeleton, no lost scroll,
+  // filter, or playback.
+  const refreshingRef = useRef(false);
+  const refreshSilently = useCallback(async () => {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
+    try {
+      const data = await fetchJson('/api/shorts', 25000);
+      if (data.success && Array.isArray(data.clips)) {
+        setClips((prev) => {
+          if (prev.length === 0) return data.clips;
+          return mergeNewestFirst(prev, data.clips, (c: ShortClip) => c.id);
+        });
+      }
+    } catch {
+      // Silent — keep showing the cached list.
+    } finally {
+      refreshingRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => setupAutoRefresh(refreshSilently, ISLAHBD_REFRESH_MS), [refreshSilently]);
 
   const results = useMemo(() => {
     const q = submittedQuery.trim().toLowerCase();

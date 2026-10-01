@@ -436,6 +436,32 @@ input[type='range']::-moz-range-thumb {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Sidebar scroll: the <aside> is the scroll container (nav + channels +
+   settings can exceed the viewport height). min-height:0 lets it shrink
+   inside the fixed-height wrap/panel instead of overflowing; thin branded
+   scrollbars + overscroll-contain (also on the aside class) keep wheel
+   gestures from chaining into the page behind. */
+#sidebar-wrap aside,
+#mobile-drawer .drawer-panel aside {
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--brand) / 0.45) transparent;
+}
+#sidebar-wrap aside::-webkit-scrollbar,
+#mobile-drawer .drawer-panel aside::-webkit-scrollbar {
+  width: 6px;
+}
+#sidebar-wrap aside::-webkit-scrollbar-thumb,
+#mobile-drawer .drawer-panel aside::-webkit-scrollbar-thumb {
+  background: rgb(var(--brand) / 0.45);
+  border-radius: 8px;
+  border: none;
+}
+#mobile-drawer .drawer-panel {
+  display: flex;
+  min-height: 0;
+}
+
 /* Desktop sidebar slide (hamburger toggle): smooth slide + fade + collapse
    instead of an abrupt display:none. The wrap's max-width transition reclaims
    the content space as the sidebar glides out. Visibility flips at the end

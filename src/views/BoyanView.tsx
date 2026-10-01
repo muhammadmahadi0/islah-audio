@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import {
   Mic,
@@ -14,6 +14,7 @@ import { useLanguageStore } from '@/store/language-store';
 import { t, resultsCount, boyanSub } from '@/lib/i18n';
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import { fetchJson } from '@/lib/fetch-timeout';
+import { setupAutoRefresh, mergeNewestFirst, ISLAHBD_REFRESH_MS } from '@/lib/auto-refresh';
 import {
   toBoyanTrack,
   formatBoyanDate,
@@ -156,6 +157,31 @@ export default function BoyanView() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Auto-update: silent background refresh (poll + tab-visible + page-load)
+  // merges newly published bayans at the top — no skeleton, no lost scroll,
+  // filter, or playback.
+  const refreshingRef = useRef(false);
+  const refreshSilently = useCallback(async () => {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
+    try {
+      const data = await fetchJson('/api/boyan', 25000);
+      if (data.success && Array.isArray(data.audios)) {
+        setAudios((prev) => {
+          if (prev.length === 0) return data.audios;
+          return mergeNewestFirst(prev, data.audios, (a: BoyanAudio) => a.id);
+        });
+        if (Array.isArray(data.categories)) setCategories(data.categories);
+      }
+    } catch {
+      // Silent — keep showing the cached list.
+    } finally {
+      refreshingRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => setupAutoRefresh(refreshSilently, ISLAHBD_REFRESH_MS), [refreshSilently]);
 
   const results = useMemo(() => {
     const q = submittedQuery.trim().toLowerCase();

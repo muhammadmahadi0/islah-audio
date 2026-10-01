@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { usePlayerStore, type Track } from '@/store/player-store';
 import { Search as SearchIcon, Music, Loader2, X, ListPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,7 @@ import { t, resultsCount, noResultsFor, lecturesIndexed, indexingLabel } from '@
 import AddToPlaylistMenu from '@/components/AddToPlaylistMenu';
 import ShareButton from '@/components/ShareButton';
 import { fetchJson } from '@/lib/fetch-timeout';
+import { setupAutoRefresh, mergeNewestFirst, CHANNEL_REFRESH_MS } from '@/lib/auto-refresh';
 
 interface ChannelVideo {
   videoId: string;
@@ -187,6 +188,31 @@ export default function SearchPage({ initialQuery = '' }: { initialQuery?: strin
       cancelled = true;
     };
   }, [channelId]);
+
+  // Auto-update: light silent refresh of the first page (poll +
+  // tab-visible + page-load) merges newly uploaded videos at the top.
+  // Skipped while the full background index is still running (it already
+  // pulls fresh data) — no spinner, no lost query or playback.
+  const searchRefreshingRef = useRef(false);
+  const refreshSearchSilently = useCallback(async () => {
+    if (searchRefreshingRef.current || isLoading || indexing) return;
+    searchRefreshingRef.current = true;
+    try {
+      const data = await fetchJson(`/api/channel/${channelId}`, 20000);
+      if (data.success && Array.isArray(data.videos)) {
+        setVideos((prev: ChannelVideo[]) => {
+          if (prev.length === 0) return data.videos;
+          return mergeNewestFirst(prev, data.videos, (v: ChannelVideo) => v.videoId || v.id || '');
+        });
+      }
+    } catch {
+      // Silent — keep showing the cached index.
+    } finally {
+      searchRefreshingRef.current = false;
+    }
+  }, [channelId, isLoading, indexing]);
+
+  useEffect(() => setupAutoRefresh(refreshSearchSilently, CHANNEL_REFRESH_MS), [refreshSearchSilently]);
 
   const handleSearch = useCallback(
     (e: React.FormEvent) => {

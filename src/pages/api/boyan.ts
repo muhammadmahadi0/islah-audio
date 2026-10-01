@@ -4,12 +4,12 @@ import { getBoyanAudios, getBoyanCategories } from '@/lib/boyan';
 /**
  * Boyan catalog from the IslahBD API (`api.islahbd.com/api/audios/` +
  * `/api/categories/`). Fully keyless, no auth. The whole list is small
- * (~70KB) and changes rarely, so it is CDN-cached for an hour — clients
- * search/filter locally.
+ * (~70KB). CDN-cached for 5 min (editors publish often — clients also
+ * poll silently, so fresh bayans surface without a reload).
  */
 
 export const GET: APIRoute = async () => {
-  const json = (data: unknown, status = 200, cache = 'public, s-maxage=3600, stale-while-revalidate=86400') =>
+  const json = (data: unknown, status = 200, cache = 'public, s-maxage=300, stale-while-revalidate=600') =>
     new Response(JSON.stringify(data), {
       status,
       headers: { 'Content-Type': 'application/json', 'Cache-Control': cache },

@@ -9,7 +9,8 @@ playlists, search, and a mobile-first design.
 ## Features
 
 - **Lecture catalog** — browses the latest uploads from the channel with thumbnails,
-  durations, and view counts
+  durations, and view counts; new uploads appear automatically (silent
+  background refresh, no reload needed)
 - **Audio playback** — hidden YouTube embed player wired to a global player store
   (play/pause, next/previous, seek, volume, autoplay-next); the screen stays on
   while playing via the Wake Lock API; MP3 recordings can be downloaded from
@@ -33,6 +34,8 @@ playlists, search, and a mobile-first design.
 - **Shorts** — short clips from the IslahBD API with search + All/Audio/Video
   chips; audio items play + download as MP3, video items play as YouTube embeds
   with share links
+- **Auto-update** — every section picks up newly published content by itself
+  (silent polling + tab-visible refresh; no reload, scroll/filter/playback kept)
 - **Persistent playback** — the mini-player stays visible and audio keeps
   playing across Home / Search / Library / Boyan / Hamd-Naat (SPA navigation
   + persisted player islands); a full reload restores the player paused with

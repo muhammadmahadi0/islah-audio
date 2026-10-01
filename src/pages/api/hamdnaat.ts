@@ -3,12 +3,13 @@ import { getHamdNaatItems } from '@/lib/hamdnaat';
 
 /**
  * Hamd-Naat catalog from the IslahBD API (`api.islahbd.com/api/nasheeds/`).
- * Fully keyless, no auth. The whole list is tiny (~17KB) and changes
- * rarely, so it is CDN-cached for an hour — clients search/filter locally.
+ * Fully keyless, no auth. The whole list is tiny (~17KB). CDN-cached for
+ * 5 min (editors publish often — clients also poll silently, so fresh
+ * tracks surface without a reload).
  */
 
 export const GET: APIRoute = async () => {
-  const json = (data: unknown, status = 200, cache = 'public, s-maxage=3600, stale-while-revalidate=86400') =>
+  const json = (data: unknown, status = 200, cache = 'public, s-maxage=300, stale-while-revalidate=600') =>
     new Response(JSON.stringify(data), {
       status,
       headers: { 'Content-Type': 'application/json', 'Cache-Control': cache },

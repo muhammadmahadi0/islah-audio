@@ -122,7 +122,7 @@ export default function BottomNav() {
             <p className="px-3 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-gold">
               {strings.moreTitle}
             </p>
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-2 gap-1 max-h-[46dvh] overflow-y-auto overscroll-contain">
               {moreItems.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;

@@ -116,14 +116,14 @@ This file orients AI coding agents working in this repo. Read it before making c
 6. **Boyan (IslahBD MP3s).** Catalog in `lib/boyan.ts` (types + upstream
    fetch + `toBoyanTrack` mapping + duration/date helpers), served by
    `/api/boyan` (proxies `api.islahbd.com/api/audios/` + `/api/categories/`,
-   1h CDN cache, no pagination/search upstream — filter client-side).
+   5-min CDN cache, no pagination/search upstream — filter client-side).
    `/boyan` page renders `views/BoyanView.tsx` (search, category chips,
    play, save-to-playlist). Tracks use `id: 'boyan-<id>'` with a direct
    `   audioUrl` and empty `videoId` (stream engine + download button pick them
    up automatically; share button correctly absent).
 7. **Hamd-Naat (IslahBD hamd & naat).** Catalog in `lib/hamdnaat.ts` (types +
    upstream fetch + `toHamdNaatTrack` mapping + date helper), served by
-   `/api/hamdnaat` (proxies `api.islahbd.com/api/nasheeds/`, 1h CDN cache,
+   `/api/hamdnaat` (proxies `api.islahbd.com/api/nasheeds/`, 5-min CDN cache,
    no pagination/search upstream — filter client-side). `/hamdnaat` page
    renders `views/HamdNaatView.tsx` (search, All/Audio/Video chips, play,
    save-to-playlist, share on video rows). Tracks use `id: 'hamdnaat-<id>'`:
@@ -133,13 +133,21 @@ This file orients AI coding agents working in this repo. Read it before making c
    (BottomNav has its own 4-slot layout, see §5).
 7b. **Shorts (IslahBD short clips).** Catalog in `lib/shorts.ts` (types +
    upstream fetch + `toShortTrack` mapping + date helper), served by
-   `/api/shorts` (proxies `api.islahbd.com/api/clips/`, 1h CDN cache,
+   `/api/shorts` (proxies `api.islahbd.com/api/clips/`, 5-min CDN cache,
    no pagination/search upstream — filter client-side). `/shorts` page
    renders `views/ShortsView.tsx` (search, All/Audio/Video chips, play,
    save-to-playlist, share on video rows). Tracks use `id: 'short-<id>'`:
    `audio` items carry a direct `audioUrl` (stream engine + download),
    `video` items carry a `youtubeId` (embed + `/watch` share link). Sidebar
    nav item (Zap icon); also inside the mobile More card.
+7c. **Catalog auto-update.** Listings refresh silently when the upstream
+   gains content — no reload, no skeletons. Boyan/Shorts/Hamd-Naat poll
+   every 5 min, Home + Search refresh the channel first page every 10 min
+   (Search skips while its full index runs). All via
+   `setupAutoRefresh`/`mergeNewestFirst` in `lib/auto-refresh.ts` (poll +
+   tab-visible + `astro:page-load`, idempotent merge keyed by id, in-flight
+   guard). IslahBD APIs are CDN-cached 5 min, channel pages 10 min —
+   keep those windows aligned with the poll intervals when touching them.
 8. **Catalog pagination.** InnerTube pages uploads at ~100 videos: initial
    load fetches the first page, "more" chunks fetch 2 continuation pages
    (~200 videos) via `/api/channel/[id]/more/[token]`. Global sorts in
@@ -201,10 +209,11 @@ This file orients AI coding agents working in this repo. Read it before making c
   (with specular edge + gloss spans); body has a fixed ambient aura + blobs
   behind content. The Site Settings dropdown in the sidebar holds the Liquid
   Glass toggle + Theme + Language rows (gear header rotates 135° + chevron
-  flips on open). Its panel is a floating `fixed` menu anchored to the gear
-  button (ShareButton pattern: flips up when space below is tight, closes on
-  scroll/resize/Escape/route change) — never inline-expand inside the scroll
-  container, which would clip or reflow it. The Liquid Glass row switches to flat
+  flips on open, inline grid-rows expand INSIDE the sidebar flow — never a
+  floating/fixed panel, which detaches from scrolling and needs fragile
+  anchor tracking). The sidebar `<aside>` is the scroll container
+  (`overflow-y-auto` + `overscroll-contain` + `min-h-0`); thin branded
+  scrollbars in `globals.css`. The Liquid Glass row switches to flat The Liquid Glass row switches to flat
   Material 3
   (`design-store.ts`, persist key `islah-design`, `material` class on `<html>`):
   glass → solid tonal surfaces, blurs/sheen spans/ambient blobs off via the

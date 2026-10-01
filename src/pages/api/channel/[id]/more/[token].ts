@@ -19,7 +19,7 @@ function json(data: unknown, status = 200) {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200',
     },
   });
 }

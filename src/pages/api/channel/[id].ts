@@ -14,7 +14,7 @@ function toApiVideo(v: InnertubeVideo) {
   };
 }
 
-function json(data: unknown, status = 200, cache = 'public, s-maxage=3600, stale-while-revalidate=86400') {
+function json(data: unknown, status = 200, cache = 'public, s-maxage=600, stale-while-revalidate=1200') {
   return new Response(JSON.stringify(data), {
     status,
     headers: { 'Content-Type': 'application/json', 'Cache-Control': cache },

@@ -124,10 +124,9 @@
   avatars; tapping switches Home, Search, and Library; choice persists.
 - **Site Settings dropdown**: collapsible sidebar section (desktop + drawer)
   headed by an animated gear button (gear rotates 135° + chevron flips on
-  open). The panel is a floating `fixed` liquid-glass menu anchored to the
-  gear button (never clipped by sidebar scrolling): it opens below the
-  button and flips above it when space is tight, with a max-height fit and
-  close on backdrop tap / Escape / scroll / resize / route change. Holds
+  open, grid-rows expand animation). The panel expands INLINE inside the
+  sidebar flow (scrolls with it — never a floating/fixed panel, which
+  detaches from scrolling and needs fragile anchor tracking). Holds
   the Liquid Glass toggle, the Theme switch, and the Language switch:
   - Liquid Glass — on = iPhone-style frosted design, off = flat Material 3
     solid surfaces (mobile bottom nav keeps a slight translucent blur,
@@ -188,7 +187,7 @@
 
 #### Boyan (IslahBD direct MP3s)
 
-- Catalog from the IslahBD API (`/api/boyan`, proxied + 1h CDN cache;
+- Catalog from the IslahBD API (`/api/boyan`, proxied + 5-min CDN cache + silent auto-refresh;
   whole list ~70KB, filtered client-side) — title, speaker, category,
   location, upload date, direct MP3
 - Header card with count, search (title/speaker/location/category),
@@ -201,7 +200,7 @@
 
 #### Hamd-Naat (IslahBD hamd & naat)
 
-- Catalog from the IslahBD API (`/api/hamdnaat`, proxied + 1h CDN cache;
+- Catalog from the IslahBD API (`/api/hamdnaat`, proxied + 5-min CDN cache + silent auto-refresh;
   whole list ~17KB, filtered client-side) — title, artist, lyricist,
   composer, writing place/date, created date
 - Two shapes: `audio` items carry a direct MP3 (stream engine, downloadable,
@@ -216,7 +215,7 @@
 
 #### Shorts (IslahBD short clips)
 
-- Catalog from the IslahBD API (`/api/shorts`, proxied + 1h CDN cache;
+- Catalog from the IslahBD API (`/api/shorts`, proxied + 5-min CDN cache + silent auto-refresh;
   whole list filtered client-side) — title, created date
 - Two shapes: `audio` items carry a direct MP3 (stream engine, downloadable,
   like Boyan); `video` items carry a `youtubeId` (YouTube embed, shareable
@@ -273,8 +272,16 @@
    (youtubei.js, Flow-style); `total` is always null (InnerTube exposes no
    exact count), so the UI shows loaded counts. Home has a Show-more
    button; Search indexes every chunk in the background. Responses are
-   CDN-cached.
-2. **Lecture Playback** — hidden YouTube embed driven by the player store
+   CDN-cached (channel pages 10 min).
+2. **Catalog Auto-update** — every listing refreshes itself silently when
+   new content lands upstream (no reload, no skeletons, no lost scroll /
+   filter / sort / playback — fresh items merge at the top, removed items
+   drop, order stays newest-first). Boyan/Shorts/Hamd-Naat poll every 5 min
+   (their APIs are CDN-cached 5 min); Home + Search refresh the channel
+   first page every 10 min (Search skips while its background index runs).
+   All polls also fire on tab-visible + SPA page-load
+   (`setupAutoRefresh`/`mergeNewestFirst` in `lib/auto-refresh.ts`).
+3. **Lecture Playback** — hidden YouTube embed driven by the player store
    (play/pause, next/previous incl. auto-advance, seek via `islah:seek` event,
    volume, progress polling). Playback always starts audio-only (hidden
    iframe, lowest quality). Expanded = artwork + video toggle button; tapping
@@ -292,7 +299,7 @@
    The screen stays on while anything is playing
    (Screen Wake Lock API, re-requested on tab-visible; silent no-op where
    unsupported).
-3. **Live Broadcast** — `/api/live` polls islahbd.com status (60s), including
+4. **Live Broadcast** — `/api/live` polls islahbd.com status (60s), including
    the `location` venue name for the live broadcast and the last recording.
    Glowing-red LIVE button plays HLS when on air, plain Last-live button replays
    the latest recording when offline; the "Live now" banner shows
@@ -300,10 +307,10 @@
    (title block + Up-next header) with a MapPin icon. HLS falls back to the
    `/api/hls` CORS proxy, then to the last recording, so a dead live edge
    still yields audio.
-4. **User Playlists** — persisted zustand store (`islah-playlists` key);
+5. **User Playlists** — persisted zustand store (`islah-playlists` key);
    duplicate-guarded adds, delete with confirm.
-5. **Search** — client-side filter over the fully indexed catalog.
-6. **Shareable Links** — `/watch/[videoId]` opens + plays that exact video
+6. **Search** — client-side filter over the fully indexed catalog.
+7. **Shareable Links** — `/watch/[videoId]` opens + plays that exact video
    (metadata via `lib/video.ts` → InnerTube `getBasicInfo`, fully keyless;
    `lib/share.ts` builds links and drives native-share-or-copy).
 
@@ -317,9 +324,9 @@
 | `GET /api/playlists/[channel]` | A channel's playlists (InnerTube Playlists tab, 6h CDN cache) |
 | `GET /api/playlist-items/[id]` | Playlist items, InnerTube (first ~200) |
 | `GET /api/live` | Live status `{ isLive, title, speaker, location, listeners, streamUrl, recording }` (`recording` also carries `location`) |
-| `GET /api/boyan` | IslahBD MP3 catalog `{ audios, categories }` (1h CDN cache) |
-| `GET /api/hamdnaat` | IslahBD hamd-naat `{ items }` (audio MP3 + video youtubeId, 1h CDN cache) |
-| `GET /api/shorts` | IslahBD short clips `{ clips }` (audio MP3 + video youtubeId, 1h CDN cache) |
+| `GET /api/boyan` | IslahBD MP3 catalog `{ audios, categories }` (5-min CDN cache + silent auto-refresh) |
+| `GET /api/hamdnaat` | IslahBD hamd-naat `{ items }` (audio MP3 + video youtubeId, 5-min CDN cache + silent auto-refresh) |
+| `GET /api/shorts` | IslahBD short clips `{ clips }` (audio MP3 + video youtubeId, 5-min CDN cache + silent auto-refresh) |
 | `GET /api/hls/[...url]` | HLS manifest/media CORS proxy with URI rewrite |
 | `GET /api/stream/[id]` | Video metadata (title, thumbnail, duration, channel, description, date, views) + official watch/embed URLs |
 
