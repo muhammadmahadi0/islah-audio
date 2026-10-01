@@ -1,0 +1,9 @@
+# npm-style flat node_modules: the Netlify/Vercel adapters' file-tracer
+# (@vercel/nft) re-symlinks traced deps into the function folder, and
+# symlink creation needs admin/Developer Mode on Windows (EPERM) — Bun's
+# default isolated linker makes every local build fail there.
+# Hoisting lays out real directories so the adapter copies files instead.
+# (Beta deploys on Vercel/Linux, unaffected either way.)
+# Never change this without re-verifying `bun run build` on Windows.
+[install]
+linker = "hoisted"

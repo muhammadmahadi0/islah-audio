@@ -346,40 +346,92 @@ const {
         });
         // Open IslahBD button (delegated — survives SPA swaps): open the
         // installed app, otherwise go to the right store for the device.
-        // Mirrors the app owner's own DeepLinkRedirect (islahbd.com
-        // `live/[token]` page): the app registers the `islahbd://` custom
-        // scheme with `open/<section>/<token>` paths, so `islahbd://open`
-        // (no content segments) just launches the app.
-        // Android uses a scheme intent (the OS opens the app if installed,
-        // else loads the Play Store fallback natively — deliberately NO
-        // manual JS timer, which would race installed users to the store).
-        // iOS fires the custom scheme and falls back to the App Store after
-        // 2s only if the page is still visible (opening the app backgrounds
-        // the page, which cancels the timer). Desktop opens the site.
+        // Mirrors `src/lib/open-app.ts` — keep both in sync.
+        // The app registers the `islahbd://` custom scheme (same as the
+        // owner's DeepLinkRedirect), so `islahbd://open` just launches it.
+        // Android/Chrome uses a scheme intent WITH a native
+        // S.browser_fallback_url PLUS a guarded safety timer (Firefox /
+        // WebViews ignore the intent extras and would otherwise strand the
+        // user). iOS fires the scheme through a hidden iframe (a direct
+        // location assignment navigates to an error state on failure and
+        // can stall the fallback timer). Every timer is cancelled the
+        // moment the page hides/blurs (i.e. the app actually opened), so
+        // installed users are never raced to the store.
+        var ISLAH_SCHEME = 'islahbd://open';
+        var ISLAH_PKG = 'com.islahbd.app';
+        var ISLAH_PLAY = 'https://play.google.com/store/apps/details?id=com.islahbd.app';
+        var ISLAH_APPLE = 'https://apps.apple.com/us/app/islahbd/id6762509692';
+        var islahSupportsIntent = function (ua) {
+          if (/Firefox|FxiOS|Focus/i.test(ua)) return false;
+          return /Chrome|CriOS|Edg|OPR|SamsungBrowser/i.test(ua);
+        };
+        var islahAndroidIntent = function () {
+          return 'intent://open#Intent;scheme=islahbd;package=' + ISLAH_PKG +
+            ';action=android.intent.action.VIEW' +
+            ';S.browser_fallback_url=' + encodeURIComponent(ISLAH_PLAY) + ';end';
+        };
+        var islahFireIframe = function (scheme) {
+          try {
+            var f = document.createElement('iframe');
+            f.style.display = 'none';
+            f.setAttribute('aria-hidden', 'true');
+            f.src = scheme;
+            document.body.appendChild(f);
+            setTimeout(function () { try { f.remove(); } catch (e) {} }, 3000);
+          } catch (e) {}
+        };
         document.addEventListener('click', function (e) {
           var ab = e.target && e.target.closest ? e.target.closest('#islahbd-btn') : null;
           if (!ab) return;
           var ua = navigator.userAgent || '';
           var isAndroid = /Android/i.test(ua);
           var isiOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-          var playStore = 'https://play.google.com/store/apps/details?id=com.islahbd.app';
-          var appStore = 'https://apps.apple.com/us/app/islahbd/id6762509692';
           if (isAndroid) {
-            window.location.replace('intent://open#Intent;scheme=islahbd;package=com.islahbd.app;S.browser_fallback_url=' + encodeURIComponent(playStore) + ';end');
+            var fellBack = false;
+            var goStore = function () {
+              if (fellBack || document.hidden) return;
+              fellBack = true;
+              window.location.href = ISLAH_PLAY;
+            };
+            var cancelA = function () {
+              clearTimeout(timerA);
+              document.removeEventListener('visibilitychange', onVisA);
+              window.removeEventListener('pagehide', onHideA);
+              window.removeEventListener('blur', onHideA);
+            };
+            var onVisA = function () { if (document.hidden) cancelA(); };
+            var onHideA = function () { cancelA(); };
+            document.addEventListener('visibilitychange', onVisA);
+            window.addEventListener('pagehide', onHideA);
+            window.addEventListener('blur', onHideA);
+            var timerA = setTimeout(goStore, 2500);
+            try {
+              if (islahSupportsIntent(ua)) window.location.href = islahAndroidIntent();
+              else islahFireIframe(ISLAH_SCHEME);
+            } catch (err) { goStore(); }
           } else if (isiOS) {
-            var opened = false;
-            var onVis = function () { if (document.hidden) opened = true; };
-            var onHide = function () { opened = true; };
-            document.addEventListener('visibilitychange', onVis);
-            window.addEventListener('pagehide', onHide);
-            window.addEventListener('blur', onHide);
-            window.location.href = 'islahbd://open';
-            setTimeout(function () {
-              document.removeEventListener('visibilitychange', onVis);
-              window.removeEventListener('pagehide', onHide);
-              window.removeEventListener('blur', onHide);
-              if (!opened && !document.hidden) window.location.replace(appStore);
-            }, 2000);
+            var done = false;
+            var cancelI = function () {
+              done = true;
+              clearTimeout(timerI);
+              document.removeEventListener('visibilitychange', onVisI);
+              window.removeEventListener('pagehide', onHideI);
+              window.removeEventListener('blur', onHideI);
+            };
+            var onVisI = function () { if (document.hidden) cancelI(); };
+            var onHideI = function () { cancelI(); };
+            document.addEventListener('visibilitychange', onVisI);
+            window.addEventListener('pagehide', onHideI);
+            window.addEventListener('blur', onHideI);
+            var timerI = setTimeout(function () {
+              if (!done && !document.hidden) {
+                done = true;
+                window.location.href = ISLAH_APPLE;
+              }
+              cancelI();
+            }, 1800);
+            islahFireIframe(ISLAH_SCHEME);
+            try { window.location.href = ISLAH_SCHEME; } catch (err2) {}
           } else {
             window.open('https://www.islahbd.com/', '_blank', 'noopener');
           }

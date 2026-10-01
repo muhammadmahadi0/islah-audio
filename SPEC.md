@@ -67,10 +67,13 @@
   IslahBD app (`islahbd://open`, no content segments — mirrors the app owner's
   own DeepLinkRedirect), otherwise sends the
   user to the Play Store / App Store for their device
-  (desktop opens islahbd.com). Android uses a scheme intent with a native
-  store fallback URL and no JS timer (a timer would race the intent and send
-  installed users to the store too); iOS fires the scheme with a guarded 2s
-  fallback (blur/pagehide/visibility cancel). The button always reads
+  (desktop opens islahbd.com). Android fires a scheme intent WITH a native
+  `S.browser_fallback_url` PLUS a guarded 2.5s safety timer (Firefox /
+  WebViews ignore the intent extras and would otherwise strand the user);
+  iOS fires the scheme through a hidden iframe (silent on failure) with a
+  guarded 1.8s fallback. Every fallback timer is cancelled the moment the
+  page hides/blurs (i.e. the app actually opened), so installed users are
+  never raced to the store. The button always reads
   "Open IslahBD". No search icon on mobile — search lives in the bottom nav. All primary buttons site-wide (Play all, filters, play
   FABs, Create, Try again, toggles) share this exact gold-gradient
   `.liquid-gold` style; secondary actions stay frosted glass.

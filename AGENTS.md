@@ -2,12 +2,22 @@
 
 This file orients AI coding agents working in this repo. Read it before making changes.
 
-## Commands
+## Commands (Bun — Node-compatible runtime + package manager)
 
-- `npm run dev` — dev server, port 4321 (no env setup needed — fully keyless)
-- `npm run build` — production build (must pass)
-- `npm run preview` — preview the built output locally
+- `bun install` — install deps (Bun 1.4+, hoisted linker — see below)
+- `bun run dev` — dev server, port 4321 (no env setup needed — fully keyless)
+- `bun run build` — production build (must pass)
+- `bun run preview` — preview the built output locally
 - No linter is configured
+- **Bun linker MUST stay `hoisted`.** Bun's default isolated linker lays
+  `node_modules` out as directory junctions (symlinks) on Windows; the
+  Netlify/Vercel adapters' file-tracer (`@vercel/nft` via `copyFilesToFolder`)
+  re-symlinks traced deps into the function folder, and symlink creation
+  needs admin/Developer Mode here → every local build dies with
+  `EPERM: operation not permitted, symlink`. `bunfig.toml`
+  (`[install] linker = "hoisted"`) lays out real directories, so the
+  adapter copies files instead. Never delete that file or switch the linker
+  back. (Host builds on Vercel/Linux are unaffected either way.)
 
 ## Architecture (do not break these contracts) — BETA Astro layout
 
@@ -157,11 +167,14 @@ This file orients AI coding agents working in this repo. Read it before making c
    URL path, never a query string.
 13. **Open-IslahBD button (`#islahbd-btn` in `Layout.astro`).** The app
    registers the `islahbd://` custom scheme (`open/<section>/<token>` paths —
-   same as the owner's DeepLinkRedirect). Fire `islahbd://open` on iOS /
-   an `intent://open` scheme-intent on Android with `S.browser_fallback_url`
-   (native store fallback, no JS timer — timers race installed users to the
-   store). iOS gets a guarded 2s App Store fallback (blur/pagehide/visibility
-   cancel). Never go back to universal-link navigation for this button.
+   same as the owner's DeepLinkRedirect). Android fires a scheme intent WITH
+   a native `S.browser_fallback_url` PLUS a guarded 2.5s safety timer
+   (Firefox / WebViews ignore the intent extras and would strand the user);
+   iOS fires the scheme through a hidden iframe (never a bare location
+   assignment — Safari navigates to an error state on failure and stalls
+   the fallback) with a guarded 1.8s App Store fallback. Every timer is
+   cancelled on hide/blur/pagehide, so installed users never race to the
+   store. Never go back to universal-link navigation for this button.
    The same flow lives in `lib/open-app.ts` for React callers (Watch page);
    keep both in sync.
 

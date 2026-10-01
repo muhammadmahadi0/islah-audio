@@ -44,3 +44,6 @@ next-env.d.ts
 # local session handoff — never push to github
 session.md
 SESSION.md
+
+# bun
+bun.lockb

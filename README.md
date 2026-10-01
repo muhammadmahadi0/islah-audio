@@ -44,7 +44,9 @@ playlists, search, and a mobile-first design.
 - **Open IslahBD** — gold-gradient top-bar button (always labeled "Open IslahBD")
   that opens the installed IslahBD app (`islahbd://open` custom scheme, same as
   the app owner's deep links), otherwise falls back to the
-  Play Store / App Store for the visitor's device
+  Play Store / App Store for the visitor's device (intent + guarded safety
+  timers on Android, hidden-iframe + guarded fallback on iOS — timers cancel
+  the moment the app opens, so installed users never land on a store page)
 - **Modern UI** — golden theme with dark/light mode (sidebar Theme row,
   persisted), floating liquid-glass sidebar (collapsible via the hamburger —
   slides away on desktop, slide-over drawer on mobile) + top bar, mobile bottom nav pill,
@@ -76,23 +78,23 @@ playlists, search, and a mobile-first design.
 
 ### Prerequisites
 
-- Node.js 20+ (no API keys, no env setup — fully keyless)
+- [Bun](https://bun.sh) 1.4+ (runtime + package manager, Node-compatible — no API keys, no env setup, fully keyless)
 
 ### Setup
 
 ```bash
 git clone https://github.com/muhammadmahadi0/islah-audio.git
 cd islah-audio
-npm install
-npm run dev                  # http://localhost:4321
+bun install
+bun run dev                  # http://localhost:4321
 ```
 
 ### Scripts
 
 ```bash
-npm run dev     # astro dev server (http://localhost:4321)
-npm run build   # production build
-npm run preview # preview built output
+bun run dev     # astro dev server (http://localhost:4321)
+bun run build   # production build
+bun run preview # preview built output
 ```
 
 ## API Routes
