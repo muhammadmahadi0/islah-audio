@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
+import PrayerTimer from '@/components/PrayerTimer';
 import { useChannelStore } from '@/store/channel-store';
 import { useLanguageStore } from '@/store/language-store';
 import { t } from '@/lib/i18n';
@@ -116,8 +117,11 @@ export default function HomePage() {
   return (
     <main className="pb-44 md:pb-36">
       <div className="mx-auto max-w-[1600px] px-4 md:px-6 pt-2 md:pt-3">
+        {/* ---------- Prayer countdown (before Explore) ---------- */}
+        <PrayerTimer />
+
         {/* ---------- Feature hub: one card per feature ---------- */}
-        <section aria-label={s.featuresTitle} className="animate-fade-up">
+        <section aria-label={s.featuresTitle} className="mt-3 md:mt-4 animate-fade-up">
           <h2 className="px-1 mb-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
             {s.featuresTitle}
           </h2>

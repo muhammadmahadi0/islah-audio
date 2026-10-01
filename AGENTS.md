@@ -155,10 +155,13 @@ This file orients AI coding agents working in this repo. Read it before making c
    tab-visible + `astro:page-load`, idempotent merge keyed by id, in-flight
    guard). IslahBD APIs are CDN-cached 5 min, channel pages 10 min —
    keep those windows aligned with the poll intervals when touching them.
-7d. **Home feature hub + channel buttons.** `HomeView` renders a
-   card-style grid below the hero — one liquid-glass card per feature
-   (Live action + Search/Library/Boyan/Hamd-Naat/Shorts links) with icon +
-   title + subtitle from `lib/i18n.ts` (`featuresTitle`/`feat*Sub`);
+7d. **Home feature hub + channel buttons.** `HomeView` renders the prayer
+   countdown card FIRST (`components/PrayerTimer.tsx`, logic in
+   `lib/prayer.ts` — ported from `pray-bd`: Aladhan Hanafi times, IP
+   geolocation, 1s countdown, special morning periods, −1-day Hijri fix;
+   `prayer*` i18n keys), then a card-style grid — one liquid-glass card per
+   feature (Live action + Search/Library/Boyan/Hamd-Naat/Shorts links) with
+   icon + title + subtitle from `lib/i18n.ts` (`featuresTitle`/`feat*Sub`);
    directly below, the two `CHANNELS` as large switch buttons (avatar via
    `/api/channel/[id]/meta`, name, handle, active gold dot). Switching
    sets `channel-store` and the catalog refetches via the existing effect.

@@ -151,11 +151,19 @@
 
 #### Home (buttons only)
 
-- Home is a hub — NO video listing here. Feature cards only: one
-  liquid-glass card per feature (Live action + Search / Library / Boyan /
-  Hamd-Naat / Shorts links), each with icon, title, and subtitle
-  (`featuresTitle`/`feat*Sub` in `lib/i18n.ts`); Live card glows red +
-  pulses when on air, disabled when neither live nor recording is available
+- Prayer countdown card FIRST (above Explore): timer ported from the
+  `pray-bd` project — Aladhan API (Hanafi method=1/school=1), IP-geolocated
+  city (24h cache, Dhaka fallback), 1s countdown to next prayer, current /
+  next highlights, Gregorian + Hijri dates (Hijri −1 day for BD moon
+  sighting), and pray-bd's special morning periods (prohibited-sunrise
+  RED countdown, Ishraq, Chasht). Offline: 24h cache + seasonal fallback.
+  Follows app language + theme via tokens (`lib/prayer.ts` +
+  `components/PrayerTimer.tsx`, `prayer*` keys in `lib/i18n.ts`)
+- Feature cards below it: one liquid-glass card per feature (Live action
+  + Search / Library / Boyan / Hamd-Naat / Shorts links), each with icon,
+  title, and subtitle (`featuresTitle`/`feat*Sub` in `lib/i18n.ts`); Live
+  card glows red + pulses when on air, disabled when neither live nor
+  recording is available
 - Channel buttons: the two channels (`CHANNELS` in `lib/channels.ts`) as
   large cards below the hub — avatar, name, handle, active gold dot;
   tapping sets `channel-store` AND navigates to that channel's own page

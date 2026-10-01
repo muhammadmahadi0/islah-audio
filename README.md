@@ -8,9 +8,11 @@ playlists, search, and a mobile-first design.
 
 ## Features
 
-- **Home feature hub** — buttons-only home: one card per feature (Live,
-  Search, Library, Boyan, Hamd-Naat, Shorts) plus the two channel buttons
-  underneath, each opening that channel's own full page
+- **Home feature hub** — prayer countdown card first (Aladhan Hanafi times,
+  auto-detected city, live 1s countdown, Hijri date — ported from pray-bd),
+  then one card per feature (Live, Search, Library, Boyan, Hamd-Naat,
+  Shorts) plus the two channel buttons underneath, each opening that
+  channel's own full page
 - **Channel pages** — `/channel/[id]` shows the full listing (hero, filters,
   sorts, grid, Show-more) for each channel; new uploads appear automatically
   (silent background refresh, no reload needed)
