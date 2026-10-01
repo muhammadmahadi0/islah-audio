@@ -702,6 +702,15 @@ html.light .ripple-ink {
     opacity: 0;
   }
 }
+/* Family page title — deep green in light theme, theme foreground in
+   dark theme (follows the same light/dark split as the rest of the UI). */
+.family-title {
+  color: #14532d;
+}
+html:not(.light) .family-title {
+  color: rgb(var(--white));
+}
+
 /* Backward tap-bloom: exact reverse of the bloom above — starts covering
    the screen, then the same liquid blob retracts into the tap point. */
 @keyframes design-wrap-retract {

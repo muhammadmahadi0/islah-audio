@@ -117,13 +117,16 @@ This file orients AI coding agents working in this repo. Read it before making c
    playback uninterrupted). Sidebar shows the switcher; Android opens the
    sidebar as a drawer (`#mobile-drawer` in the layout). Sidebar nav is
    Home/Search/Library/Boyan/Hamd-Naat/Shorts/More. BottomNav is a SEPARATE
-   4-slot bar (Home / Live-action / Boyan / More — More LINKS to the
+   5-slot bar (Home / Live-action / Boyan / Family / More — More LINKS to
    `/more` hub page, never a dropdown) — do not mirror the sidebar there;
    keep both lists' i18n keys (`nav*` in `lib/i18n.ts`) in sync.
 7a. **More hub (`/more`).** `MoreView` repeats the home-page buttons (Live
    action + Search/Library/Boyan/Hamd-Naat/Shorts links) plus the new
-   Islamic buttons (Amal / Dua / Calendar / Wazifa / Durood → `/amal`,
-   `/dua`, `/calendar`, `/wazifa`, `/durood`). The five Islamic pages are
+   Islamic buttons (Family / Amal / Dua / Calendar / Wazifa / Durood →
+   `/family`, `/amal`, `/dua`, `/calendar`, `/wazifa`, `/durood`). Family
+   is the full page (`FamilyView`: translated welcome/mission/applications/
+   connect/social via `family*` keys, `.family-title` green in light).
+   The other five Islamic pages are
    placeholders for now (shared `FeatureComingView`: icon + title +
    Coming-soon badge, back-to-More link) — buttons + routes exist, real
    functions come later. Sidebar has a More item too; BottomNav highlights

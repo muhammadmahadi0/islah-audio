@@ -251,9 +251,10 @@
   button picks up audio items automatically
 - Sidebar nav item (Zap icon, `/shorts`); also inside the mobile More card
 
-#### Mobile bottom nav (Home / Live / Boyan / More)
+#### Mobile bottom nav (Home / Live / Boyan / Family / More)
 
-- 4-item floating pill: Home link, Live action button, Boyan link, More toggle
+- 5-item floating pill: Home link, Live action button, Boyan link, Family
+  link, More link
 - The **Live** button plays the islahbd.com live broadcast when on air
   (red pulsing icon + glow) or the last recording when offline; tapping
   while a live track is active toggles play/pause. Status polled from
@@ -261,15 +262,27 @@
 - **More** links to the `/more` hub page (no dropdown): every section in
   one place — the home-page buttons (Live, Search, Library, Boyan,
   Hamd-Naat, Shorts) plus the new Islamic buttons (Amal, Dua, Calendar,
-  Wazifa, Durood), each opening its own page. Stays highlighted on any of
+  Wazifa, Durood, Family), each opening its own page. Stays highlighted on any of
   those pages. Search lives here on mobile (plus the
   sidebar + desktop top bar)
+
+#### Family (`/family` — Islah family hub)
+
+- Centered dark-green "Family" title (theme foreground in dark mode),
+  welcome card (heart icon, Bangla welcome + gold heading, star divider,
+  Shaykh intro lines, gold uppercase name, Damat Barakatuhum, gold Learn
+  More anchor to the mission), mission card (book icon, title, subtitle,
+  arrow), Applications grid (Bay'ah — blue icon, Khanqah stay — purple
+  icon, each with right arrow), Connect grid (IslahBD + Markazul website
+  cards) and the social row (YouTube / Facebook / Telegram / WhatsApp with
+  labels) — all in liquid-glass cards with gold tokens, translated via
+  `family*` i18n keys
 
 #### More (`/more` — every section + Islamic buttons)
 
 - Two card grids reusing the home hub style: home sections first (Live
   action + Search / Library / Boyan / Hamd-Naat / Shorts links), then the
-  Islamic grid (Amal / Dua / Calendar / Wazifa / Durood links)
+  Islamic grid (Family / Amal / Dua / Calendar / Wazifa / Durood links)
 - The five Islamic buttons open placeholder pages for now (`/amal`,
   `/dua`, `/calendar`, `/wazifa`, `/durood` — shared
   `FeatureComingView` with icon + title + Coming-soon badge); real

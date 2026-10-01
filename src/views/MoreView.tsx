@@ -6,6 +6,7 @@ import {
   Mic,
   Music,
   Zap,
+  Heart,
   Sparkles,
   BookOpen,
   CalendarDays,
@@ -177,8 +178,9 @@ export default function MoreView() {
           <h2 className="px-1 mb-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
             {s.navMore}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 md:gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 md:gap-3">
             {([
+              { icon: Heart, titleKey: 'navFamily', subKey: 'featFamilySub', href: '/family' },
               { icon: Sparkles, titleKey: 'navAmal', subKey: 'featAmalSub', href: '/amal' },
               { icon: BookOpen, titleKey: 'navDua', subKey: 'featDuaSub', href: '/dua' },
               { icon: CalendarDays, titleKey: 'navCalendar', subKey: 'featCalendarSub', href: '/calendar' },

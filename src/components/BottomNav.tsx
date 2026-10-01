@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Home, Mic, MoreHorizontal, Radio } from 'lucide-react';
+import { Home, Mic, Heart, MoreHorizontal, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguageStore } from '@/store/language-store';
 import { t } from '@/lib/i18n';
@@ -7,7 +7,7 @@ import { usePlayerStore, type Track } from '@/store/player-store';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 
 // Pages that belong to the More hub — the More tab stays highlighted there.
-const MORE_PATHS = ['/more', '/search', '/library', '/hamdnaat', '/shorts', '/amal', '/dua', '/calendar', '/wazifa', '/durood'];
+const MORE_PATHS = ['/more', '/search', '/library', '/hamdnaat', '/shorts', '/amal', '/dua', '/calendar', '/wazifa', '/durood', '/family'];
 
 function usePath() {
   const [path, setPath] = useState('/');
@@ -23,10 +23,11 @@ function usePath() {
 
 /**
  * Mobile bottom bar — very rounded floating pill (YouTube-app style).
- * Home / Live / Boyan / More. Live plays the islahbd.com live broadcast
- * (or the last recording when offline) straight from the bar; More goes
- * to the `/more` hub page with every section plus the new Islamic
- * buttons (Amal / Dua / Calendar / Wazifa / Durood).
+ * Home / Live / Boyan / Family / More. Live plays the islahbd.com live
+ * broadcast (or the last recording when offline) straight from the bar;
+ * Family opens the Islah family hub; More goes to the `/more` hub page
+ * with every section plus the Islamic buttons
+ * (Amal / Dua / Calendar / Wazifa / Durood).
  */
 export default function BottomNav() {
   const pathname = usePath();
@@ -110,7 +111,7 @@ export default function BottomNav() {
     <nav className="bottom-nav md:hidden fixed bottom-2.5 inset-x-4 z-50 rounded-full liquid-glass safe-bottom">
       <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-14 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
       <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-transparent to-transparent" />
-      <div className="relative grid grid-cols-4 px-3 py-1">
+      <div className="relative grid grid-cols-5 px-3 py-1">
         {/* Home */}
         <a
           href="/"
@@ -147,6 +148,16 @@ export default function BottomNav() {
         >
           {renderIcon(Mic, pathname === '/boyan')}
           {strings.navBoyan}
+        </a>
+
+        {/* Family — Islah family hub, left of More */}
+        <a
+          href="/family"
+          aria-label={strings.navFamily}
+          className={cn(baseItem, pathname === '/family' ? activeItem : 'text-mist-dark')}
+        >
+          {renderIcon(Heart, pathname === '/family')}
+          {strings.navFamily}
         </a>
 
         {/* More — goes to the /more hub page */}
