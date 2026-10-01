@@ -75,7 +75,7 @@
   guarded 1.8s fallback. Every fallback timer is cancelled the moment the
   page hides/blurs (i.e. the app actually opened), so installed users are
   never raced to the store. The button always reads
-  "Open IslahBD". No search icon on mobile — search lives in the More card. All primary buttons site-wide (Play all, filters, play
+  "Open IslahBD". No search icon on mobile — search lives on the More page. All primary buttons site-wide (Play all, filters, play
   FABs, Create, Try again, toggles) share this exact gold-gradient
   `.liquid-gold` style; secondary actions stay frosted glass.
 
@@ -83,8 +83,8 @@
 - **Desktop (≥768px)**: floating liquid-glass sidebar pill + scrollable content;
   floating liquid-glass mini-player card bottom-right, clear of the sidebar.
 - **Mobile**: floating liquid-glass mini-player above a liquid-glass bottom nav
-  pill (Home / Live / Boyan / More — More opens a card with Search, Library,
-  Hamd-Naat, Shorts); floating top bar + chips bar are glass pills.
+  pill (Home / Live / Boyan / More — More links to the `/more` hub page);
+  floating top bar + chips bar are glass pills.
 - **Expanded player**: full-screen liquid-glass (iPhone-style), blurred-artwork backdrop, big art,
   seek slider (locked on live), prev/play/next. Same stacked flow on all
   screens; on desktop (≥768px) the sheet stretches wider (3xl/4xl) with the
@@ -258,11 +258,22 @@
   (red pulsing icon + glow) or the last recording when offline; tapping
   while a live track is active toggles play/pause. Status polled from
   `/api/live` (60s), same source as the Home hero
-- **More** opens a floating liquid-glass card above the bar with the
-  remaining sections (Search, Library, Hamd-Naat, Shorts) in a 2-col grid;
-  closes on backdrop tap, item tap, or page change; highlights when the
-  current page lives inside it. Search lives here on mobile (plus the
+- **More** links to the `/more` hub page (no dropdown): every section in
+  one place — the home-page buttons (Live, Search, Library, Boyan,
+  Hamd-Naat, Shorts) plus the new Islamic buttons (Amal, Dua, Calendar,
+  Wazifa, Durood), each opening its own page. Stays highlighted on any of
+  those pages. Search lives here on mobile (plus the
   sidebar + desktop top bar)
+
+#### More (`/more` — every section + Islamic buttons)
+
+- Two card grids reusing the home hub style: home sections first (Live
+  action + Search / Library / Boyan / Hamd-Naat / Shorts links), then the
+  Islamic grid (Amal / Dua / Calendar / Wazifa / Durood links)
+- The five Islamic buttons open placeholder pages for now (`/amal`,
+  `/dua`, `/calendar`, `/wazifa`, `/durood` — shared
+  `FeatureComingView` with icon + title + Coming-soon badge); real
+  functions come later
 
 #### Library (playlists only — no Queue tab)
 

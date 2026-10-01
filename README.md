@@ -41,6 +41,9 @@ playlists, search, and a mobile-first design.
 - **Shorts** — short clips from the IslahBD API with search + All/Audio/Video
   chips; audio items play + download as MP3, video items play as YouTube embeds
   with share links
+- **More hub** — `/more` holds every section in one place: the home-page
+  buttons plus the new Islamic buttons — Amal, Dua, Islamic calendar,
+  Wazifa, Durood (placeholder pages for now, real functions come later)
 - **Auto-update** — every section picks up newly published content by itself
   (silent polling + tab-visible refresh; no reload, scroll/filter/playback kept)
 - **Persistent playback** — the mini-player stays visible and audio keeps
@@ -64,7 +67,7 @@ playlists, search, and a mobile-first design.
   persisted), floating liquid-glass sidebar (collapsible via the hamburger —
   slides away on desktop, slide-over drawer on mobile) + top bar, mobile bottom nav pill
   (Home / Live / Boyan / More — Live plays the broadcast or last recording,
-  More opens a card with Search, Library, Hamd-Naat, Shorts),
+  More links to the `/more` hub page),
    floating liquid-glass mini-player with full-screen liquid-glass expanded mode, Bayans/Shorts filters + Newest/Most-viewed/Oldest sorts (global sorts auto-load the full catalog in the background).
   A sidebar **Site Settings** dropdown (animated gear header, persisted;
   Liquid Glass defaults on for iOS + desktop, off for other mobile) holds the
@@ -152,9 +155,15 @@ src/
 │   ├── boyan.astro           # Boyan shell (BoyanView island)
 │   ├── hamdnaat.astro        # Hamd-Naat shell (HamdNaatView island)
 │   ├── shorts.astro          # Shorts shell (ShortsView island)
+│   ├── more.astro            # More hub (MoreView island: all sections + Islamic buttons)
+│   ├── amal.astro            # Amal placeholder (FeatureComingView)
+│   ├── dua.astro             # Dua placeholder (FeatureComingView)
+│   ├── calendar.astro        # Calendar placeholder (FeatureComingView)
+│   ├── wazifa.astro          # Wazifa placeholder (FeatureComingView)
+│   ├── durood.astro          # Durood placeholder (FeatureComingView)
 │   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream, boyan, hamdnaat, shorts
 ├── layouts/Layout.astro      # html shell, liquid-glass top bar, islands
-├── views/                    # React islands: Home/Channel/Search/Library/Watch/Boyan/HamdNaat/Shorts
+├── views/                    # React islands: Home/Channel/Search/Library/Watch/Boyan/HamdNaat/Shorts/More/FeatureComing
 ├── components/               # player, nav, sidebar, theme toggle, playlist menu, share button
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)

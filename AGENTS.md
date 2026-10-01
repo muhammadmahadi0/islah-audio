@@ -116,10 +116,18 @@ This file orients AI coding agents working in this repo. Read it before making c
    `/channel/[id]` when already on a channel page (SPA `navigate()`,
    playback uninterrupted). Sidebar shows the switcher; Android opens the
    sidebar as a drawer (`#mobile-drawer` in the layout). Sidebar nav is
-   Home/Search/Library/Boyan/Hamd-Naat/Shorts. BottomNav is a SEPARATE
-   4-slot bar (Home / Live-action / Boyan / More-card with
-   Search/Library/Hamd-Naat/Shorts) — do not mirror the sidebar there;
+   Home/Search/Library/Boyan/Hamd-Naat/Shorts/More. BottomNav is a SEPARATE
+   4-slot bar (Home / Live-action / Boyan / More — More LINKS to the
+   `/more` hub page, never a dropdown) — do not mirror the sidebar there;
    keep both lists' i18n keys (`nav*` in `lib/i18n.ts`) in sync.
+7a. **More hub (`/more`).** `MoreView` repeats the home-page buttons (Live
+   action + Search/Library/Boyan/Hamd-Naat/Shorts links) plus the new
+   Islamic buttons (Amal / Dua / Calendar / Wazifa / Durood → `/amal`,
+   `/dua`, `/calendar`, `/wazifa`, `/durood`). The five Islamic pages are
+   placeholders for now (shared `FeatureComingView`: icon + title +
+   Coming-soon badge, back-to-More link) — buttons + routes exist, real
+   functions come later. Sidebar has a More item too; BottomNav highlights
+   More on any hub page (`MORE_PATHS`).
 6. **Boyan (IslahBD MP3s).** Catalog in `lib/boyan.ts` (types + upstream
    fetch + `toBoyanTrack` mapping + duration/date helpers), served by
    `/api/boyan` (proxies `api.islahbd.com/api/audios/` + `/api/categories/`,
