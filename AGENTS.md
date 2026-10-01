@@ -201,7 +201,10 @@ This file orients AI coding agents working in this repo. Read it before making c
   (with specular edge + gloss spans); body has a fixed ambient aura + blobs
   behind content. The Site Settings dropdown in the sidebar holds the Liquid
   Glass toggle + Theme + Language rows (gear header rotates 135° + chevron
-  flips on open, grid-rows expand). The Liquid Glass row switches to flat
+  flips on open). Its panel is a floating `fixed` menu anchored to the gear
+  button (ShareButton pattern: flips up when space below is tight, closes on
+  scroll/resize/Escape/route change) — never inline-expand inside the scroll
+  container, which would clip or reflow it. The Liquid Glass row switches to flat
   Material 3
   (`design-store.ts`, persist key `islah-design`, `material` class on `<html>`):
   glass → solid tonal surfaces, blurs/sheen spans/ambient blobs off via the

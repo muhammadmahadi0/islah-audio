@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Home, Search, Library, Mic, Music, Zap, Radio, Droplets, Languages, Settings, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from '@/lib/channels';
@@ -51,6 +51,15 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const strings = t(lang);
   const [meta, setMeta] = useState<Record<string, ChannelMeta>>({});
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsPos, setSettingsPos] = useState<{
+    top?: number;
+    bottom?: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+    dir: 'down' | 'up';
+  } | null>(null);
+  const settingsBtnRef = useRef<HTMLButtonElement>(null);
   const [designWrap, setDesignWrap] = useState<{
     x: number;
     y: number;
@@ -59,6 +68,77 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
     key: number;
   } | null>(null);
 
+  // Floating Site Settings menu: anchored to the gear button, rendered
+  // `fixed` (never clipped by the sidebar scroll). Opens downward, but
+  // flips upward when there isn't enough space below the button.
+  const closeSettings = useCallback(() => {
+    setSettingsOpen(false);
+    setSettingsPos(null);
+  }, []);
+
+  const toggleSettings = useCallback(() => {
+    if (settingsOpen) {
+      closeSettings();
+      return;
+    }
+    const btn = settingsBtnRef.current;
+    if (!btn || typeof window === 'undefined') {
+      setSettingsPos(null);
+      setSettingsOpen(true);
+      return;
+    }
+    const rect = btn.getBoundingClientRect();
+    const GAP = 8;
+    const EST_H = 360;
+    const width = rect.width;
+    const left = Math.min(
+      Math.max(8, rect.left),
+      Math.max(8, window.innerWidth - width - 8)
+    );
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    if (spaceBelow < EST_H && spaceAbove > spaceBelow) {
+      setSettingsPos({
+        bottom: window.innerHeight - rect.top + GAP,
+        left,
+        width,
+        maxHeight: Math.max(220, spaceAbove - GAP - 8),
+        dir: 'up',
+      });
+    } else {
+      setSettingsPos({
+        top: rect.bottom + GAP,
+        left,
+        width,
+        maxHeight: Math.max(220, spaceBelow - GAP - 8),
+        dir: 'down',
+      });
+    }
+    setSettingsOpen(true);
+  }, [settingsOpen, closeSettings]);
+
+  // The fixed menu can't track its anchor — close it on scroll/resize or
+  // Escape, and whenever the route changes underneath it.
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const close = () => closeSettings();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [settingsOpen, closeSettings]);
+
+  useEffect(() => {
+    closeSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
   // Same tap-bloom wrap as the theme toggle, but liquid: a glassy blob
   // blooms from the tap point while the design flips mid-expansion.
   // Turning OFF plays the SAME bloom backward (starts covering, retracts
@@ -216,7 +296,7 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
 
       <hr className="border-white/10 my-3" />
 
-      {/* Site Settings dropdown — Liquid Glass + Theme + Language live here */}
+      {/* Site Settings — gear button; the panel floats (see below) */}
       <div
         className={cn(
           'rounded-2xl border transition-all overflow-hidden',
@@ -226,7 +306,8 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
         )}
       >
         <button
-          onClick={() => setSettingsOpen((v) => !v)}
+          ref={settingsBtnRef}
+          onClick={toggleSettings}
           aria-expanded={settingsOpen}
           aria-label={strings.siteSettings}
           className="w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left hover:bg-white/[0.07] transition-all"
@@ -256,14 +337,33 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
             )}
           />
         </button>
-        <div
-          className={cn(
-            'grid transition-all duration-300 ease-out',
-            settingsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-          )}
-        >
-          <div className="overflow-hidden">
-            <div className="px-1 pb-2 pt-1 space-y-0.5">
+      </div>
+
+      {/* Floating settings panel — fixed so sidebar scrolling never clips it.
+          Opens below the gear button, flips above it when space is tight. */}
+      {settingsOpen && (
+        <>
+          <button
+            aria-label={strings.plmClose}
+            className="fixed inset-0 z-[65] cursor-default bg-transparent"
+            onClick={closeSettings}
+          />
+          <div
+            className="fixed z-[66] liquid-glass rounded-2xl p-2 overflow-y-auto animate-fade-up"
+            style={
+              settingsPos
+                ? {
+                    top: settingsPos.top,
+                    bottom: settingsPos.bottom,
+                    left: settingsPos.left,
+                    width: settingsPos.width,
+                    maxHeight: settingsPos.maxHeight,
+                  }
+                : undefined
+            }
+          >
+            <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+            <div className="space-y-0.5">
               {/* Liquid Glass toggle */}
               <button
                 onClick={handleDesignToggle}
@@ -341,8 +441,8 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
       <hr className="border-white/10 my-3" />
 

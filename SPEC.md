@@ -124,8 +124,11 @@
   avatars; tapping switches Home, Search, and Library; choice persists.
 - **Site Settings dropdown**: collapsible sidebar section (desktop + drawer)
   headed by an animated gear button (gear rotates 135° + chevron flips on
-  open, grid-rows expand animation). Holds the Liquid Glass toggle, the
-  Theme switch, and the Language switch:
+  open). The panel is a floating `fixed` liquid-glass menu anchored to the
+  gear button (never clipped by sidebar scrolling): it opens below the
+  button and flips above it when space is tight, with a max-height fit and
+  close on backdrop tap / Escape / scroll / resize / route change. Holds
+  the Liquid Glass toggle, the Theme switch, and the Language switch:
   - Liquid Glass — on = iPhone-style frosted design, off = flat Material 3
     solid surfaces (mobile bottom nav keeps a slight translucent blur,
     without the liquid-glass gradient/sheen). Defaults ON for iOS +
