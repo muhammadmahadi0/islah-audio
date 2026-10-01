@@ -154,10 +154,10 @@ export default function Sidebar({ mobile = false }: { mobile?: boolean }) {
           </span>
           <span className="min-w-0">
             <span className="block text-white font-extrabold tracking-tight leading-tight">
-              Islah Audio
+              IslahBD-web
             </span>
             <span className="block text-[10px] uppercase tracking-[0.2em] text-gold/90">
-              Bayan • Waz • Nasheed
+              ALWAYS REMEMBER ALLAH
             </span>
           </span>
         </a>
