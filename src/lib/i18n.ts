@@ -273,7 +273,7 @@ const dict = {
     familyCareer: 'কর্ম জীবন',
     familyPresent: 'বর্তমান অবস্থান ও খেদমত',
     familyMissionTitle: 'আমাদের সম্মানিত শায়খের মিশন',
-    familyMissionSub: 'ঐশী প্রেম ও আত্মশুদ্ধির মহান মিশন',
+    familyMissionSub: 'আল্লাহর মহব্বত, আত্মশুদ্ধি ও মানুষ গড়ার এক মহান। মিশন।',
     familyApplications: 'আবেদনসমূহ',
     familyBayahTitle: 'বাইআতের আবেদন',
     familyBayahSub: 'আধ্যাত্মিক বাইআত ও দিকনির্দেশনার জন্য আবেদন করুন',
