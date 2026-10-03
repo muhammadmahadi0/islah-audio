@@ -160,6 +160,7 @@ src/
 │   ├── shorts.astro          # Shorts shell (ShortsView island)
 │   ├── more.astro            # More hub (MoreView island: all sections + Islamic buttons)
 │   ├── family.astro          # Family page (FamilyView island: welcome/mission/connect/socials)
+│   ├── mission.astro         # Mission page (MissionView island: Shaykh's mission text)
 │   ├── amal.astro            # Amal placeholder (FeatureComingView)
 │   ├── dua.astro             # Dua placeholder (FeatureComingView)
 │   ├── calendar.astro        # Calendar placeholder (FeatureComingView)
@@ -167,7 +168,7 @@ src/
 │   ├── durood.astro          # Durood placeholder (FeatureComingView)
 │   └── api/                  # channel (+ more), playlists, playlist-items, live, hls, stream, boyan, hamdnaat, shorts
 ├── layouts/Layout.astro      # html shell, liquid-glass top bar, islands
-├── views/                    # React islands: Home/Channel/Search/Library/Watch/Boyan/HamdNaat/Shorts/More/Family/FeatureComing
+├── views/                    # React islands: Home/Channel/Search/Library/Watch/Boyan/HamdNaat/Shorts/More/Family/Mission/FeatureComing
 ├── components/               # player, nav, sidebar, theme toggle, playlist menu, share button
 ├── store/
 │   ├── player-store.ts     # playback state (zustand)

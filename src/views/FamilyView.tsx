@@ -129,13 +129,15 @@ export default function FamilyView() {
           </div>
         </div>
 
-        {/* ---------- Mission card ---------- */}
+        {/* ---------- Mission card → full mission page ---------- */}
         <section
-          id="family-mission"
           aria-label={s.familyMissionTitle}
           className="mt-3 md:mt-4 animate-fade-up"
         >
-          <div className="relative liquid-glass rounded-3xl p-4 md:p-5 overflow-hidden flex items-center gap-3.5">
+          <a
+            href="/mission"
+            className="relative liquid-glass rounded-3xl p-4 md:p-5 overflow-hidden flex items-center gap-3.5 transition-all hover:border-white/30 hover:scale-[1.01] active:scale-[0.99]"
+          >
             <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <span className="liquid-gold w-12 h-12 rounded-2xl flex items-center justify-center shrink-0">
               <BookOpen size={20} />
@@ -149,7 +151,7 @@ export default function FamilyView() {
               </span>
             </span>
             <ChevronRight size={20} className="text-gold shrink-0" />
-          </div>
+          </a>
         </section>
 
         {/* ---------- Applications ---------- */}

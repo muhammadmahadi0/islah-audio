@@ -134,7 +134,12 @@ This file orients AI coding agents working in this repo. Read it before making c
    placeholders for now (shared `FeatureComingView`: icon + title +
    Coming-soon badge, back-to-More link) — buttons + routes exist, real
    functions come later. Sidebar has a More item too; BottomNav highlights
-   More on any hub page (`MORE_PATHS`).
+   More on any hub page (`MORE_PATHS`, incl. `/mission`).
+   **Mission (`/mission`, from the Family mission card).** `MissionView`
+   renders the owner-provided mission text verbatim (`lib/mission.ts` —
+   8 sections + gold final statement + dua + ameen): one liquid-glass
+   card per section with colored circular icons, tinted left-border quote
+   boxes (gold/blue/pink/teal), gold-dot bullets; back-to-Family top/bottom.
 6. **Boyan (IslahBD MP3s).** Catalog in `lib/boyan.ts` (types + upstream
    fetch + `toBoyanTrack` mapping + duration/date helpers), served by
    `/api/boyan` (proxies `api.islahbd.com/api/audios/` + `/api/categories/`,

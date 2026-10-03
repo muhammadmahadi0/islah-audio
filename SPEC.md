@@ -282,12 +282,25 @@
   welcome card — full Hazrat biography from the "হযরতের পরিচিতি" modal on
   `islahbd.github.io/Islah`: intro, family background, education, career,
   current position & services; `lib/family-profile.ts`, headings
-  translated, body kept verbatim Bengali like API data), mission card (book icon, title, subtitle,
-  arrow), Applications grid (Bay'ah — blue icon, Khanqah stay — purple
+  translated, body kept verbatim Bengali like API data), mission card
+  (book icon, title, subtitle, arrow → `/mission`), Applications grid (Bay'ah — blue icon, Khanqah stay — purple
   icon, each with right arrow), Connect grid (IslahBD + Markazul website
   cards) and the social row (YouTube / Facebook / Telegram / WhatsApp with
   labels) — all in liquid-glass cards with gold tokens, translated via
   `family*` i18n keys
+
+#### Mission (`/mission` — Shaykh's mission, from Family card)
+
+- Header card (lightbulb badge, "লক্ষ্য ও উদ্দেশ্য", main title, gold
+  subtitle), then one liquid-glass card per section with colored circular
+  icons: Introduction (gold quote + 3 bullets), Lineage (blue quote),
+  Main goal (bullets + boxed "মানুষ যেন—" list), No-group (path text),
+  Sohbat purpose (8 want-bullets), Tasawwuf essence (pink 4-sentence
+  quote + 6 "তাসাউফ হলো" bullets), Dream (teal quote), Closing (5
+  bullets) — then the gold final mission statement, echo line, full dua,
+  and "আমীন ইয়া রব্বাল আলামীন". Body is verbatim Bengali content data
+  (`lib/mission.ts`); chrome translates. Back-to-Family links top/bottom;
+  More tab stays highlighted (`MORE_PATHS`)
 
 #### More (`/more` — every section + Islamic buttons)
 

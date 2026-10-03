@@ -7,7 +7,7 @@ import { usePlayerStore, type Track } from '@/store/player-store';
 import { LIVE_POLL_MS, type LiveStatus } from '@/lib/live';
 
 // Pages that belong to the More hub — the More tab stays highlighted there.
-const MORE_PATHS = ['/more', '/search', '/library', '/hamdnaat', '/shorts', '/amal', '/dua', '/calendar', '/wazifa', '/durood', '/family'];
+const MORE_PATHS = ['/more', '/mission', '/search', '/library', '/hamdnaat', '/shorts', '/amal', '/dua', '/calendar', '/wazifa', '/durood', '/family'];
 
 function usePath() {
   const [path, setPath] = useState('/');
