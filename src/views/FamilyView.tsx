@@ -22,9 +22,9 @@ import { FAMILY_PROFILE } from '@/lib/family-profile';
 
 const SOCIALS = [
   { icon: Youtube, label: 'YouTube', href: 'https://www.youtube.com/@islahbd', className: 'text-red-500' },
-  { icon: Facebook, label: 'Facebook', href: 'https://www.facebook.com/islahbd', className: 'text-blue-500' },
-  { icon: Send, label: 'Telegram', href: 'https://t.me/islahbd', className: 'text-sky-500' },
-  { icon: MessageCircle, label: 'WhatsApp', href: 'https://www.whatsapp.com/', className: 'text-green-500' },
+  { icon: Facebook, label: 'Facebook', href: 'https://www.facebook.com/islahiboyanBD', className: 'text-blue-500' },
+  { icon: Send, label: 'Telegram', href: 'https://t.me/eslahiboyanbd', className: 'text-sky-500' },
+  { icon: MessageCircle, label: 'WhatsApp', href: 'https://chat.whatsapp.com/LsSpftP2Jo8Gw25MyqiHyh', className: 'text-green-500' },
 ] as const;
 
 /**
