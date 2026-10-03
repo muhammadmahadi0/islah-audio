@@ -1,8 +1,7 @@
 /**
- * BETA branch only — small floating badge marking beta builds.
- * Tapping it opens the owner's WhatsApp. Do not merge to master.
- * Sits below the sticky header (never overlapping the Open-IslahBD
- * button, whose taps it used to steal at the viewport corner).
+ * BETA branch only — small badge pinned flush to the viewport top-right
+ * corner (zero margin, zero padding). Tapping it opens the owner's
+ * WhatsApp (+8801571174175). Do not merge to master.
  */
 export default function BetaBadge() {
   return (
@@ -11,7 +10,7 @@ export default function BetaBadge() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contact on WhatsApp (beta)"
-      className="fixed right-2 top-[4.5rem] z-40 flex items-center gap-1.5 rounded-full liquid-glass px-2.5 py-1"
+      className="fixed right-0 top-0 z-50 m-0 flex items-center gap-1 rounded-bl-xl p-0 liquid-glass"
     >
       <span className="relative flex h-1.5 w-1.5">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />

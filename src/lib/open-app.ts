@@ -6,10 +6,12 @@
  * just launches the app.
  *
  * Why this shape (bare scheme/intent assignments strand users):
- * - Chrome Android honours `intent://` + `S.browser_fallback_url`, but
- *   Firefox / Samsung-older / in-app WebViews ignore the extras and swallow
- *   the failed intent — so non-Chrome Android gets the scheme via a hidden
- *   iframe PLUS a guarded Play Store timer instead.
+ * - ALL Android browsers get the full `intent://` URL via top-level
+ *   navigation (Chrome honours `S.browser_fallback_url` natively; Firefox
+ *   / WebViews ignore the extras but still resolve the installed app and
+ *   background the page). A hidden-iframe scheme load was tried before —
+ *   it doesn't background the page cleanly, so the store timer fired even
+ *   after the app opened (app + Play Store together).
  * - The intent MUST carry `category=android.intent.category.BROWSABLE` —
  *   without it Chrome can't resolve the installed app (deep-link filters
  *   require it) and drops straight to the Play Store fallback.
@@ -41,14 +43,6 @@ function isIOS(ua: string): boolean {
     /iPad|iPhone|iPod/i.test(ua) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
   );
-}
-
-/** Browsers with native `intent://` + `S.browser_fallback_url` support. */
-function supportsIntent(ua: string): boolean {
-  // Chrome / Edge / Opera / Samsung Internet honour the fallback extras.
-  // Firefox Android and in-app WebViews do not — they need the timer path.
-  if (/Firefox|FxiOS|Focus/i.test(ua)) return false;
-  return /Chrome|CriOS|Edg|OPR|Opera|SamsungBrowser/i.test(ua);
 }
 
 function androidIntentUrl(): string {
@@ -88,7 +82,9 @@ interface Guard {
   fired: () => boolean;
 }
 
-/** Runs `fallback` after `ms` unless the page hides/blurs first (app opened). */
+/** Runs `fallback` after `ms` unless the page hides/blurs first (app opened).
+ * Also skips when the page lost focus (app chooser showing) — without this
+ * the store opened behind the app on non-Chrome browsers. */
 function guardedFallback(ms: number, fallback: () => void): Guard {
   let done = false;
   const cancel = () => {
@@ -107,11 +103,16 @@ function guardedFallback(ms: number, fallback: () => void): Guard {
   window.addEventListener('pagehide', onHide);
   window.addEventListener('blur', onHide);
   const timer = window.setTimeout(() => {
-    if (!done && !document.hidden) {
-      done = true;
-      fallback();
+    try {
+      const unfocused =
+        typeof document.hasFocus === 'function' && !document.hasFocus();
+      if (!done && !document.hidden && !unfocused) {
+        done = true;
+        fallback();
+      }
+    } finally {
+      cancel();
     }
-    cancel();
   }, ms);
   return { cancel, fired: () => done };
 }
@@ -129,12 +130,11 @@ export function openIslahBDApp(): void {
       }
     };
     guardedFallback(ANDROID_TIMER_MS, goStore);
+    // Every Android browser gets the intent via top-level navigation:
+    // installed app opens (page backgrounds → timer cancels), missing app
+    // falls to native fallback on Chrome or the guarded timer elsewhere.
     try {
-      if (supportsIntent(ua)) {
-        window.location.href = androidIntentUrl();
-      } else {
-        fireSchemeViaIframe(SCHEME);
-      }
+      window.location.href = androidIntentUrl();
     } catch {
       goStore();
     }

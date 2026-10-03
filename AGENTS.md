@@ -226,17 +226,16 @@ This file orients AI coding agents working in this repo. Read it before making c
    URL path, never a query string.
 13. **Open-IslahBD button (`#islahbd-btn` in `Layout.astro`).** The app
    registers the `islahbd://` custom scheme (`open/<section>/<token>` paths —
-   same as the owner's DeepLinkRedirect). Android/Chrome fires a scheme
-   intent WITH a native `S.browser_fallback_url` PLUS a guarded 2.5s safety
-   timer (Firefox / WebViews / non-Chrome browsers get the scheme via a
-   hidden iframe + the same timer — intent extras are Chrome-only).
-   The intent MUST include `category=android.intent.category.BROWSABLE`
-   or Chrome can't resolve the installed app and falls to the Play Store;
+   same as the owner's DeepLinkRedirect). ALL Android browsers get the full
+   intent:// URL (BROWSABLE category + native `S.browser_fallback_url`) via
+   top-level navigation PLUS a guarded 2.5s timer — never a hidden iframe
+   (it doesn't background the page, so the timer fired even after the app
+   opened and users got app + Play Store together);
    iOS fires the scheme through a hidden iframe ONLY (never a bare location
    assignment — Safari navigates to an error state on failure and stalls
-   the fallback, which is exactly why Safari/other browsers never reached
-   the store) with a guarded 1.8s App Store fallback. Every timer is
-   cancelled on hide/blur/pagehide, so installed users never race to the
+   the fallback) with a guarded 1.8s App Store fallback. Every timer is
+   cancelled on hide/blur/pagehide AND skipped when the page lost focus
+   (app chooser showing), so installed users never race to the
    store. Never go back to universal-link navigation for this button.
    The same flow lives in `lib/open-app.ts` for React callers (Watch page);
    keep both in sync.
