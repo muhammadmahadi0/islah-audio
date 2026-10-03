@@ -1,20 +1,19 @@
-import { Sparkles, BookOpen, CalendarDays, ScrollText, MoonStar, ArrowLeft } from 'lucide-react';
+import { Sparkles, BookOpen, CalendarDays, ScrollText, ArrowLeft } from 'lucide-react';
 import { useLanguageStore } from '@/store/language-store';
 import { t, type I18nKey } from '@/lib/i18n';
 
-export type ComingIcon = 'amal' | 'dua' | 'calendar' | 'wazifa' | 'durood';
+export type ComingIcon = 'amal' | 'dua' | 'calendar' | 'wazifa-durood';
 
 const ICONS = {
   amal: Sparkles,
   dua: BookOpen,
   calendar: CalendarDays,
-  wazifa: ScrollText,
-  durood: MoonStar,
+  'wazifa-durood': ScrollText,
 } as const;
 
 /**
  * Placeholder for the new Islamic sections (Amal / Dua / Calendar /
- * Wazifa / Durood). Buttons exist and routes work — real functions
+ * Wazifa & Durood). Buttons exist and routes work — real functions
  * come later, per the owner's plan.
  */
 export default function FeatureComingView({

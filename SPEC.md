@@ -269,7 +269,7 @@
 - **More** links to the `/more` hub page (no dropdown): every section in
   one place — the home-page buttons (Live, Search, Library, Boyan,
   Hamd-Naat, Shorts) plus the new Islamic buttons (Amal, Dua, Calendar,
-  Wazifa, Durood, Family), each opening its own page. Stays highlighted on any of
+  Wazifa & Durood, Family), each opening its own page. Stays highlighted on any of
   those pages. Search lives here on mobile (plus the
   sidebar + desktop top bar)
 
@@ -308,9 +308,9 @@
 
 - Two card grids reusing the home hub style: home sections first (Live
   action + Search / Library / Boyan / Hamd-Naat / Shorts links), then the
-  Islamic grid (Family / Amal / Dua / Calendar / Wazifa / Durood links)
-- The five Islamic buttons open placeholder pages for now (`/amal`,
-  `/dua`, `/calendar`, `/wazifa`, `/durood` — shared
+  Islamic grid (Family / Amal / Dua / Calendar / Wazifa & Durood links)
+- The four Islamic placeholder buttons open placeholder pages for now (`/amal`,
+  `/dua`, `/calendar`, `/wazifa-durood` — shared
   `FeatureComingView` with icon + title + Coming-soon badge); real
   functions come later
 

@@ -122,8 +122,8 @@ This file orients AI coding agents working in this repo. Read it before making c
    keep both lists' i18n keys (`nav*` in `lib/i18n.ts`) in sync.
 7a. **More hub (`/more`).** `MoreView` repeats the home-page buttons (Live
    action + Search/Library/Boyan/Hamd-Naat/Shorts links) plus the new
-   Islamic buttons (Family / Amal / Dua / Calendar / Wazifa / Durood →
-   `/family`, `/amal`, `/dua`, `/calendar`, `/wazifa`, `/durood`). Family
+   Islamic buttons (Family / Amal / Dua / Calendar / Wazifa & Durood →
+   `/family`, `/amal`, `/dua`, `/calendar`, `/wazifa-durood`). Family
    is the full page (`FamilyView`: translated welcome/mission/applications/
    connect/social via `family*` keys, `.family-title` green in light; Learn
    More expands the full Hazrat biography inline from

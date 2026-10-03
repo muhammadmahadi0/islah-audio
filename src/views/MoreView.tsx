@@ -11,7 +11,6 @@ import {
   BookOpen,
   CalendarDays,
   ScrollText,
-  MoonStar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguageStore } from '@/store/language-store';
@@ -184,8 +183,7 @@ export default function MoreView() {
               { icon: Sparkles, titleKey: 'navAmal', subKey: 'featAmalSub', href: '/amal' },
               { icon: BookOpen, titleKey: 'navDua', subKey: 'featDuaSub', href: '/dua' },
               { icon: CalendarDays, titleKey: 'navCalendar', subKey: 'featCalendarSub', href: '/calendar' },
-              { icon: ScrollText, titleKey: 'navWazifa', subKey: 'featWazifaSub', href: '/wazifa' },
-              { icon: MoonStar, titleKey: 'navDurood', subKey: 'featDuroodSub', href: '/durood' },
+              { icon: ScrollText, titleKey: 'navWazifaDurood', subKey: 'featWazifaDuroodSub', href: '/wazifa-durood' },
             ] as const).map((f) => {
               const Icon = f.icon;
               return (
