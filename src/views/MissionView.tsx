@@ -1,7 +1,6 @@
 import {
   ArrowLeft,
   BookOpen,
-  Check,
   HeartHandshake,
   Lightbulb,
   MoonStar,
@@ -14,13 +13,21 @@ import { useLanguageStore } from '@/store/language-store';
 import { t } from '@/lib/i18n';
 import {
   MISSION_AMEEN,
+  MISSION_AMEEN_EN,
   MISSION_DUA,
+  MISSION_DUA_EN,
   MISSION_FINAL_ECHO,
+  MISSION_FINAL_ECHO_EN,
   MISSION_FINAL_STATEMENT,
+  MISSION_FINAL_STATEMENT_EN,
   MISSION_HEADER_TITLE,
+  MISSION_HEADER_TITLE_EN,
   MISSION_SECTIONS,
+  MISSION_SECTIONS_EN,
   MISSION_SUBTITLE,
+  MISSION_SUBTITLE_EN,
   MISSION_TITLE,
+  MISSION_TITLE_EN,
   type MissionSection,
 } from '@/lib/mission';
 
@@ -36,21 +43,21 @@ const SECTION_ICONS = {
 } as const;
 
 const SECTION_TINT: Record<MissionSection['icon'], string> = {
-  intro: 'bg-amber-500/15 text-amber-400 ring-amber-400/30',
-  lineage: 'bg-sky-500/15 text-sky-400 ring-sky-400/30',
-  goal: 'bg-emerald-500/15 text-emerald-400 ring-emerald-400/30',
-  path: 'bg-violet-500/15 text-violet-400 ring-violet-400/30',
-  sohbat: 'bg-rose-500/15 text-rose-400 ring-rose-400/30',
-  tasawwuf: 'bg-pink-500/15 text-pink-400 ring-pink-400/30',
-  dream: 'bg-teal-500/15 text-teal-400 ring-teal-400/30',
+  intro: 'bg-amber-500/15 text-amber-400 ring-amber-400/30 [html.light_&]:text-amber-700 [html.light_&]:ring-amber-600/40',
+  lineage: 'bg-sky-500/15 text-sky-400 ring-sky-400/30 [html.light_&]:text-sky-700 [html.light_&]:ring-sky-600/40',
+  goal: 'bg-emerald-500/15 text-emerald-400 ring-emerald-400/30 [html.light_&]:text-emerald-700 [html.light_&]:ring-emerald-600/40',
+  path: 'bg-violet-500/15 text-violet-400 ring-violet-400/30 [html.light_&]:text-violet-700 [html.light_&]:ring-violet-600/40',
+  sohbat: 'bg-rose-500/15 text-rose-400 ring-rose-400/30 [html.light_&]:text-rose-700 [html.light_&]:ring-rose-600/40',
+  tasawwuf: 'bg-pink-500/15 text-pink-400 ring-pink-400/30 [html.light_&]:text-pink-700 [html.light_&]:ring-pink-600/40',
+  dream: 'bg-teal-500/15 text-teal-400 ring-teal-400/30 [html.light_&]:text-teal-700 [html.light_&]:ring-teal-600/40',
   end: 'bg-brand/15 text-brand-light ring-brand/30',
 };
 
 const QUOTE_STYLES = {
-  gold: 'border-amber-400 bg-amber-400/10 text-amber-100',
-  blue: 'border-sky-400 bg-sky-400/10 text-sky-100',
-  pink: 'border-pink-400 bg-pink-400/10 text-pink-100',
-  teal: 'border-teal-400 bg-teal-400/10 text-teal-100',
+  gold: 'border-amber-400 bg-amber-400/10 text-amber-100 [html.light_&]:border-amber-600 [html.light_&]:bg-amber-500/15 [html.light_&]:text-amber-900',
+  blue: 'border-sky-400 bg-sky-400/10 text-sky-100 [html.light_&]:border-sky-600 [html.light_&]:bg-sky-500/15 [html.light_&]:text-sky-900',
+  pink: 'border-pink-400 bg-pink-400/10 text-pink-100 [html.light_&]:border-pink-600 [html.light_&]:bg-pink-500/15 [html.light_&]:text-pink-900',
+  teal: 'border-teal-400 bg-teal-400/10 text-teal-100 [html.light_&]:border-teal-600 [html.light_&]:bg-teal-500/15 [html.light_&]:text-teal-900',
 } as const;
 
 function Quote({ color, text }: { color: keyof typeof QUOTE_STYLES; text: string }) {
@@ -84,11 +91,22 @@ function Bullets({ items }: { items: string[] }) {
  * mission card on the Family page. One liquid-glass card per section,
  * colored circular section icons, tinted left-border quote boxes,
  * gold-bulleted lists, and the gold final statement + dua.
- * Body text is Bengali content data (verbatim); chrome translates.
+ * Body renders Bengali in Bangla mode and the English translation
+ * otherwise (both kept verbatim in `lib/mission.ts`); chrome translates.
  */
 export default function MissionView() {
   const { lang } = useLanguageStore();
   const s = t(lang);
+  const isBn = lang === 'bn';
+
+  const headerTitle = isBn ? MISSION_HEADER_TITLE : MISSION_HEADER_TITLE_EN;
+  const title = isBn ? MISSION_TITLE : MISSION_TITLE_EN;
+  const subtitle = isBn ? MISSION_SUBTITLE : MISSION_SUBTITLE_EN;
+  const sections = isBn ? MISSION_SECTIONS : MISSION_SECTIONS_EN;
+  const finalStatement = isBn ? MISSION_FINAL_STATEMENT : MISSION_FINAL_STATEMENT_EN;
+  const finalEcho = isBn ? MISSION_FINAL_ECHO : MISSION_FINAL_ECHO_EN;
+  const dua = isBn ? MISSION_DUA : MISSION_DUA_EN;
+  const ameen = isBn ? MISSION_AMEEN : MISSION_AMEEN_EN;
 
   return (
     <main className="pb-44 md:pb-36">
@@ -108,19 +126,19 @@ export default function MissionView() {
             <Lightbulb size={22} />
           </span>
           <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
-            {MISSION_HEADER_TITLE}
+            {headerTitle}
           </p>
           <h1 className="mt-2 font-display text-xl md:text-2xl font-extrabold tracking-tight text-white leading-snug">
-            {MISSION_TITLE}
+            {title}
           </h1>
           <p className="mt-2 text-[13px] md:text-sm font-semibold text-gold">
-            {MISSION_SUBTITLE}
+            {subtitle}
           </p>
         </section>
 
         {/* ---------- Sections ---------- */}
         <div className="mt-3 md:mt-4 space-y-2.5 md:space-y-3">
-          {MISSION_SECTIONS.map((section) => {
+          {sections.map((section) => {
             const Icon = SECTION_ICONS[section.icon];
             return (
               <section
@@ -175,21 +193,17 @@ export default function MissionView() {
             <span aria-hidden="true" className="pointer-events-none absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <div className="rounded-2xl liquid-gold px-4 py-4 text-center">
               <p className="text-sm md:text-base font-bold leading-relaxed">
-                {MISSION_FINAL_STATEMENT}
+                {finalStatement}
               </p>
             </div>
             <p className="mt-3 text-[13px] md:text-sm leading-relaxed text-white font-semibold text-center">
-              {MISSION_FINAL_ECHO}
+              {finalEcho}
             </p>
             <p className="mt-3 text-[13px] md:text-sm leading-relaxed text-mist">
-              {MISSION_DUA}
+              {dua}
             </p>
             <p className="mt-4 text-center font-display text-lg md:text-xl font-extrabold text-gold">
-              {MISSION_AMEEN}
-            </p>
-            <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-mist-dark">
-              <Check size={13} className="text-brand-light" />
-              {s.endReached}
+              {ameen}
             </p>
           </section>
         </div>

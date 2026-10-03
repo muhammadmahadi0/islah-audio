@@ -139,7 +139,9 @@ This file orients AI coding agents working in this repo. Read it before making c
    renders the owner-provided mission text verbatim (`lib/mission.ts` —
    8 sections + gold final statement + dua + ameen): one liquid-glass
    card per section with colored circular icons, tinted left-border quote
-   boxes (gold/blue/pink/teal), gold-dot bullets; back-to-Family top/bottom.
+   boxes (gold/blue/pink/teal — all with light-mode-readable tints),
+   gold-dot bullets; body is BN/EN content data in `lib/mission.ts`,
+   back-to-Family top/bottom, no end-of-list line.
 6. **Boyan (IslahBD MP3s).** Catalog in `lib/boyan.ts` (types + upstream
    fetch + `toBoyanTrack` mapping + duration/date helpers), served by
    `/api/boyan` (proxies `api.islahbd.com/api/audios/` + `/api/categories/`,

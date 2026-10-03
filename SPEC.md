@@ -298,8 +298,10 @@
   Sohbat purpose (8 want-bullets), Tasawwuf essence (pink 4-sentence
   quote + 6 "তাসাউফ হলো" bullets), Dream (teal quote), Closing (5
   bullets) — then the gold final mission statement, echo line, full dua,
-  and "আমীন ইয়া রব্বাল আলামীন". Body is verbatim Bengali content data
-  (`lib/mission.ts`); chrome translates. Back-to-Family links top/bottom;
+  and "আমীন ইয়া রব্বাল আলামীন". Body renders Bengali in Bangla mode and
+  the English translation otherwise (both verbatim in `lib/mission.ts`);
+  section icons + quotes use light-readable tints in light mode; chrome
+  translates. Back-to-Family links top/bottom; no end-of-list line;
   More tab stays highlighted (`MORE_PATHS`)
 
 #### More (`/more` — every section + Islamic buttons)

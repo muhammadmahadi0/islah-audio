@@ -1,8 +1,9 @@
 /**
  * Mission page content — "Our Respected Shaykh's Mission".
  * Source: owner-provided Bengali text (from the islahbd.github.io/Islah
- * mission design). Body is content data — kept verbatim Bengali in both
- * languages, like API titles. Only chrome (back link, header) translates.
+ * mission design) plus its English translation. Both kept verbatim in
+ * both languages, like API titles. Only chrome (back link, header)
+ * translates via i18n.
  */
 
 export type QuoteColor = 'gold' | 'blue' | 'pink' | 'teal';
@@ -25,8 +26,11 @@ export interface MissionSection {
 }
 
 export const MISSION_HEADER_TITLE = 'লক্ষ্য ও উদ্দেশ্য';
+export const MISSION_HEADER_TITLE_EN = 'Goal & Objective';
 export const MISSION_TITLE = 'আমাদের শ্রদ্ধেয় শায়খের লক্ষ্য ও উদ্দেশ্য';
-export const MISSION_SUBTITLE = 'আল্লাহর মহব্বত, আন্তরিকতা ও মানুষ গড়ার এক মহান মিশন';
+export const MISSION_TITLE_EN = "Our Respected Shaykh's Goal & Objective";
+export const MISSION_SUBTITLE = 'আল্লাহর মহব্বত, আত্মশুদ্ধি ও মানুষ গড়ার এক মহান। মিশন।';
+export const MISSION_SUBTITLE_EN = "A great mission of Allah's love, self-purification and building people.";
 
 export const MISSION_SECTIONS: MissionSection[] = [
   {
@@ -180,9 +184,173 @@ export const MISSION_SECTIONS: MissionSection[] = [
 export const MISSION_FINAL_STATEMENT =
   '“মানুষকে আল্লাহর মহব্বতের পথে নিয়ে যাওয়া, শরীয়ত ও সুন্নতের ওপর অটল করা এবং এমন মানুষ হিসেবে গড়ে তোলা—যার দ্বারা আল্লাহর কোনো হক নষ্ট হয় না এবং কোনো বান্দা কষ্ট পায় না।”';
 
+export const MISSION_FINAL_STATEMENT_EN =
+  '“To bring people onto the path of Allah\u2019s love, to keep them firm upon Shariah and Sunnah, and to build them into such people — by whom no right of Allah is violated and no servant of Allah is hurt.”';
+
 export const MISSION_FINAL_ECHO = 'এটাই আমাদের শায়খের মিশন। এটাই তাঁর লক্ষ্য। এটাই তাঁর ইসলাহি খেদমতের মূল কথা।';
+
+export const MISSION_FINAL_ECHO_EN =
+  'This is our Shaykh\u2019s mission. This is his goal. This is the essence of his Islahi service.';
 
 export const MISSION_DUA =
   'আল্লাহ তাআলা আমাদের শ্রদ্ধেয় শায়খ হযরত মাওলানা শাহ তৈয়্যেব আশরাফ সাহেব দামাত বারাকাতুহুমকে সুস্থতা, দীর্ঘ হায়াত ও অফুরন্ত বরকত দান করুন; তাঁর ইলম, আমল, ইসলাহ ও খেদমতকে কবুল করুন এবং তাঁর সোহবত ও তারবিয়াতের মাধ্যমে আমাদের সবাইকে নিজের মহব্বত, রাসূলুল্লাহ ﷺ-এর সুন্নত এবং শরীয়তের ওপর অটল-অবিচল থাকার তাওফিক দান করুন।';
 
+export const MISSION_DUA_EN =
+  'May Allah Ta\u2019ala grant our respected Shaykh, Hazrat Maulana Shah Tayyeb Ashraf Sahib (Damat Barakatuhum), health, long life and abundant blessings; accept his knowledge, deeds, Islah and service; and through his companionship and guidance grant all of us the ability to remain firm upon His love, the Sunnah of Rasulullah ﷺ, and the Shariah.';
+
+/**
+ * English translation of the mission page. Same structure and section ids
+ * as MISSION_SECTIONS so the view renders identically in both languages.
+ */
+export const MISSION_SECTIONS_EN: MissionSection[] = [
+  {
+    id: 'intro',
+    icon: 'intro',
+    title: 'Introduction',
+    paragraphs: [
+      'Hakimul Ummat, Mujaddidul Millat, Arif Billah Hazrat Maulana Shah Ashraf Ali Thanvi (Rahmatullahi Alayhi) used to say —',
+      'There are two types of Auliya in this world. One type are those who are themselves close to Allah (Allah-walas). The other type are those who, besides being Allah-walas themselves, are makers of Allah-walas.',
+      'This second category of Auliya are those in whose company people\u2019s lives change, whose company awakens hearts, and under whose gaze people gradually move toward becoming beloved servants of Allah.',
+      'Hazrat Thanvi (Rahmatullahi Alayhi) himself was such a great Murshid — whose life was a vast mission of building people.',
+    ],
+    quote: {
+      color: 'gold',
+      text: '\u201CIf you want to become a Pir, Buzurg, Sufi, saint or dervish, go elsewhere. But if you want to become a human being, come to a Wali of Allah.\u201D',
+    },
+    bullets: [
+      'Not to become a Pir — but to become a human being.',
+      'Not to become great — but to become a servant of Allah.',
+      'Not to gain fame — but to rectify oneself.',
+    ],
+  },
+  {
+    id: 'lineage',
+    icon: 'lineage',
+    title: 'A Great Murshid of That Lineage of Making Allah-walas',
+    paragraphs: [
+      'A shining star of this great lineage was Arif Billah Hazrat Maulana Shah Hakim Muhammad Akhtar Sahib (Rahmatullahi Alayhi).',
+      'He himself was immersed in Allah\u2019s love, and one of his heart\u2019s greatest wishes was — that those connected to him become Allah-walas in his own lifetime.',
+    ],
+    quote: {
+      color: 'blue',
+      text: '\u201CO Buzurg! Do not be such that you become Allah-walas after me; rather become Allah-walas in my lifetime, so that seeing you my eyes and heart find comfort.\u201D',
+    },
+    quoteAfter: [
+      'Here lies the mark of a true Murshid. He does not want to keep people attracted to himself; rather he wants to deliver them to Allah.',
+      'He does not want his company to be the final destination of people\u2019s lives; rather through that relationship people should build a deep connection with Allah.',
+    ],
+  },
+  {
+    id: 'goal',
+    icon: 'goal',
+    title: 'The Core Goal of Our Respected Shaykh',
+    paragraphs: [
+      'To bring people onto the path of Allah\u2019s love.',
+      'Hazrat Wala (Damat Barakatuhum) has had the fortune of the discipleship, companionship and nurturing of Hakimul Ummat, Arif Billah Hazrat Maulana Shah Abdul Mateen Sahib (Damat Barakatuhum) since childhood.',
+      'From long years in the company of an Allah-wala Murshid, he gained not only theoretical knowledge, but deep knowledge, real experience and purity through Islah, Tarbiyah, Suluk and Tasawwuf.',
+      'The wish of his heart is extremely simple, yet extremely great —',
+    ],
+    bullets: [
+      'Whoever comes into his presence,',
+      'Whoever comes into his company,',
+      'Whoever listens to his bayan,',
+      'Whoever spends some time with him,',
+      'Whoever keeps a connection with him —',
+    ],
+    bulletsAfter: 'May love for Allah, Lord of the worlds, be created in their heart.',
+    bullets2: [
+      'Learn to know Allah,',
+      'Learn to love Allah,',
+      'Learn to love the Sunnah of Rasulullah ﷺ,',
+      'Learn to act upon the Shariah,',
+      'Learn to rectify their own nafs,',
+      'And learn to build themselves into beautiful human beings and complete believers.',
+    ],
+  },
+  {
+    id: 'path',
+    icon: 'path',
+    title: 'No Group — Only the Path of Allah Is the Goal',
+    paragraphs: [
+      'The key question is — who is moving toward Allah?',
+      'In the mission of Hazrat Wala (Damat Barakatuhum) there is no groupism, no factionalism, no certificates, no sectarian politics. His goal is not to confine people within any particular group; rather to connect people with Allah.',
+      'We have clearly seen — even if a person keeps ties elsewhere, yet comes into the company of an Allah-wala and strives for his own rectification, Hazrat Wala (Damat Barakatuhum) says of him — \u201CHe is walking on the path of Allah.\u201D',
+      'If a person\u2019s heart holds love for Allah, devotion to the Shariah, love for the Sunnah, and striving to rectify their nafs — then under which identity they move is not the point.',
+    ],
+  },
+  {
+    id: 'sohbat',
+    icon: 'sohbat',
+    title: 'The Purpose of Suhbah — Making People Human',
+    paragraphs: [
+      'The purpose of the Suhbah, bayans and Islahi gatherings of Hazrat Wala (Damat Barakatuhum) is not to create any special identity; rather to rectify people\u2019s hearts and character. He wants that —',
+    ],
+    bullets: [
+      'People love Allah',
+      'People love Rasulullah ﷺ',
+      'People stay firm and unwavering upon the Shariah',
+      'People follow the Sunnah',
+      'People give priority to the Hereafter',
+      'Learn the foundational teachings of truth and Deen from their elders',
+      'Rectify their own nafs',
+      'And behave with people in such a way that no servant of Allah is hurt by them.',
+    ],
+  },
+  {
+    id: 'tasawwuf',
+    icon: 'tasawwuf',
+    title: 'The Essence of Tasawwuf — In Four Sentences',
+    paragraphs: [
+      'Hazrat Wala (Damat Barakatuhum) presents the deep teachings of Tasawwuf in very simple words like this —',
+    ],
+    quote: {
+      color: 'pink',
+      text: '\u201CLet no servant be hurt. Let no servant\u2019s right be violated. Let Allah not be displeased. Let no right of Allah be violated.\u201D',
+    },
+    quoteAfter: [
+      'The vast teachings of Tasawwuf lie within these four sentences — on one side Haqqullah (the rights of Allah), on the other Huquq al-Ibad (the rights of servants). A person\u2019s character reaches perfection through the combination of both: not violating Allah\u2019s rights and not violating servants\u2019 rights. So Tasawwuf is not merely the name of some deeds, some wazifas, or some outward identity.',
+    ],
+    bullets: [
+      'Tasawwuf is the rectification of the heart',
+      'Tasawwuf is the beauty of character',
+      'Tasawwuf is the love of Allah',
+      'Tasawwuf is fulfilling the rights of servants',
+      'Tasawwuf is the purification of the nafs',
+      'Tasawwuf is living a life seeking Allah\u2019s nearness.',
+    ],
+  },
+  {
+    id: 'dream',
+    icon: 'dream',
+    title: 'Our Shaykh\u2019s Dream',
+    paragraphs: [],
+    quote: {
+      color: 'teal',
+      text: '\u201CTo become such a servant of Allah — with whom Allah is pleased, and by whom no servant of Allah is hurt.\u201D',
+    },
+    quoteAfter: [
+      'The dream of our respected Shaykh — that every person who comes into his Suhbah attains the love of Allah.',
+      'That every person who listens to his bayan looks back at their own life, tries to correct their mistakes, becomes careful about Salah, follows the rulings of Shariah, grows in love for the Sunnah, honors the path of the Hereafter, and learns the foundational teachings of Deen from their elders.',
+      'This is his mission. This is his goal. This is the soul of his Islahi service.',
+    ],
+  },
+  {
+    id: 'end',
+    icon: 'end',
+    title: 'Final Words',
+    paragraphs: [
+      'Looking at the lives and missions of the great Ulama and elders of Deen, one matter becomes crystal clear —',
+    ],
+    bullets: [
+      'They did not come to make people their own followers;',
+      'They came to make people servants of Allah;',
+      'They did not want people merely attached to their names; they wanted people attached to Allah;',
+      'They did not want people merely to listen to their bayans; they wanted those bayans to transform people\u2019s lives;',
+      'They did not want people merely to carry the identity of their Suhbah; they wanted the qualities of that Suhbah to show in people\u2019s hearts, deeds, character and their relationship with Allah.',
+    ],
+  },
+];
+
 export const MISSION_AMEEN = 'আমীন ইয়া রব্বাল আলামীন';
+
+export const MISSION_AMEEN_EN = 'Ameen Ya Rabbal Alameen';
