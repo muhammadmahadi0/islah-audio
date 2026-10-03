@@ -379,6 +379,7 @@ const {
         var islahAndroidIntent = function () {
           return 'intent://open#Intent;scheme=islahbd;package=' + ISLAH_PKG +
             ';action=android.intent.action.VIEW' +
+            ';category=android.intent.category.BROWSABLE' +
             ';S.browser_fallback_url=' + encodeURIComponent(ISLAH_PLAY) + ';end';
         };
         var islahFireIframe = function (scheme) {

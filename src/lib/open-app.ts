@@ -10,6 +10,9 @@
  *   Firefox / Samsung-older / in-app WebViews ignore the extras and swallow
  *   the failed intent — so non-Chrome Android gets the scheme via a hidden
  *   iframe PLUS a guarded Play Store timer instead.
+ * - The intent MUST carry `category=android.intent.category.BROWSABLE` —
+ *   without it Chrome can't resolve the installed app (deep-link filters
+ *   require it) and drops straight to the Play Store fallback.
  * - Mobile Safari (and every other iOS browser — all WebKit) navigates to
  *   an error state on a bare `islahbd://` location assignment, which can
  *   suspend the fallback timer — so iOS fires the scheme through a hidden
@@ -53,6 +56,7 @@ function androidIntentUrl(): string {
     'intent://open#Intent;scheme=islahbd;package=' +
     PACKAGE +
     ';action=android.intent.action.VIEW' +
+    ';category=android.intent.category.BROWSABLE' +
     ';S.browser_fallback_url=' +
     encodeURIComponent(PLAY_STORE) +
     ';end'

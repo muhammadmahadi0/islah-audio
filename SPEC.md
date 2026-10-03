@@ -70,8 +70,9 @@
   IslahBD app (`islahbd://open`, no content segments — mirrors the app owner's
   own DeepLinkRedirect), otherwise sends the
   user to the Play Store / App Store for their device
-  (desktop opens islahbd.com). Android/Chrome fires a scheme intent WITH a
-  native `S.browser_fallback_url` PLUS a guarded 2.5s safety timer
+   (desktop opens islahbd.com). Android/Chrome fires a scheme intent WITH a
+   native `S.browser_fallback_url` (including the BROWSABLE category, without
+   which Chrome can't resolve the installed app) PLUS a guarded 2.5s safety timer
   (Firefox / WebViews / non-Chrome Android ignore the intent extras and get
   the scheme via hidden iframe + the same timer); iOS fires the scheme
   through a hidden iframe ONLY (a bare location assignment navigates Safari

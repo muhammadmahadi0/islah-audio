@@ -229,7 +229,9 @@ This file orients AI coding agents working in this repo. Read it before making c
    same as the owner's DeepLinkRedirect). Android/Chrome fires a scheme
    intent WITH a native `S.browser_fallback_url` PLUS a guarded 2.5s safety
    timer (Firefox / WebViews / non-Chrome browsers get the scheme via a
-   hidden iframe + the same timer — intent extras are Chrome-only);
+   hidden iframe + the same timer — intent extras are Chrome-only).
+   The intent MUST include `category=android.intent.category.BROWSABLE`
+   or Chrome can't resolve the installed app and falls to the Play Store;
    iOS fires the scheme through a hidden iframe ONLY (never a bare location
    assignment — Safari navigates to an error state on failure and stalls
    the fallback, which is exactly why Safari/other browsers never reached
