@@ -61,8 +61,10 @@ playlists, search, and a mobile-first design.
 - **Open IslahBD** — gold-gradient top-bar button (always labeled "Open IslahBD")
   that opens the installed IslahBD app (`islahbd://open` custom scheme, same as
   the app owner's deep links), otherwise falls back to the
-  Play Store / App Store for the visitor's device (intent + guarded safety
-  timers on Android, hidden-iframe + guarded fallback on iOS — timers cancel
+  Play Store / App Store for the visitor's device (Android/Chrome: intent +
+  guarded safety timer; other Android browsers: hidden-iframe + timer; iOS:
+  hidden-iframe ONLY + guarded fallback — a bare scheme assignment stalls
+  Safari before the fallback runs; timers cancel
   the moment the app opens, so installed users never land on a store page)
 - **Modern UI** — golden theme with dark/light mode (sidebar Theme row,
   persisted; first visit follows the system theme), floating liquid-glass sidebar (collapsible via the hamburger —

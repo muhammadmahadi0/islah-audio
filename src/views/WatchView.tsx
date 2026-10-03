@@ -143,11 +143,13 @@ export default function WatchView({ video }: { video: WatchVideo }) {
               </div>
             )}
             <button
+              type="button"
               onClick={handlePlayPause}
+              data-no-ripple
               aria-label={isCurrent && isPlaying ? s.pause : s.play}
               className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors hover:bg-black/20"
             >
-              <span className="liquid-gold flex h-16 w-16 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95">
+              <span className="liquid-gold relative z-[1] flex h-16 w-16 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95">
                 {isLoading && isCurrent ? (
                   <Loader2 size={28} className="animate-spin" />
                 ) : isCurrent && isPlaying ? (
