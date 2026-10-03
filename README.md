@@ -44,7 +44,7 @@ playlists, search, and a mobile-first design.
 - **More hub** — `/more` holds every section in one place: the home-page
   buttons plus the new Islamic buttons — Family (full page: welcome with
   expandable Hazrat biography, mission, applications, connect, socials), Amal, Dua, Islamic calendar,
-  Wazifa & Durood (placeholder pages for now, real functions come later)
+  Wazifa & Durood (hub with three Bengali-only cards: morning/evening ma'mulat, Durood compilation, Isme-A'zam; sub-pages coming soon)
 - **Auto-update** — every section picks up newly published content by itself
   (silent polling + tab-visible refresh; no reload, scroll/filter/playback kept)
 - **Persistent playback** — the mini-player stays visible and audio keeps

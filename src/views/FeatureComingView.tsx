@@ -1,14 +1,17 @@
-import { Sparkles, BookOpen, CalendarDays, ScrollText, ArrowLeft } from 'lucide-react';
+import { Sparkles, BookOpen, CalendarDays, ScrollText, Sunrise, Star, ArrowLeft } from 'lucide-react';
 import { useLanguageStore } from '@/store/language-store';
 import { t, type I18nKey } from '@/lib/i18n';
 
-export type ComingIcon = 'amal' | 'dua' | 'calendar' | 'wazifa-durood';
+export type ComingIcon = 'amal' | 'dua' | 'calendar' | 'wazifa-durood' | 'wd-morning' | 'wd-durood' | 'wd-isme-azam';
 
 const ICONS = {
   amal: Sparkles,
   dua: BookOpen,
   calendar: CalendarDays,
   'wazifa-durood': ScrollText,
+  'wd-morning': Sunrise,
+  'wd-durood': BookOpen,
+  'wd-isme-azam': Star,
 } as const;
 
 /**

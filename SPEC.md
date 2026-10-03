@@ -309,10 +309,14 @@
 - Two card grids reusing the home hub style: home sections first (Live
   action + Search / Library / Boyan / Hamd-Naat / Shorts links), then the
   Islamic grid (Family / Amal / Dua / Calendar / Wazifa & Durood links)
-- The four Islamic placeholder buttons open placeholder pages for now (`/amal`,
-  `/dua`, `/calendar`, `/wazifa-durood` — shared
-  `FeatureComingView` with icon + title + Coming-soon badge); real
-  functions come later
+- The other Islamic buttons open placeholder pages for now (`/amal`,
+  `/dua`, `/calendar` — shared `FeatureComingView` with icon + title +
+  Coming-soon badge); real functions come later
+- **Wazifa & Durood (`/wazifa-durood`) is a hub, not a placeholder**: three
+  Bengali-only card buttons (`WazifaDuroodView` — content hardcoded, never
+  translated) — morning/evening ma'mulat, Durood compilation, Isme-A'zam —
+  each opening its own coming-soon page (`/wazifa-durood/morning`,
+  `/wazifa-durood/durood`, `/wazifa-durood/isme-azam`)
 
 #### Library (playlists only — no Queue tab)
 

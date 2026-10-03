@@ -130,10 +130,14 @@ This file orients AI coding agents working in this repo. Read it before making c
    `lib/family-profile.ts` — source is the "হযরতের পরিচিতি" modal on
    `islahbd.github.io/Islah`, body kept verbatim Bengali, headings via
    i18n).
-   The other five Islamic pages are
+   The other Islamic pages (Amal / Dua / Calendar) are
    placeholders for now (shared `FeatureComingView`: icon + title +
    Coming-soon badge, back-to-More link) — buttons + routes exist, real
-   functions come later. Sidebar has a More item too; BottomNav highlights
+   functions come later. **Wazifa & Durood is a hub**
+   (`WazifaDuroodView` at `/wazifa-durood`): three Bengali-only cards
+   (morning/evening ma'mulat, Durood compilation, Isme-A'zam — `wd*`
+   keys identical in both languages so nothing translates), each with its
+   own coming-soon sub-page. Sidebar has a More item too; BottomNav highlights
    More on any hub page (`MORE_PATHS`, incl. `/mission`).
    **Mission (`/mission`, from the Family mission card).** `MissionView`
    renders the owner-provided mission text verbatim (`lib/mission.ts` —
